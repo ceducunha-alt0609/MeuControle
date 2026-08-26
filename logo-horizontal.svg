@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 280">
+<rect width="280" height="280" rx="64" fill="#164F78"/>
+<g transform="translate(28 23) scale(.44)">
+  <rect x="96" y="112" width="320" height="284" rx="44" fill="#FFFFFF"/>
+  <rect x="96" y="112" width="320" height="74" rx="44" fill="#F3F8FC"/>
+  <rect x="150" y="72" width="34" height="92" rx="17" fill="#103C5C" stroke="#FFFFFF" stroke-width="8"/>
+  <rect x="328" y="72" width="34" height="92" rx="17" fill="#103C5C" stroke="#FFFFFF" stroke-width="8"/>
+  <g fill="none" stroke="#164F78" stroke-width="20" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M150 236l18 18 34-42"/><path d="M150 296l18 18 34-42"/><path d="M150 356l18 18 34-42"/>
+  </g>
+  <g stroke="#8FA5B4" stroke-width="15" stroke-linecap="round"><path d="M236 236h104"/><path d="M236 296h86"/><path d="M236 356h76"/></g>
+  <circle cx="382" cy="382" r="82" fill="#1E88C8" stroke="#FFFFFF" stroke-width="14"/>
+  <path d="M344 382l25 25 52-62" fill="none" stroke="#FFFFFF" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+<text x="330" y="125" font-family="Merriweather, Georgia, serif" font-size="76" font-weight="700" fill="#103C5C">Meu</text>
+<text x="330" y="205" font-family="Merriweather, Georgia, serif" font-size="76" font-weight="700" fill="#1E88C8">Controle</text>
+<text x="334" y="246" font-family="Arial, sans-serif" font-size="20" letter-spacing="6" fill="#607D8B">ORGANIZE • PLANEJE • REALIZE</text>
+</svg>

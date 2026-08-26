@@ -1,0 +1,470 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#1f6f4a">
+  <title>Meu Controle V2</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-upper">
+      <div class="brand">
+        <img src="icons/icon-72.png" class="brand-icon" alt="">
+        <div><h1>Meu Controle</h1><p id="todayLabel"></p></div>
+      </div>
+
+      <section class="top-summary">
+        <button class="top-stat" data-jump="today"><span>Hoje</span><strong id="countToday">0</strong></button>
+        <button class="top-stat" data-jump="next"><span>Próx. 7 dias</span><strong id="countNext">0</strong></button>
+        <button class="top-stat" data-jump="late"><span>Vencidos</span><strong id="countLate">0</strong></button>
+        <button class="top-stat important-stat" id="importantStat"><span>★ Importantes</span><strong id="countImportant">0</strong></button>
+        <div class="top-stat money-stat"><span>Despesas pendentes</span><strong id="sumPending">R$ 0,00</strong></div>
+      </section>
+
+      <div class="top-actions">
+        <button id="printBtn" class="secondary">Imprimir</button>
+        <button id="notifyBtn" class="secondary">Ativar notificações</button>
+      </div>
+    </div>
+
+    <div class="topbar-lower">
+      <nav class="topnav">
+        <button class="nav-btn active" data-page="dashboard">Painel</button>
+        <button class="nav-btn" data-page="launches">Lançamentos</button>
+        <button class="nav-btn" data-page="calendar">Calendário</button>
+        <button class="nav-btn" data-page="settings">⚙ Configurações</button>
+      </nav>
+
+      <div class="profile-filter-wrap">
+        <span>Exibindo:</span>
+        <select id="profileFilter"></select>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section id="dashboardPage" class="page">
+      <section class="premium-dashboard">
+        <div class="dashboard-toolbar">
+          <div>
+            <h2>Painel</h2>
+            <p>Uma passada de olho para saber o que merece atenção.</p>
+          </div>
+          <div class="month-nav">
+            <button id="dashPrevMonth" class="ghost small">◀</button>
+            <strong id="dashMonthLabel"></strong>
+            <button id="dashNextMonth" class="ghost small">▶</button>
+          </div>
+        </div>
+
+        <div class="premium-cards">
+          <button class="premium-card today-card" data-dash="today">
+            <span class="premium-label">Hoje</span>
+            <strong id="dashTodayMain">0</strong>
+            <small id="dashTodaySub">nenhum item</small>
+          </button>
+
+          <button class="premium-card" data-dash="month">
+            <span class="premium-label">Previstos no mês</span>
+            <strong id="dashMonthMain">0</strong>
+            <small id="dashMonthSub">0 pendentes</small>
+          </button>
+
+          <button class="premium-card important-card" data-dash="important">
+            <span class="premium-label">★ Importantes</span>
+            <strong id="dashImportantMain">0</strong>
+            <small id="dashImportantSub">0 no total</small>
+          </button>
+
+          <button class="premium-card" data-dash="expenses">
+            <span class="premium-label">Despesas do mês</span>
+            <strong id="dashExpensesMain">R$ 0,00</strong>
+            <small id="dashExpensesSub">R$ 0,00 total pendente</small>
+          </button>
+
+          <button class="premium-card late-card" data-dash="late">
+            <span class="premium-label">⚠ Vencidos</span>
+            <strong id="dashLateMain">0</strong>
+            <small id="dashLateSub">R$ 0,00</small>
+          </button>
+        </div>
+
+        <div class="dashboard-hint">Clique em qualquer card para ver os detalhes.</div>
+      </section>
+    </section>
+
+    <section id="launchesPage" class="page hidden">
+      <section class="workspace" id="workspace">
+        <section class="panel form-panel" id="formPanel">
+          <div class="panel-head">
+            <div><h2>Novo lançamento</h2><p>Cadastre uma vez. O restante do app se organiza sozinho.</p></div>
+          </div>
+
+          <form id="entryForm" class="form-grid">
+            <label>
+              Perfil
+              <select id="profile"></select>
+            </label>
+
+            <label>
+              Tipo
+              <select id="type" required>
+                <option value="despesa">Despesa</option>
+                <option value="compromisso">Compromisso</option>
+                <option value="consulta">Consulta</option>
+                <option value="lembrete">Lembrete</option>
+              </select>
+            </label>
+
+            <label>
+              Categoria
+              <select id="category">
+                <option value="">Selecionar...</option>
+                <option>Casa</option>
+                <option>Condomínio</option>
+                <option>Saúde</option>
+                <option>Transporte</option>
+                <option>Alimentação</option>
+                <option>Telefone / Internet</option>
+                <option>Banco / Cartão</option>
+                <option>Impostos / Taxas</option>
+                <option>Compras</option>
+                <option>Família</option>
+                <option>Trabalho</option>
+                <option>Lazer</option>
+                <option>Outros</option>
+              </select>
+            </label>
+
+            <label>
+              Valor
+              <input id="value" type="number" min="0" step="0.01" placeholder="0,00">
+            </label>
+
+            <label class="span-2">
+              Descrição
+              <input id="description" required placeholder="Ex.: Internet, Consulta, COMGÁS...">
+            </label>
+
+            <label>
+              Data
+              <input id="date" type="date" required>
+            </label>
+
+            <label>
+              Hora
+              <input id="time" type="time">
+            </label>
+
+            <label class="businessday-toggle span-2">
+              <input id="useBusinessDay" type="checkbox">
+              <span>Considerar próximo dia útil quando cair em sábado, domingo ou feriado</span>
+            </label>
+
+            <div id="businessDayInfo" class="businessday-info span-2 hidden"></div>
+
+            <label>
+              Recorrência
+              <select id="recurrence">
+                <option value="none">Não repetir</option>
+                <option value="daily">Diário</option>
+                <option value="weekly">Semanal</option>
+                <option value="monthly">Mensal</option>
+                <option value="semiannual">Semestral</option>
+                <option value="yearly">Anual</option>
+              </select>
+            </label>
+
+            <label>
+              Avisar antes
+              <select id="remind">
+                <option value="0">No dia</option>
+                <option value="1">1 dia antes</option>
+                <option value="3">3 dias antes</option>
+                <option value="7">7 dias antes</option>
+              </select>
+            </label>
+
+            <div id="recurrenceOptions" class="recurrence-options span-2 hidden">
+              <label>
+                Repetir até
+                <input id="repeatUntil" type="date">
+              </label>
+              <label>
+                Valor recorrente
+                <select id="recurringValueMode">
+                  <option value="fixed">Fixo — repetir o mesmo valor</option>
+                  <option value="variable">Variável — próximos valores em branco</option>
+                </select>
+              </label>
+            </div>
+
+            <label class="important-toggle span-2">
+              <input id="important" type="checkbox">
+              <span>☆ Marcar como importante</span>
+            </label>
+
+            <label class="span-2">
+              Observações
+              <textarea id="notes" rows="3" placeholder="Opcional"></textarea>
+            </label>
+
+            <div class="actions span-2">
+              <button type="submit" id="saveBtn">Salvar lançamento</button>
+              <button type="button" id="clearBtn" class="ghost">Limpar</button>
+              <button type="button" id="cancelEditBtn" class="ghost hidden">Cancelar edição</button>
+            </div>
+          </form>
+        </section>
+
+        <div class="splitter" id="splitter" title="Arraste para ajustar a largura"></div>
+
+        <section class="panel list-panel">
+          <div class="list-top">
+            <div>
+              <h2>Lançamentos</h2>
+              <p>Pesquisa global, filtros e gestão dos registros.</p>
+            </div>
+            <div class="search-wrap">
+              <span>⌕</span>
+              <input id="globalSearch" type="search" placeholder="Pesquisa global...">
+            </div>
+          </div>
+
+          <div class="tabs">
+            <button class="tab active" data-filter="all">Todos</button>
+            <button class="tab" data-filter="today">Hoje</button>
+            <button class="tab" data-filter="next">Próximos</button>
+            <button class="tab" data-filter="late">Vencidos</button>
+            <button class="tab" data-filter="done">Concluídos</button>
+          </div>
+
+          <div class="list-scroll">
+            <div id="emptyState" class="empty">Nenhum lançamento ainda.</div>
+            <div id="list" class="list"></div>
+          </div>
+        </section>
+      </section>
+    </section>
+
+    <section id="calendarPage" class="page hidden">
+      <section class="calendar-shell">
+        <div class="calendar-head">
+          <div><h2>Calendário</h2><p>Escolha um mês para ver o que está previsto.</p></div>
+          <div class="calendar-year-nav">
+            <button id="calendarPrevYear" class="ghost small">◀</button>
+            <strong id="calendarYearLabel"></strong>
+            <button id="calendarNextYear" class="ghost small">▶</button>
+          </div>
+        </div>
+
+        <div class="calendar-layout">
+          <aside class="calendar-months" id="calendarMonths"></aside>
+
+          <section class="calendar-events-panel">
+            <div class="calendar-events-head">
+              <div>
+                <h3 id="calendarMonthTitle"></h3>
+                <p id="calendarMonthSummary"></p>
+              </div>
+              <div class="search-wrap calendar-search">
+                <span>⌕</span>
+                <input id="calendarSearch" type="search" placeholder="Pesquisar neste mês...">
+              </div>
+            </div>
+            <div class="calendar-events-scroll">
+              <div id="calendarEmpty" class="empty">Nenhum lançamento neste mês.</div>
+              <div id="calendarEventsList" class="list"></div>
+            </div>
+          </section>
+        </div>
+      </section>
+    </section>
+
+    <section id="settingsPage" class="page hidden settings-page">
+      <div class="settings-shell">
+        <div class="settings-title">
+          <h2>⚙ Configurações</h2>
+          <p>Dados, perfis e preferências do Meu Controle.</p>
+        </div>
+
+        <div class="settings-grid">
+          <article class="settings-card">
+            <h3>Dados e segurança</h3>
+            <p>Exporte tudo para um arquivo e restaure quando precisar.</p>
+            <div class="settings-actions">
+              <button id="exportBackupBtn">Exportar backup</button>
+              <button id="importBackupBtn" class="secondary">Restaurar backup</button>
+              <input id="backupFileInput" type="file" accept=".json,application/json" hidden>
+            </div>
+            <div class="backup-status"><span>Último backup</span><strong id="lastBackupLabel">Ainda não realizado</strong></div>
+            <div class="auto-backup-box">
+              <div class="auto-backup-head">
+                <div>
+                  <strong>Backup automático</strong>
+                  <span id="autoBackupState">Ativo ✓</span>
+                </div>
+                <button id="viewAutoBackupsBtn" type="button" class="ghost small">Ver backups automáticos</button>
+              </div>
+              <div class="backup-status"><span>Última cópia automática</span><strong id="lastAutoBackupLabel">Ainda não realizada</strong></div>
+            </div>
+          </article>
+
+          <article class="settings-card install-card">
+            <h3>Aplicativo</h3>
+            <p>Instale o Meu Controle no computador para abrir em uma janela própria, como um programa.</p>
+            <div class="install-status">
+              <img src="icons/icon-96.png" alt="">
+              <div>
+                <strong id="installStatusTitle">Verificando instalação...</strong>
+                <span id="installStatusText">Aguarde um instante.</span>
+              </div>
+            </div>
+            <button id="installAppBtn" type="button">Instalar Meu Controle</button>
+            <div class="install-help">No GitHub Pages/HTTPS, o botão será habilitado quando o navegador oferecer a instalação.</div>
+          </article>
+
+          <article class="settings-card">
+            <h3>Perfis</h3>
+            <p>Gerencie Pessoal, Condomínio, Escolinha e outros perfis.</p>
+            <div id="profilesList" class="profiles-list"></div>
+            <div class="profile-create">
+              <input id="newProfileName" maxlength="30" placeholder="Novo perfil">
+              <button id="addProfileBtn">Adicionar</button>
+            </div>
+          </article>
+
+          <article class="settings-card">
+            <h3>Aparência</h3>
+            <p>Escolha a identidade visual do Meu Controle. As alterações são aplicadas na hora.</p>
+
+            <div class="appearance-group">
+              <span class="appearance-label">Fonte</span>
+              <div class="choice-row">
+                <button type="button" class="appearance-choice" data-font="system">Sistema</button>
+                <button type="button" class="appearance-choice" data-font="merriweather">Merriweather</button>
+              </div>
+            </div>
+
+            <div class="appearance-group">
+              <span class="appearance-label">Tema</span>
+              <div class="theme-grid">
+                <button type="button" class="theme-choice" data-theme="blue">
+                  <span class="theme-swatch swatch-blue"></span>
+                  <span><strong>Azul Premium</strong><small>Elegante e sóbrio</small></span>
+                </button>
+                <button type="button" class="theme-choice" data-theme="green">
+                  <span class="theme-swatch swatch-green"></span>
+                  <span><strong>Verde Clássico</strong><small>Visual original</small></span>
+                </button>
+                <button type="button" class="theme-choice" data-theme="graphite">
+                  <span class="theme-swatch swatch-graphite"></span>
+                  <span><strong>Grafite</strong><small>Neutro e discreto</small></span>
+                </button>
+              </div>
+            </div>
+
+            <button id="resetAppearanceBtn" type="button" class="ghost small">Restaurar aparência padrão</button>
+          </article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="dashboardDetailModal" class="modal-backdrop hidden">
+    <div class="modal-card dashboard-detail-card">
+      <div class="modal-head">
+        <div>
+          <h2 id="dashboardDetailTitle"></h2>
+          <p id="dashboardDetailSubtitle"></p>
+        </div>
+        <button id="closeDashboardDetail" class="ghost small">Fechar</button>
+      </div>
+      <div id="dashboardDetailList" class="modal-list"></div>
+    </div>
+  </div>
+
+  <div id="importantModal" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <div class="modal-head">
+        <div><h2>★ Importantes</h2><p>Itens pendentes marcados como importantes.</p></div>
+        <button id="closeImportantModal" class="ghost small">Fechar</button>
+      </div>
+      <div id="importantList" class="modal-list"></div>
+    </div>
+  </div>
+
+  <div id="printModal" class="modal-backdrop hidden">
+    <div class="modal-card print-options-card">
+      <div class="modal-head">
+        <div><h2>Imprimir</h2><p>Escolha o perfil e o período.</p></div>
+        <button id="closePrintModal" class="ghost small">Fechar</button>
+      </div>
+      <label class="print-profile-label">
+        Perfil da impressão
+        <select id="printProfileFilter"></select>
+      </label>
+      <div class="print-options">
+        <button class="print-choice" data-print="today">Hoje</button>
+        <button class="print-choice" data-print="week">Próximos 7 dias</button>
+        <button class="print-choice" data-print="month">Mês atual</button>
+        <button class="print-choice" data-print="pending">Todos os pendentes</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="autoBackupModal" class="modal-backdrop hidden">
+    <div class="modal-card auto-backup-modal-card">
+      <div class="modal-head">
+        <div>
+          <h2>Backups automáticos</h2>
+          <p>O Meu Controle guarda até 10 estados anteriores neste navegador.</p>
+        </div>
+        <button id="closeAutoBackupModal" class="ghost small">Fechar</button>
+      </div>
+      <div id="autoBackupList" class="modal-list"></div>
+    </div>
+  </div>
+
+  <div id="restoreModal" class="modal-backdrop hidden">
+    <div class="modal-card restore-card">
+      <div class="modal-head">
+        <div><h2>Restaurar backup</h2><p>Confira o arquivo antes de substituir os dados atuais.</p></div>
+        <button id="closeRestoreModal" class="ghost small">Cancelar</button>
+      </div>
+      <div id="restoreSummary" class="restore-summary"></div>
+      <div class="restore-warning">A restauração substituirá os dados atuais deste navegador.</div>
+      <div class="restore-actions"><button id="confirmRestoreBtn">Confirmar restauração</button></div>
+    </div>
+  </div>
+
+  <template id="itemTemplate">
+    <article class="item">
+      <div class="status-dot"></div>
+      <div class="item-main">
+        <div class="item-title-row">
+          <h3 class="item-title"></h3>
+          <span class="badge"></span>
+        </div>
+        <div class="meta"></div>
+        <div class="notes"></div>
+      </div>
+      <div class="item-side">
+        <strong class="amount"></strong>
+        <div class="item-actions">
+          <button class="editBtn small secondary-action">Editar</button>
+          <button class="doneBtn small">Concluir</button>
+          <button class="deleteBtn small danger">Excluir</button>
+        </div>
+      </div>
+    </article>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>
