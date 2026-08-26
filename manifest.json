@@ -1,10 +1,10 @@
 {
-  "id": "./",
+  "id": "/MeuControle/",
   "name": "Meu Controle",
   "short_name": "Meu Controle",
   "description": "Agenda pessoal e controle de compromissos, despesas e lembretes.",
-  "start_url": "./",
-  "scope": "./",
+  "start_url": "/MeuControle/",
+  "scope": "/MeuControle/",
   "display": "standalone",
   "background_color": "#F3F6F8",
   "theme_color": "#164F78",
