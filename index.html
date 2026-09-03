@@ -9,6 +9,18 @@
   <link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="stylesheet" href="style.css">
+  <style>
+    /* V2.2 - refinamento da topbar */
+    .top-actions[hidden]{display:none!important}
+    @media(max-width:700px){
+      .top-summary{display:none!important}
+      .topbar-upper{min-height:68px;grid-template-columns:1fr;padding-top:9px;padding-bottom:9px}
+      .brand h1{font-size:22px}
+      .brand p{font-size:11px}
+      .profile-filter-wrap span{display:none}
+      .profile-filter-wrap select{min-width:0;width:100%}
+    }
+  </style>
 </head>
 <body>
   <header class="topbar">
@@ -26,7 +38,7 @@
         <div class="top-stat money-stat"><span>Despesas pendentes</span><strong id="sumPending">R$ 0,00</strong></div>
       </section>
 
-      <div class="top-actions">
+      <div class="top-actions" hidden>
         <button id="printBtn" class="secondary">Imprimir</button>
         <button id="notifyBtn" class="secondary">Ativar notificações</button>
       </div>
@@ -42,7 +54,7 @@
 
       <div class="profile-filter-wrap">
         <span>Exibindo:</span>
-        <select id="profileFilter"></select>
+        <select id="profileFilter" aria-label="Perfil exibido"></select>
       </div>
     </div>
   </header>
