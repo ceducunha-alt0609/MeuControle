@@ -12,11 +12,13 @@
   <style>
     /* V2.2 - refinamento da topbar */
     .top-actions[hidden]{display:none!important}
+    .topbar{position:sticky;top:0;z-index:900}
     @media(max-width:700px){
       .top-summary{display:none!important}
-      .topbar-upper{min-height:68px;grid-template-columns:1fr;padding-top:9px;padding-bottom:9px}
+      .topbar-upper{min-height:72px;grid-template-columns:1fr;padding:11px 16px 14px}
       .brand h1{font-size:22px}
       .brand p{font-size:11px}
+      .topbar-lower{margin-top:8px;padding-top:7px;border-top:1px solid rgba(255,255,255,.16)}
       .profile-filter-wrap span{display:none}
       .profile-filter-wrap select{min-width:0;width:100%}
     }
