@@ -20,9 +20,9 @@
       #launchesPage.mobile-launch-form .splitter,
       #launchesPage.mobile-launch-list .splitter{display:none!important}
       #launchesPage.mobile-launch-form .form-panel,
-      #launchesPage.mobile-launch-list .list-panel{display:flex!important;width:100%!important;height:auto!important;min-height:0!important}
+      #launchesPage.mobile-launch-list .list-panel{width:100%!important;height:auto!important;min-height:0!important}
       #launchesPage.mobile-launch-form .form-panel{display:block!important;overflow:visible!important}
-      #launchesPage.mobile-launch-list .list-panel{min-height:520px!important}
+      #launchesPage.mobile-launch-list .list-panel{display:flex!important;min-height:520px!important}
       .mobile-launch-home{display:block;padding:2px 0 18px}
       #launchesPage.mobile-launch-form .mobile-launch-home,
       #launchesPage.mobile-launch-list .mobile-launch-home{display:none!important}
@@ -76,7 +76,10 @@
     clearMode();page.classList.add(mode==='list'?'mobile-launch-list':'mobile-launch-form');
     window.scrollTo({top:0,behavior:'smooth'});
   }
-  home.querySelector('[data-mobile-launch="form"]').onclick=()=>{if(typeof resetForm==='function')resetForm();openMode('form')};
+  home.querySelector('[data-mobile-launch="form"]').onclick=()=>{
+    document.getElementById('clearBtn')?.click();
+    openMode('form');
+  };
   home.querySelector('[data-mobile-launch="list"]').onclick=()=>openMode('list');
 
   const originalShowPage=window.showPage;
@@ -84,7 +87,7 @@
     window.showPage=function(target){
       originalShowPage(target);
       if(target==='launches'&&mq.matches){
-        if(window.editingId)openMode('form');else openHome();
+        if(formPanel.classList.contains('editing'))openMode('form');else openHome();
       }
     };
   }
