@@ -81,6 +81,22 @@
       #launchesPage.mobile-launch-list .tabs .tab:nth-child(3){grid-column:span 2!important}
       #launchesPage.mobile-launch-list .tabs .tab:nth-child(4),
       #launchesPage.mobile-launch-list .tabs .tab:nth-child(5){grid-column:span 3!important}
+
+      /* Status mobile: ponto só chama atenção quando existe urgência. */
+      #launchesPage.mobile-launch-list .item .status-dot{visibility:hidden!important}
+      #launchesPage.mobile-launch-list .item.today .status-dot,
+      #launchesPage.mobile-launch-list .item.late .status-dot{visibility:visible!important;animation:mobileStatusPulse 1.7s ease-in-out infinite!important}
+      #launchesPage.mobile-launch-list .item.today .status-dot{background:#d27a00!important;box-shadow:0 0 0 0 rgba(210,122,0,.42)}
+      #launchesPage.mobile-launch-list .item.late .status-dot{background:#b53d3d!important;box-shadow:0 0 0 0 rgba(181,61,61,.42)}
+      #launchesPage.mobile-launch-list .item.done .status-dot{visibility:hidden!important;animation:none!important}
+    }
+    @keyframes mobileStatusPulse{
+      0%,100%{transform:scale(1);box-shadow:0 0 0 0 currentColor}
+      50%{transform:scale(1.12);box-shadow:0 0 0 6px transparent}
+    }
+    @media(max-width:700px) and (prefers-reduced-motion:reduce){
+      #launchesPage.mobile-launch-list .item.today .status-dot,
+      #launchesPage.mobile-launch-list .item.late .status-dot{animation:none!important}
     }
   `;
   document.head.appendChild(style);
