@@ -66,7 +66,11 @@
       #entryForm .businessday-toggle{grid-column:1/-1!important}
       #entryForm .recurrence-options{grid-column:1/-1!important}
       #entryForm .mobile-notes{grid-column:1/-1!important}
+      #entryForm .mobile-notes textarea{min-height:76px!important;height:76px!important}
       #entryForm .mobile-actions{grid-column:1/-1!important}
+
+      /* O seletor de hora é nativo do Android. Mantemos o campo alinhado e evitamos largura excedente. */
+      #entryForm input[type="time"]{width:100%!important;min-width:0!important;box-sizing:border-box!important}
     }
   `;
   document.head.appendChild(style);
