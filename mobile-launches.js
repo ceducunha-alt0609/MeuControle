@@ -1,4 +1,4 @@
-/* MeuControle — central mobile de lançamentos */
+/* MeuControle — refinamentos mobile */
 (function(){
   const mq=window.matchMedia('(max-width:700px)');
   const page=document.getElementById('launchesPage');
@@ -9,8 +9,10 @@
 
   const style=document.createElement('style');
   style.textContent=`
-    .mobile-launch-home{display:none}
+    .mobile-launch-home,.mobile-profile-card{display:none}
     @media(max-width:700px){
+      .topbar-lower{padding:0!important;margin:0!important;background:transparent!important}
+      .profile-filter-wrap{display:none!important}
       #launchesPage{height:auto!important;min-height:calc(100vh - 190px)}
       #launchesPage .workspace{display:none!important}
       #launchesPage.mobile-launch-form .workspace,
@@ -38,9 +40,37 @@
       .mobile-launch-arrow{font-family:system-ui,sans-serif;font-size:25px;color:#9aa6a0;text-align:right}
       .mobile-launch-back{display:flex!important;align-items:center;gap:7px;width:max-content;margin:0 0 10px;padding:7px 10px;background:transparent!important;color:var(--primary)!important;font-size:13px}
       #launchesPage .panel{border-radius:15px;padding:16px}
+      .mobile-profile-card{display:block!important;order:-1}
+      .mobile-profile-card label{font-size:13px;font-weight:800;color:#4c5c52}
+      .mobile-profile-card select{height:48px;margin-top:9px;font-size:16px}
+      .mobile-profile-current{margin-top:9px!important;margin-bottom:0!important;font-size:12px!important;color:#718078!important}
     }
   `;
   document.head.appendChild(style);
+
+  /* Perfil global: no mobile sai do cabeçalho e passa para Configurações. */
+  const settingsGrid=document.querySelector('#settingsPage .settings-grid');
+  const sourceProfile=document.getElementById('profileFilter');
+  if(settingsGrid&&sourceProfile){
+    const profileCard=document.createElement('article');
+    profileCard.className='settings-card mobile-profile-card';
+    profileCard.innerHTML=`<h3>Perfil em uso</h3><p>Escolha quais lançamentos deseja visualizar no aplicativo.</p><label>Exibir<select id="mobileProfileFilter" aria-label="Perfil em uso"></select></label><p class="mobile-profile-current">A escolha vale para Visão geral, consultas e Agenda.</p>`;
+    settingsGrid.insertBefore(profileCard,settingsGrid.firstChild);
+    const mobileSelect=profileCard.querySelector('#mobileProfileFilter');
+    const syncMobileProfile=()=>{
+      mobileSelect.innerHTML=sourceProfile.innerHTML;
+      mobileSelect.value=sourceProfile.value;
+    };
+    syncMobileProfile();
+    mobileSelect.onchange=()=>{
+      sourceProfile.value=mobileSelect.value;
+      sourceProfile.dispatchEvent(new Event('change',{bubbles:true}));
+      syncMobileProfile();
+    };
+    sourceProfile.addEventListener('change',syncMobileProfile);
+    const observer=new MutationObserver(syncMobileProfile);
+    observer.observe(sourceProfile,{childList:true,subtree:true});
+  }
 
   const home=document.createElement('section');
   home.className='mobile-launch-home';
