@@ -44,6 +44,28 @@
       .mobile-profile-card label{font-size:13px;font-weight:800;color:#4c5c52}
       .mobile-profile-card select{height:48px;margin-top:9px;font-size:16px}
       .mobile-profile-current{margin-top:9px!important;margin-bottom:0!important;font-size:12px!important;color:#718078!important}
+
+      /* Formulário mobile: pares compactos e ordem operacional. */
+      #entryForm{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:12px 10px!important}
+      #entryForm>label,.mobile-form-pair{min-width:0}
+      #entryForm .span-2{grid-column:1/-1!important}
+      #entryForm .mobile-profile-important{grid-column:1/-1!important;display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;gap:10px!important;align-items:end!important}
+      #entryForm .mobile-profile-important .important-toggle{height:48px!important;align-self:end!important;padding:0 10px!important;border:1px solid #dfe6e1!important;border-radius:10px!important;background:#f8faf9!important;white-space:nowrap!important}
+      #entryForm .mobile-profile-important .important-toggle span{font-size:13px!important}
+      #entryForm .mobile-profile-important .important-toggle span{font-size:0!important}
+      #entryForm .mobile-profile-important .important-toggle span::after{content:"☆ Importante";font-size:13px!important}
+      #entryForm .mobile-type{grid-column:1/2!important}
+      #entryForm .mobile-category{grid-column:2/3!important}
+      #entryForm .mobile-category select{font-size:14px!important}
+      #entryForm .mobile-date{grid-column:1/2!important}
+      #entryForm .mobile-time{grid-column:2/3!important}
+      #entryForm .mobile-recurrence{grid-column:1/2!important}
+      #entryForm .mobile-remind{grid-column:2/3!important}
+      #entryForm .mobile-value,#entryForm .mobile-description{grid-column:1/-1!important}
+      #entryForm .businessday-toggle{grid-column:1/-1!important}
+      #entryForm .recurrence-options{grid-column:1/-1!important}
+      #entryForm .mobile-notes{grid-column:1/-1!important}
+      #entryForm .mobile-actions{grid-column:1/-1!important}
     }
   `;
   document.head.appendChild(style);
@@ -90,6 +112,19 @@
       </button>
     </div>`;
   page.insertBefore(home,workspace);
+
+  /* Reorganiza somente a apresentação mobile do formulário; ids e lógica permanecem intactos. */
+  const form=document.getElementById('entryForm');
+  if(form){
+    const labelOf=id=>document.getElementById(id)?.closest('label');
+    const profile=labelOf('profile'),type=labelOf('type'),category=labelOf('category'),value=labelOf('value'),description=labelOf('description'),date=labelOf('date'),time=labelOf('time'),business=labelOf('useBusinessDay'),businessInfo=document.getElementById('businessDayInfo'),recurrence=labelOf('recurrence'),remind=labelOf('remind'),recurrenceOptions=document.getElementById('recurrenceOptions'),important=labelOf('important'),notes=labelOf('notes'),actions=form.querySelector('.actions');
+    if(profile&&type&&category&&value&&description&&date&&time&&business&&recurrence&&remind&&important&&notes&&actions){
+      profile.classList.add('mobile-profile');type.classList.add('mobile-type');category.classList.add('mobile-category');value.classList.add('mobile-value');description.classList.add('mobile-description');date.classList.add('mobile-date');time.classList.add('mobile-time');recurrence.classList.add('mobile-recurrence');remind.classList.add('mobile-remind');notes.classList.add('mobile-notes');actions.classList.add('mobile-actions');
+      const profileImportant=document.createElement('div');profileImportant.className='mobile-profile-important';
+      profile.before(profileImportant);profileImportant.append(profile,important);
+      [type,category,date,time,value,description,business,businessInfo,recurrence,remind,recurrenceOptions,notes,actions].forEach(el=>el&&form.appendChild(el));
+    }
+  }
 
   function makeBack(){
     const b=document.createElement('button');
