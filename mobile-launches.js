@@ -29,7 +29,8 @@
       .mobile-launch-title{margin:4px 0 5px;font-size:25px}
       .mobile-launch-subtitle{margin:0 0 16px;color:#6d7a72;font-size:13px;line-height:1.45}
       .mobile-launch-actions{display:grid;grid-template-columns:1fr;gap:12px}
-      .mobile-launch-card{min-height:132px;width:100%;padding:18px;border-radius:17px;background:#fff;color:var(--text);border:1px solid #dfe6e1;box-shadow:0 6px 18px rgba(0,0,0,.05);display:grid;grid-template-columns:52px 1fr 24px;gap:14px;align-items:center;text-align:left}
+      .mobile-launch-card{position:relative;overflow:hidden;min-height:132px;width:100%;padding:18px;border-radius:17px;background:#fff;color:var(--text);border:1px solid #dfe6e1;box-shadow:0 6px 18px rgba(0,0,0,.05);display:grid;grid-template-columns:52px 1fr 24px;gap:14px;align-items:center;text-align:left}
+      .mobile-launch-card[data-mobile-launch="form"]::before{content:"";position:absolute;left:0;top:15px;bottom:15px;width:4px;border-radius:0 4px 4px 0;background:var(--primary)}
       .mobile-launch-card:active{transform:scale(.99)}
       .mobile-launch-icon{width:52px;height:52px;border-radius:15px;background:var(--primary-soft);color:var(--primary);display:flex;align-items:center;justify-content:center;font-family:system-ui,sans-serif;font-size:29px;font-weight:800}
       .mobile-launch-card strong{display:block;font-size:19px;color:#24352c}
