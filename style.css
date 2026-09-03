@@ -267,3 +267,24 @@ body.theme-graphite{
   }
   .container{padding-bottom:20px!important}
 }
+
+/* V2.2.3 — painel mobile compacto: Hoje + grade 2x2 */
+@media(max-width:650px){
+  .premium-cards{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:9px!important;
+  }
+  .premium-card{
+    min-height:82px!important;
+    padding:10px 12px!important;
+    border-radius:13px!important;
+  }
+  .premium-card.today-card{
+    grid-column:1/-1;
+    min-height:76px!important;
+  }
+  .premium-card .premium-label{font-size:11px!important}
+  .premium-card strong{margin-top:4px!important;font-size:22px!important}
+  .premium-card small{margin-top:4px!important;font-size:10px!important}
+  .dashboard-hint{margin-top:8px!important}
+}
