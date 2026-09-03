@@ -1,4 +1,4 @@
-const CACHE='meu-controle-v2-7';
+const CACHE='meu-controle-v2-8';
 const ASSETS=[
   './','./index.html','./style.css','./app.js','./manifest.json',
   './favicon.png','./apple-touch-icon.png','./app-icon.svg','./logo-horizontal.svg',
@@ -37,6 +37,7 @@ async function htmlWithMerriweather(request){
     }
     const headers=new Headers(response.headers);
     headers.set('content-type','text/html; charset=utf-8');
+    headers.set('cache-control','no-store');
     return new Response(html,{status:response.status,statusText:response.statusText,headers});
   }catch{
     return caches.match('./index.html');
