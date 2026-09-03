@@ -49,9 +49,10 @@
       #entryForm{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:12px 10px!important}
       #entryForm>label,.mobile-form-pair{min-width:0}
       #entryForm .span-2{grid-column:1/-1!important}
-      #entryForm .mobile-profile-important{grid-column:1/-1!important;display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;gap:10px!important;align-items:end!important}
-      #entryForm .mobile-profile-important .important-toggle{height:48px!important;align-self:end!important;padding:0 10px!important;border:1px solid #dfe6e1!important;border-radius:10px!important;background:#f8faf9!important;white-space:nowrap!important}
-      #entryForm .mobile-profile-important .important-toggle span{font-size:13px!important}
+      #entryForm .mobile-profile-important{grid-column:1/-1!important;display:grid!important;grid-template-columns:minmax(0,1fr) 150px!important;gap:10px!important;align-items:end!important}
+      #entryForm .mobile-profile-important .mobile-profile{grid-column:auto!important;min-width:0!important}
+      #entryForm .mobile-profile-important .important-toggle{grid-column:auto!important;width:150px!important;height:48px!important;align-self:end!important;margin:0!important;padding:0 9px!important;border:1px solid #dfe6e1!important;border-radius:10px!important;background:#f8faf9!important;white-space:nowrap!important;display:flex!important;align-items:center!important;gap:7px!important}
+      #entryForm .mobile-profile-important .important-toggle input{flex:0 0 auto!important}
       #entryForm .mobile-profile-important .important-toggle span{font-size:0!important}
       #entryForm .mobile-profile-important .important-toggle span::after{content:"☆ Importante";font-size:13px!important}
       #entryForm .mobile-type{grid-column:1/2!important}
