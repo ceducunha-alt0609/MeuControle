@@ -272,19 +272,31 @@ body.theme-graphite{
 @media(max-width:650px){
   .premium-cards{
     grid-template-columns:repeat(2,minmax(0,1fr))!important;
-    gap:9px!important;
+    gap:10px!important;
   }
   .premium-card{
-    min-height:82px!important;
-    padding:10px 12px!important;
-    border-radius:13px!important;
+    min-height:98px!important;
+    padding:12px 14px!important;
+    border-radius:14px!important;
   }
   .premium-card.today-card{
     grid-column:1/-1;
-    min-height:76px!important;
+    min-height:92px!important;
   }
-  .premium-card .premium-label{font-size:11px!important}
-  .premium-card strong{margin-top:4px!important;font-size:22px!important}
-  .premium-card small{margin-top:4px!important;font-size:10px!important}
-  .dashboard-hint{margin-top:8px!important}
+  .premium-card .premium-label{font-size:12px!important}
+  .premium-card strong{margin-top:5px!important;font-size:25px!important}
+  .premium-card small{margin-top:5px!important;font-size:11px!important}
+  .dashboard-toolbar{gap:7px!important;margin-bottom:12px!important}
+  .dashboard-toolbar h2{font-size:0!important}
+  .dashboard-toolbar h2::after{content:"Visão geral";font-size:25px}
+  .dashboard-toolbar p{display:none!important}
+  .dashboard-hint{margin-top:9px!important}
+}
+
+/* V2.2.4 — topbar mobile com um pouco mais de presença */
+@media(max-width:700px){
+  .topbar-upper{min-height:84px!important;padding:15px 16px 17px!important}
+  .brand-icon{width:44px!important;height:44px!important;flex-basis:44px!important}
+  .brand h1{font-size:23px!important}
+  .brand p{font-size:11px!important}
 }
