@@ -68,9 +68,19 @@
       #entryForm .mobile-notes{grid-column:1/-1!important}
       #entryForm .mobile-notes textarea{min-height:76px!important;height:76px!important}
       #entryForm .mobile-actions{grid-column:1/-1!important}
-
-      /* O seletor de hora é nativo do Android. Mantemos o campo alinhado e evitamos largura excedente. */
       #entryForm input[type="time"]{width:100%!important;min-width:0!important;box-sizing:border-box!important}
+
+      /* Consulta: aproxima cabeçalho/busca e organiza filtros em 3 + 2. */
+      #launchesPage.mobile-launch-list .list-top{gap:0!important;margin-bottom:0!important}
+      #launchesPage.mobile-launch-list .list-top>div:first-child p{margin:4px 0 9px!important}
+      #launchesPage.mobile-launch-list .search-wrap{margin-top:0!important;margin-bottom:12px!important}
+      #launchesPage.mobile-launch-list .tabs{display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr))!important;gap:8px!important;margin:0 0 12px!important}
+      #launchesPage.mobile-launch-list .tabs .tab{width:100%!important;min-width:0!important;padding:10px 6px!important;white-space:nowrap!important}
+      #launchesPage.mobile-launch-list .tabs .tab:nth-child(1),
+      #launchesPage.mobile-launch-list .tabs .tab:nth-child(2),
+      #launchesPage.mobile-launch-list .tabs .tab:nth-child(3){grid-column:span 2!important}
+      #launchesPage.mobile-launch-list .tabs .tab:nth-child(4),
+      #launchesPage.mobile-launch-list .tabs .tab:nth-child(5){grid-column:span 3!important}
     }
   `;
   document.head.appendChild(style);
@@ -84,88 +94,38 @@
     profileCard.innerHTML=`<h3>Perfil em uso</h3><p>Escolha quais lançamentos deseja visualizar no aplicativo.</p><label>Exibir<select id="mobileProfileFilter" aria-label="Perfil em uso"></select></label><p class="mobile-profile-current">A escolha vale para Visão geral, consultas e Agenda.</p>`;
     settingsGrid.insertBefore(profileCard,settingsGrid.firstChild);
     const mobileSelect=profileCard.querySelector('#mobileProfileFilter');
-    const syncMobileProfile=()=>{
-      mobileSelect.innerHTML=sourceProfile.innerHTML;
-      mobileSelect.value=sourceProfile.value;
-    };
+    const syncMobileProfile=()=>{mobileSelect.innerHTML=sourceProfile.innerHTML;mobileSelect.value=sourceProfile.value;};
     syncMobileProfile();
-    mobileSelect.onchange=()=>{
-      sourceProfile.value=mobileSelect.value;
-      sourceProfile.dispatchEvent(new Event('change',{bubbles:true}));
-      syncMobileProfile();
-    };
+    mobileSelect.onchange=()=>{sourceProfile.value=mobileSelect.value;sourceProfile.dispatchEvent(new Event('change',{bubbles:true}));syncMobileProfile();};
     sourceProfile.addEventListener('change',syncMobileProfile);
-    const observer=new MutationObserver(syncMobileProfile);
-    observer.observe(sourceProfile,{childList:true,subtree:true});
+    new MutationObserver(syncMobileProfile).observe(sourceProfile,{childList:true,subtree:true});
   }
 
   const home=document.createElement('section');
   home.className='mobile-launch-home';
-  home.innerHTML=`
-    <h2 class="mobile-launch-title">Lançamentos</h2>
-    <p class="mobile-launch-subtitle">O que você quer fazer?</p>
-    <div class="mobile-launch-actions">
-      <button type="button" class="mobile-launch-card" data-mobile-launch="form">
-        <span class="mobile-launch-icon">＋</span>
-        <span><strong>Novo lançamento</strong><small>Registrar despesa, compromisso, consulta ou lembrete.</small></span>
-        <span class="mobile-launch-arrow">›</span>
-      </button>
-      <button type="button" class="mobile-launch-card" data-mobile-launch="list">
-        <span class="mobile-launch-icon">☰</span>
-        <span><strong>Consultar lançamentos</strong><small>Pesquisar, filtrar, editar, concluir ou excluir registros.</small></span>
-        <span class="mobile-launch-arrow">›</span>
-      </button>
-    </div>`;
+  home.innerHTML=`<h2 class="mobile-launch-title">Lançamentos</h2><p class="mobile-launch-subtitle">O que você quer fazer?</p><div class="mobile-launch-actions"><button type="button" class="mobile-launch-card" data-mobile-launch="form"><span class="mobile-launch-icon">＋</span><span><strong>Novo lançamento</strong><small>Registrar despesa, compromisso, consulta ou lembrete.</small></span><span class="mobile-launch-arrow">›</span></button><button type="button" class="mobile-launch-card" data-mobile-launch="list"><span class="mobile-launch-icon">☰</span><span><strong>Consultar lançamentos</strong><small>Pesquisar, filtrar, editar, concluir ou excluir registros.</small></span><span class="mobile-launch-arrow">›</span></button></div>`;
   page.insertBefore(home,workspace);
 
-  /* Reorganiza somente a apresentação mobile do formulário; ids e lógica permanecem intactos. */
   const form=document.getElementById('entryForm');
   if(form){
     const labelOf=id=>document.getElementById(id)?.closest('label');
     const profile=labelOf('profile'),type=labelOf('type'),category=labelOf('category'),value=labelOf('value'),description=labelOf('description'),date=labelOf('date'),time=labelOf('time'),business=labelOf('useBusinessDay'),businessInfo=document.getElementById('businessDayInfo'),recurrence=labelOf('recurrence'),remind=labelOf('remind'),recurrenceOptions=document.getElementById('recurrenceOptions'),important=labelOf('important'),notes=labelOf('notes'),actions=form.querySelector('.actions');
     if(profile&&type&&category&&value&&description&&date&&time&&business&&recurrence&&remind&&important&&notes&&actions){
       profile.classList.add('mobile-profile');type.classList.add('mobile-type');category.classList.add('mobile-category');value.classList.add('mobile-value');description.classList.add('mobile-description');date.classList.add('mobile-date');time.classList.add('mobile-time');recurrence.classList.add('mobile-recurrence');remind.classList.add('mobile-remind');notes.classList.add('mobile-notes');actions.classList.add('mobile-actions');
-      const profileImportant=document.createElement('div');profileImportant.className='mobile-profile-important';
-      profile.before(profileImportant);profileImportant.append(profile,important);
+      const profileImportant=document.createElement('div');profileImportant.className='mobile-profile-important';profile.before(profileImportant);profileImportant.append(profile,important);
       [type,category,date,time,value,description,business,businessInfo,recurrence,remind,recurrenceOptions,notes,actions].forEach(el=>el&&form.appendChild(el));
     }
   }
 
-  function makeBack(){
-    const b=document.createElement('button');
-    b.type='button';b.className='mobile-launch-back';b.innerHTML='‹ Voltar para Lançamentos';
-    b.onclick=()=>openHome();
-    return b;
-  }
-  formPanel.insertBefore(makeBack(),formPanel.firstChild);
-  listPanel.insertBefore(makeBack(),listPanel.firstChild);
-
+  function makeBack(){const b=document.createElement('button');b.type='button';b.className='mobile-launch-back';b.innerHTML='‹ Voltar para Lançamentos';b.onclick=()=>openHome();return b;}
+  formPanel.insertBefore(makeBack(),formPanel.firstChild);listPanel.insertBefore(makeBack(),listPanel.firstChild);
   function clearMode(){page.classList.remove('mobile-launch-form','mobile-launch-list')}
   function openHome(){if(!mq.matches)return;clearMode();window.scrollTo({top:0,behavior:'smooth'})}
-  function openMode(mode){
-    if(!mq.matches)return;
-    clearMode();page.classList.add(mode==='list'?'mobile-launch-list':'mobile-launch-form');
-    window.scrollTo({top:0,behavior:'smooth'});
-  }
-  home.querySelector('[data-mobile-launch="form"]').onclick=()=>{
-    document.getElementById('clearBtn')?.click();
-    openMode('form');
-  };
+  function openMode(mode){if(!mq.matches)return;clearMode();page.classList.add(mode==='list'?'mobile-launch-list':'mobile-launch-form');window.scrollTo({top:0,behavior:'smooth'});}
+  home.querySelector('[data-mobile-launch="form"]').onclick=()=>{document.getElementById('clearBtn')?.click();openMode('form');};
   home.querySelector('[data-mobile-launch="list"]').onclick=()=>openMode('list');
-
   const originalShowPage=window.showPage;
-  if(typeof originalShowPage==='function'){
-    window.showPage=function(target){
-      originalShowPage(target);
-      if(target==='launches'&&mq.matches){
-        if(formPanel.classList.contains('editing'))openMode('form');else openHome();
-      }
-    };
-  }
-
-  document.querySelectorAll('.nav-btn[data-page="launches"]').forEach(btn=>{
-    btn.addEventListener('click',()=>{if(mq.matches)setTimeout(openHome,0)});
-  });
-
+  if(typeof originalShowPage==='function'){window.showPage=function(target){originalShowPage(target);if(target==='launches'&&mq.matches){if(formPanel.classList.contains('editing'))openMode('form');else openHome();}};}
+  document.querySelectorAll('.nav-btn[data-page="launches"]').forEach(btn=>{btn.addEventListener('click',()=>{if(mq.matches)setTimeout(openHome,0)});});
   mq.addEventListener?.('change',()=>{if(!mq.matches)clearMode()});
 })();
