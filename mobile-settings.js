@@ -42,6 +42,21 @@
       .mobile-profile-choice::after{content:"";width:22px;height:22px;flex:0 0 22px;border:2px solid #c7d1cc;border-radius:50%;box-sizing:border-box}
       .mobile-profile-choice.active{background:var(--primary-soft);border-color:rgba(var(--primary-rgb),.35);color:var(--primary)}
       .mobile-profile-choice.active::after{content:"✓";display:flex;align-items:center;justify-content:center;border-color:var(--primary);background:var(--primary);color:#fff;font-family:system-ui,sans-serif;font-size:13px;font-weight:900}
+
+      /* Dados e segurança: ações equivalentes e backup automático mais compacto. */
+      #settingsPage .mobile-data-card .settings-actions{display:grid!important;grid-template-columns:1fr 1fr!important;gap:9px!important}
+      #settingsPage .mobile-data-card .settings-actions button{width:100%!important;min-width:0!important;min-height:48px!important;padding:10px 8px!important;font-size:14px!important;text-align:center!important}
+      #settingsPage .mobile-data-card #importBackupBtn{background:var(--primary-soft)!important;color:var(--primary)!important;border:1px solid rgba(var(--primary-rgb),.24)!important}
+      #settingsPage .mobile-data-card>.backup-status{margin-top:13px!important;padding-top:11px!important;font-size:11px!important}
+      #settingsPage .mobile-data-card .auto-backup-box{margin-top:12px!important;padding-top:12px!important}
+      #settingsPage .mobile-data-card .auto-backup-head{display:grid!important;grid-template-columns:1fr!important;gap:9px!important;align-items:stretch!important}
+      #settingsPage .mobile-data-card .auto-backup-head>div{display:flex!important;flex-direction:row!important;justify-content:space-between!important;align-items:center!important;gap:10px!important}
+      #settingsPage .mobile-data-card .auto-backup-head>div strong{font-size:17px!important}
+      #settingsPage .mobile-data-card #autoBackupState{font-size:11px!important;white-space:nowrap!important}
+      #settingsPage .mobile-data-card #viewAutoBackupsBtn{width:100%!important;min-height:44px!important;padding:9px 12px!important;font-size:13px!important;background:#eaf0ec!important;color:#31503e!important}
+      #settingsPage .mobile-data-card .auto-backup-box>.backup-status{margin-top:9px!important;padding-top:9px!important;font-size:11px!important}
+      #settingsPage .mobile-data-card .backup-status strong{text-align:right!important}
+
       .mobile-app-notifications{display:block!important;margin-top:16px;padding-top:15px;border-top:1px solid #e5ebe7}
       .mobile-app-notifications h4{margin:0 0 5px;font-size:16px}
       .mobile-app-notifications p{margin:0 0 10px!important;font-size:12px!important;color:#6d7a72!important}
@@ -72,6 +87,7 @@
       return kind==='data'?h.includes('dados e segurança'):kind==='app'?h==='aplicativo':kind==='profiles'?h==='perfis':kind==='appearance'?h==='aparência':false;
     });
   };
+  findCard('data')?.classList.add('mobile-data-card');
 
   function ensureBack(card){
     if(card.querySelector('.mobile-settings-back'))return;
