@@ -11,6 +11,7 @@
     const next={...readState(),...patch,updatedAt:new Date().toISOString()};
     try{localStorage.setItem(KEY,JSON.stringify(next))}catch{}
   }
+  function reveal(){document.documentElement.classList.remove('nav-restore-pending')}
   function visiblePage(){
     for(const p of validPages){
       const el=document.getElementById(p+'Page');
@@ -63,7 +64,6 @@
     writeState(patch);
   }
 
-  /* Salva a aba escolhida imediatamente, antes de qualquer recarga. */
   document.addEventListener('click',e=>{
     const nav=e.target.closest('.nav-btn[data-page]');
     if(nav&&validPages.has(nav.dataset.page)){
@@ -136,13 +136,15 @@
     restoreMonths(state);
     restoreDetails(state,page);
     window.scrollTo(0,0);
+    reveal();
   }
 
-  /* O app principal abre sempre no Painel; restauramos depois que todos os módulos terminarem. */
   window.addEventListener('load',()=>{
-    setTimeout(()=>{restore();restoring=false;saveContext();},250);
-    setTimeout(()=>{restore();saveContext();},700);
+    setTimeout(()=>{restore();restoring=false;saveContext();},120);
+    setTimeout(()=>{restore();saveContext();},450);
   });
+  /* Segurança: nunca deixa a interface escondida se algo externo falhar. */
+  setTimeout(reveal,1400);
   window.addEventListener('pagehide',()=>saveContext());
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')saveContext()});
 })();
