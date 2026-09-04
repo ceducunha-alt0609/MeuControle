@@ -63,6 +63,8 @@
       .mobile-notify-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
       .mobile-notify-state{font-size:12px;font-weight:700;color:#647269}
       .mobile-notify-row button{flex:0 0 auto}
+
+      #settingsPage #resetAppearanceBtn{padding:9px 12px!important;font-size:12px!important}
     }
   `;
   document.head.appendChild(style);
@@ -107,6 +109,10 @@
     ensureBack(card);card.classList.add('mobile-settings-active');page.classList.add('mobile-settings-detail');
     if(kind==='profile')ensureProfileChoices(card);
     if(kind==='app')ensureNotifications(card);
+    if(kind==='appearance'){
+      const reset=card.querySelector('#resetAppearanceBtn');
+      if(reset)reset.textContent='↺ Restaurar padrão';
+    }
     window.scrollTo({top:0,behavior:'smooth'});
   }
 
@@ -176,6 +182,8 @@
   if(mq.matches){
     title.querySelector('h2').textContent='Mais';
     title.querySelector('p').textContent='Configurações e preferências.';
+    const reset=document.getElementById('resetAppearanceBtn');
+    if(reset)reset.textContent='↺ Restaurar padrão';
   }
   syncSummaries();
 })();
