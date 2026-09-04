@@ -1,0 +1,41 @@
+/* MeuControle — V0.14: camada operacional simples sobre o motor V0.12 validado */
+(()=>{
+ if(window.__meuControleSyncOperationalV014Loaded)return;window.__meuControleSyncOperationalV014Loaded=true;
+ const VERSION='0.14';
+ const root=()=>document.querySelector('#settingsPage .firebase-sync-box');
+ let prepared=false;
+ function ensure(){
+  const r=root();if(!r)return null;
+  let box=r.querySelector('.sync-operational-v014');if(box)return box;
+  const st=document.createElement('style');st.textContent=`
+   .sync-operational-v014{margin:0 0 12px;padding:14px;border:1px solid #dfe8e4;border-radius:14px;background:#fff}
+   .sync-operational-head{display:flex;justify-content:space-between;gap:8px;align-items:center}.sync-operational-head h4{margin:0;font-size:14px}.sync-operational-pill{padding:4px 8px;border-radius:999px;background:#edf5fa;color:#164f78;font-size:9px;font-weight:800;white-space:nowrap}
+   .sync-operational-copy{margin:7px 0 12px!important;font-size:11px!important;line-height:1.45!important;color:#6e7973!important}.sync-operational-main{width:100%;min-height:44px}.sync-operational-status{margin-top:10px;padding:10px 11px;border-radius:10px;background:#f4f7f5;color:#526158;font-size:11px;line-height:1.45}.sync-operational-status.ok{background:#eef7f0;color:#386245}.sync-operational-status.warn{background:#fff5e8;color:#875d22}.sync-operational-status.info{background:#edf5fa;color:#164f78}
+   .sync-operational-tech{width:100%;margin-top:8px;padding:7px;background:transparent!important;color:#6d7a72!important;font-size:10px!important;min-height:30px!important}
+   .firebase-sync-box.sync-simple-mode>div:not(.sync-operational-v014){display:none!important}.firebase-sync-box.sync-simple-mode>.sync-operational-v014{display:block!important}
+   @media(max-width:700px){.sync-operational-v014{padding:15px;border-radius:15px}.sync-operational-head h4{font-size:18px}.sync-operational-copy{font-size:13px!important}.sync-operational-main{min-height:54px!important;font-size:17px!important}.sync-operational-status{font-size:12px}.sync-operational-tech{font-size:11px!important}}
+  `;document.head.appendChild(st);
+  box=document.createElement('div');box.className='sync-operational-v014';box.innerHTML=`<div class="sync-operational-head"><h4>Sincronização</h4><span class="sync-operational-pill">V${VERSION}</span></div><p class="sync-operational-copy">Mantém seus lançamentos iguais entre os aparelhos. Antes de qualquer alteração, o Meu Controle confere os dois lados e bloqueia a operação se encontrar conflito.</p><button type="button" class="secondary-action sync-operational-main">Verificar sincronização</button><div class="sync-operational-status info">Pronto para conferir. Nenhum dado será alterado nesta etapa.</div><button type="button" class="sync-operational-tech">Abrir área técnica</button>`;
+  r.insertBefore(box,r.firstChild);r.classList.add('sync-simple-mode');
+  box.querySelector('.sync-operational-main').onclick=mainAction;
+  box.querySelector('.sync-operational-tech').onclick=()=>{const simple=r.classList.toggle('sync-simple-mode');box.querySelector('.sync-operational-tech').textContent=simple?'Abrir área técnica':'Ocultar área técnica'};
+  return box;
+ }
+ function status(type,text){const e=ensure()?.querySelector('.sync-operational-status');if(e){e.className=`sync-operational-status ${type}`;e.textContent=text}}
+ function stats(){const b=document.querySelector('.sync-manual-v012'),cells=[...b?.querySelectorAll('.sync-manual-stat')||[]];const out={};cells.forEach(c=>{const label=(c.childNodes[0]?.textContent||'').trim(),n=Number(c.querySelector('b')?.textContent||0);if(label==='Enviar')out.send=n;if(label==='Receber')out.receive=n;if(label==='Já iguais')out.equal=n;if(label==='Conflitos')out.conflict=n});return out}
+ async function prepare(){const api=window.MeuControleSyncManualV012;if(!api)throw new Error('Motor de sincronização ainda não carregou. Aguarde um instante e tente novamente.');await api.preview();await new Promise(r=>setTimeout(r,80));const s=stats();if([s.send,s.receive,s.equal,s.conflict].some(v=>v===undefined))throw new Error('Não foi possível ler o resultado da conferência.');return s}
+ async function mainAction(){const box=ensure(),btn=box.querySelector('.sync-operational-main');btn.disabled=true;
+  try{
+   if(!prepared){btn.textContent='Conferindo...';status('info','Comparando este aparelho com a nuvem sem alterar nada...');const s=await prepare();
+    if(s.conflict){prepared=false;btn.textContent='Verificar novamente';status('warn',`${s.conflict} conflito${s.conflict===1?' precisa':'s precisam'} da sua decisão. A sincronização foi bloqueada e nenhum dado foi alterado.`);return}
+    if(!s.send&&!s.receive){prepared=false;btn.textContent='Tudo sincronizado ✓';status('ok',`Tudo certo. ${s.equal} lançamento${s.equal===1?' está':'s estão'} igual${s.equal===1?'':'is'} nos dois lados.`);return}
+    prepared=true;btn.textContent=`Sincronizar agora (${s.send+s.receive})`;status('ok',`Conferência concluída ✓ ${s.send?`Enviar ${s.send}`:''}${s.send&&s.receive?' · ':''}${s.receive?`Receber ${s.receive}`:''}. Toque novamente para confirmar.`);return
+   }
+   btn.textContent='Sincronizando...';status('info','Criando a cópia de segurança e executando o plano conferido...');await window.MeuControleSyncManualV012.execute();await new Promise(r=>setTimeout(r,120));const s=stats();prepared=false;
+   if(s.conflict){btn.textContent='Verificar novamente';status('warn',`${s.conflict} conflito(s) detectado(s). A operação foi interrompida.`)}else if(!s.send&&!s.receive){btn.textContent='Tudo sincronizado ✓';status('ok',`Sincronização concluída com segurança. ${s.equal} lançamento${s.equal===1?'':'s'} igual${s.equal===1?'':'is'} nos dois lados.`)}else{btn.textContent='Verificar novamente';status('info','A operação terminou. Faça uma nova conferência para validar o estado final.')}
+  }catch(e){prepared=false;btn.textContent='Tentar novamente';status('warn',e?.message||'Não foi possível concluir a sincronização.')}finally{btn.disabled=false}
+ }
+ window.addEventListener('meucontrole:sync-manual-v012-complete',()=>{prepared=false;setTimeout(()=>{const b=ensure();if(b){b.querySelector('.sync-operational-main').textContent='Tudo sincronizado ✓';status('ok','Sincronização concluída com segurança.')}} ,100)});
+ window.addEventListener('load',()=>setTimeout(ensure,1850));window.addEventListener('meucontrole:auth-changed',()=>setTimeout(ensure,500));document.addEventListener('click',e=>{if(e.target.closest('[data-settings-detail="data"]'))setTimeout(ensure,500)});
+ window.MeuControleSyncOperationalV014={version:VERSION,ensure};
+})();
