@@ -1,14 +1,15 @@
-const CACHE='meu-controle-v2-12';
+const CACHE='meu-controle-v2-13';
 const ASSETS=[
-  './','./index.html','./style.css','./app.js','./mobile-launches.js','./mobile-agenda.js','./manifest.json',
+  './','./index.html','./style.css','./app.js','./mobile-launches.js','./mobile-agenda.js','./profile-flex.js','./manifest.json',
   './favicon.png','./apple-touch-icon.png','./app-icon.svg','./logo-horizontal.svg',
   './icons/icon-72.png','./icons/icon-96.png','./icons/icon-144.png',
   './icons/icon-192.png','./icons/icon-512.png'
 ];
 
 const FONT_LINKS=`<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap" rel="stylesheet">`;
+const PROFILE_SCRIPT='<script src="./profile-flex.js"></script>';
 
-const JS_FIX=`\n/* V2.12 — atualização confiável do PWA */\n(function(){\n  try{\n    if('serviceWorker' in navigator){\n      navigator.serviceWorker.getRegistration().then(r=>r&&r.update()).catch(()=>{});\n    }\n  }catch{}\n  try{\n    const originalUpdateInstallUI=updateInstallUI;\n    updateInstallUI=function(){\n      const btn=$('installAppBtn'),title=$('installStatusTitle'),text=$('installStatusText');\n      if(!btn||!title||!text)return;\n      const standalone=window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;\n      if(standalone){\n        title.textContent='Meu Controle instalado ✓';\n        text.textContent='Você já está usando o app instalado neste computador.';\n        btn.textContent='Aplicativo instalado';\n        btn.disabled=true;\n        const help=document.querySelector('.install-help');\n        if(help)help.textContent='Instalação concluída. O Meu Controle abre em janela própria como aplicativo.';\n        return;\n      }\n      originalUpdateInstallUI();\n    };\n    const refresh=()=>setTimeout(updateInstallUI,250);\n    window.addEventListener('load',refresh);\n    window.addEventListener('focus',refresh);\n    try{window.matchMedia('(display-mode: standalone)').addEventListener('change',refresh)}catch{}\n    setTimeout(updateInstallUI,700);\n  }catch{}\n})();\n`;
+const JS_FIX=`\n/* V2.13 — atualização confiável do PWA */\n(function(){\n  try{\n    if('serviceWorker' in navigator){\n      navigator.serviceWorker.getRegistration().then(r=>r&&r.update()).catch(()=>{});\n    }\n  }catch{}\n  try{\n    const originalUpdateInstallUI=updateInstallUI;\n    updateInstallUI=function(){\n      const btn=$('installAppBtn'),title=$('installStatusTitle'),text=$('installStatusText');\n      if(!btn||!title||!text)return;\n      const standalone=window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;\n      if(standalone){\n        title.textContent='Meu Controle instalado ✓';\n        text.textContent='Você já está usando o app instalado neste computador.';\n        btn.textContent='Aplicativo instalado';\n        btn.disabled=true;\n        const help=document.querySelector('.install-help');\n        if(help)help.textContent='Instalação concluída. O Meu Controle abre em janela própria como aplicativo.';\n        return;\n      }\n      originalUpdateInstallUI();\n    };\n    const refresh=()=>setTimeout(updateInstallUI,250);\n    window.addEventListener('load',refresh);\n    window.addEventListener('focus',refresh);\n    try{window.matchMedia('(display-mode: standalone)').addEventListener('change',refresh)}catch{}\n    setTimeout(updateInstallUI,700);\n  }catch{}\n})();\n`;
 
 self.addEventListener('install',e=>{
   self.skipWaiting();
@@ -40,6 +41,9 @@ async function htmlWithMerriweather(request){
     let html=await response.text();
     if(!html.includes('fonts.googleapis.com/css2?family=Merriweather')){
       html=html.replace('</head>',`${FONT_LINKS}</head>`);
+    }
+    if(!html.includes('profile-flex.js')){
+      html=html.replace('</body>',`${PROFILE_SCRIPT}</body>`);
     }
     const headers=new Headers(response.headers);
     headers.set('content-type','text/html; charset=utf-8');
