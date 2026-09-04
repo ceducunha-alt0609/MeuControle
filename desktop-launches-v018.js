@@ -10,14 +10,16 @@
       #launchesPage .mobile-launch-back{display:none!important}
 
       /* Lançamentos em três zonas visuais: informação | valor | ações. */
-      #launchesPage .item-side{
-        display:grid;
-        grid-template-columns:minmax(96px,120px) auto;
-        align-items:center;
+      #launchesPage .item{
+        grid-template-columns:12px minmax(0,1fr) minmax(96px,120px) auto;
         column-gap:14px;
-        text-align:right;
       }
+      /* O contêiner antigo deixa de ocupar uma coluna única; seus filhos passam a participar da grade principal. */
+      #launchesPage .item-side{display:contents}
       #launchesPage .amount{
+        grid-column:3;
+        align-self:center;
+        justify-self:end;
         min-width:96px;
         font-size:17px;
         font-weight:800;
@@ -26,8 +28,10 @@
         text-align:right;
       }
       #launchesPage .item-actions{
+        grid-column:4;
+        align-self:center;
+        justify-self:end;
         margin-top:0;
-        align-items:center;
         flex-wrap:nowrap;
       }
     }
