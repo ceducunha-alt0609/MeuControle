@@ -154,7 +154,7 @@
   document.getElementById('mobileProfileFilter')?.addEventListener('change',syncSummaries);
   document.getElementById('profileFilter')?.addEventListener('change',syncSummaries);
   document.querySelectorAll('[data-theme],[data-font]').forEach(b=>b.addEventListener('click',()=>setTimeout(syncSummaries,0)));
-  new MutationObserver(()=>{syncSummaries();const card=findCard('profile');if(card?.classList.contains('mobile-settings-active'))ensureProfileChoices(card)}).observe(grid,{childList:true,subtree:true});
+  new MutationObserver(syncSummaries).observe(grid,{childList:true,subtree:true});
   mq.addEventListener?.('change',()=>{if(mq.matches)openHome();else page.classList.remove('mobile-settings-detail')});
 
   if(mq.matches){
