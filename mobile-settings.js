@@ -9,7 +9,7 @@
 
   const style=document.createElement('style');
   style.textContent=`
-    .mobile-more-home,.mobile-settings-back,.mobile-app-notifications{display:none}
+    .mobile-more-home,.mobile-settings-back,.mobile-app-notifications,.mobile-profile-choices{display:none}
     @media(max-width:700px){
       #settingsPage{height:auto!important;min-height:calc(100vh - 190px);overflow:visible!important}
       #settingsPage .settings-shell{max-width:none!important}
@@ -35,6 +35,13 @@
       #settingsPage.mobile-settings-detail .settings-card.mobile-settings-active>h3{font-size:22px!important;margin-bottom:5px!important}
       #settingsPage.mobile-settings-detail .settings-card.mobile-settings-active>p{font-size:13px!important;margin-bottom:14px!important}
       #settingsPage .mobile-profile-card{order:initial!important}
+      #settingsPage .mobile-profile-card>label{display:none!important}
+      #settingsPage .mobile-profile-card .mobile-profile-current{margin:13px 0 0!important;padding-top:12px;border-top:1px solid #e5ebe7;font-size:11px!important;line-height:1.45!important}
+      .mobile-profile-choices{display:grid!important;grid-template-columns:1fr;gap:8px}
+      .mobile-profile-choice{width:100%;min-height:52px;padding:11px 14px;border:1px solid #dfe6e1;border-radius:12px;background:#fff;color:#2b3c32;display:flex;align-items:center;justify-content:space-between;gap:12px;text-align:left;font-size:15px;font-weight:700}
+      .mobile-profile-choice::after{content:"";width:22px;height:22px;flex:0 0 22px;border:2px solid #c7d1cc;border-radius:50%;box-sizing:border-box}
+      .mobile-profile-choice.active{background:var(--primary-soft);border-color:rgba(var(--primary-rgb),.35);color:var(--primary)}
+      .mobile-profile-choice.active::after{content:"✓";display:flex;align-items:center;justify-content:center;border-color:var(--primary);background:var(--primary);color:#fff;font-family:system-ui,sans-serif;font-size:13px;font-weight:900}
       .mobile-app-notifications{display:block!important;margin-top:16px;padding-top:15px;border-top:1px solid #e5ebe7}
       .mobile-app-notifications h4{margin:0 0 5px;font-size:16px}
       .mobile-app-notifications p{margin:0 0 10px!important;font-size:12px!important;color:#6d7a72!important}
@@ -82,8 +89,30 @@
     const card=findCard(kind);if(!card)return;
     cards().forEach(c=>c.classList.remove('mobile-settings-active'));
     ensureBack(card);card.classList.add('mobile-settings-active');page.classList.add('mobile-settings-detail');
+    if(kind==='profile')ensureProfileChoices(card);
     if(kind==='app')ensureNotifications(card);
     window.scrollTo({top:0,behavior:'smooth'});
+  }
+
+  function ensureProfileChoices(card){
+    const source=document.getElementById('mobileProfileFilter')||document.getElementById('profileFilter');
+    if(!source)return;
+    let box=card.querySelector('.mobile-profile-choices');
+    if(!box){box=document.createElement('div');box.className='mobile-profile-choices';const note=card.querySelector('.mobile-profile-current');card.insertBefore(box,note||null)}
+    box.innerHTML='';
+    [...source.options].forEach(opt=>{
+      const btn=document.createElement('button');btn.type='button';btn.className='mobile-profile-choice';btn.dataset.value=opt.value;btn.textContent=opt.textContent;btn.classList.toggle('active',opt.value===source.value);
+      btn.onclick=()=>{
+        source.value=opt.value;
+        source.dispatchEvent(new Event('change',{bubbles:true}));
+        syncProfileChoices();syncSummaries();
+      };
+      box.appendChild(btn);
+    });
+  }
+  function syncProfileChoices(){
+    const source=document.getElementById('mobileProfileFilter')||document.getElementById('profileFilter');
+    document.querySelectorAll('.mobile-profile-choice').forEach(btn=>btn.classList.toggle('active',btn.dataset.value===source?.value));
   }
 
   function notificationState(){
@@ -117,6 +146,7 @@
     const theme=document.querySelector('[data-theme].active strong')?.textContent.trim()||'Tema';
     const ap=document.getElementById('mobileMoreAppearance');if(ap)ap.textContent=`${font} · ${theme}`;
     const app=document.getElementById('mobileMoreApp');if(app)app.textContent=`Instalação · Notificações ${notificationState().toLowerCase()}`;
+    syncProfileChoices();
   }
 
   home.querySelectorAll('[data-more]').forEach(b=>b.onclick=()=>openDetail(b.dataset.more));
@@ -124,7 +154,7 @@
   document.getElementById('mobileProfileFilter')?.addEventListener('change',syncSummaries);
   document.getElementById('profileFilter')?.addEventListener('change',syncSummaries);
   document.querySelectorAll('[data-theme],[data-font]').forEach(b=>b.addEventListener('click',()=>setTimeout(syncSummaries,0)));
-  new MutationObserver(syncSummaries).observe(grid,{childList:true,subtree:true});
+  new MutationObserver(()=>{syncSummaries();const card=findCard('profile');if(card?.classList.contains('mobile-settings-active'))ensureProfileChoices(card)}).observe(grid,{childList:true,subtree:true});
   mq.addEventListener?.('change',()=>{if(mq.matches)openHome();else page.classList.remove('mobile-settings-detail')});
 
   if(mq.matches){
