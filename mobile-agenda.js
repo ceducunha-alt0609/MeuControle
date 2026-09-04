@@ -25,12 +25,13 @@
       #calendarPage .mobile-agenda-head{display:block!important;text-align:center;margin:0 0 10px}
       #calendarPage .mobile-agenda-head h2{margin:0;font-size:27px;line-height:1.15;text-transform:none}
       #calendarPage .mobile-agenda-current{margin:8px 0 0;font-size:18px;font-weight:800;color:#24352c}
-      #calendarPage .mobile-month-wheel{display:grid!important;grid-template-columns:1fr 1.7fr 1fr;align-items:center;width:100%;height:58px;margin:0 0 14px;overflow:hidden;border:1px solid #dbe4df;border-radius:15px;background:#fff;box-shadow:0 5px 16px rgba(0,0,0,.04);touch-action:pan-y;user-select:none}
-      #calendarPage .mobile-month-slot{height:100%;border:0;background:transparent;color:#829087;font-size:14px;font-weight:700;overflow:hidden;white-space:nowrap;padding:0}
-      #calendarPage .mobile-month-slot.prev{text-align:right;transform:translateX(-24%)}
-      #calendarPage .mobile-month-slot.next{text-align:left;transform:translateX(24%)}
-      #calendarPage .mobile-month-slot.current{position:relative;color:var(--primary);font-size:17px;background:var(--primary-soft);border-left:1px solid #dce7ee;border-right:1px solid #dce7ee}
-      #calendarPage .mobile-month-slot.current::after{content:"";position:absolute;left:28%;right:28%;bottom:7px;height:3px;border-radius:3px;background:var(--primary)}
+      #calendarPage .mobile-month-wheel{display:grid!important;grid-template-columns:.58fr 1.84fr .58fr;align-items:center;width:100%;height:64px;margin:0 0 14px;overflow:hidden;border:1px solid #dbe4df;border-radius:15px;background:#fff;box-shadow:0 5px 16px rgba(0,0,0,.04);touch-action:pan-y;user-select:none}
+      #calendarPage .mobile-month-slot{height:100%;border:0;background:transparent;color:#829087;font-size:14px;font-weight:700;overflow:hidden;white-space:nowrap;padding:0;transition:transform .16s ease,box-shadow .16s ease,background .16s ease}
+      #calendarPage .mobile-month-slot.prev{text-align:right;transform:translateX(-38%)}
+      #calendarPage .mobile-month-slot.next{text-align:left;transform:translateX(38%)}
+      #calendarPage .mobile-month-slot.current{position:relative;z-index:2;height:58px;align-self:center;color:var(--primary);font-size:18px;background:var(--primary-soft);border:1px solid #d4e2eb;border-radius:13px;box-shadow:0 7px 17px rgba(16,60,92,.16);transform:scale(1.035)}
+      #calendarPage .mobile-month-slot.current:active{transform:scale(1.015)}
+      #calendarPage .mobile-month-slot.current::after{content:"";position:absolute;left:34%;right:34%;bottom:7px;height:3px;border-radius:3px;background:var(--primary)}
       #calendarPage .calendar-events-scroll .item{margin-bottom:12px}
       #calendarPage .item .status-dot{visibility:hidden!important}
       #calendarPage .item.today .status-dot,#calendarPage .item.late .status-dot{visibility:visible!important;animation:mobileAgendaPulse 1.7s ease-in-out infinite!important}
