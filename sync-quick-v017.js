@@ -7,7 +7,15 @@
  .sync-quick-v017{height:42px;min-width:86px;padding:0 12px;border:1px solid rgba(255,255,255,.28);border-radius:13px;background:rgba(255,255,255,.12)!important;color:#fff!important;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:none!important;font:800 12px system-ui,sans-serif;white-space:nowrap}
  .sync-quick-v017:hover,.sync-quick-v017:focus-visible{background:rgba(255,255,255,.2)!important;transform:none}.sync-quick-v017.ok{color:#bfffdc!important}.sync-quick-v017.warn{color:#ffd59b!important}.sync-quick-v017.busy .sync-quick-icon{display:inline-block;animation:syncQuickSpin .8s linear infinite}@keyframes syncQuickSpin{to{transform:rotate(360deg)}}
  .sync-quick-toast-v017{position:fixed;left:50%;top:92px;transform:translateX(-50%);z-index:1600;max-width:min(520px,calc(100vw - 28px));padding:11px 16px;border-radius:12px;background:#174f78;color:#fff;box-shadow:0 12px 32px rgba(0,0,0,.2);font:700 12px/1.35 system-ui,sans-serif;text-align:center;opacity:0;pointer-events:none;transition:.18s}.sync-quick-toast-v017.show{opacity:1}.sync-quick-toast-v017.ok{background:#23633f}.sync-quick-toast-v017.warn{background:#8a5b1d}
- @media(max-width:700px){.sync-quick-v017{height:40px;min-width:40px;width:40px;padding:0;font-size:0;border-radius:12px;margin-left:8px}.sync-quick-v017 .sync-quick-icon{font-size:19px}.sync-quick-toast-v017{top:78px}.topbar .brand .sync-quick-v017{margin-left:8px}.topbar .brand .sync-new-bell+.sync-quick-v017{margin-left:8px}}
+ @media(max-width:700px){
+   .topbar .brand{position:relative;padding-right:104px!important}
+   .topbar .brand .sync-quick-v017{position:absolute;right:0;top:50%;transform:translateY(-50%);height:40px;min-width:40px;width:40px;padding:0;font-size:0;border-radius:12px;margin:0!important}
+   .topbar .brand .sync-quick-v017:hover,.topbar .brand .sync-quick-v017:focus-visible{transform:translateY(-50%)}
+   .sync-quick-v017 .sync-quick-icon{font-size:19px}
+   .sync-quick-toast-v017{top:78px}
+   /* Reserva permanente para o sino: quando ele some, o Sync não anda para a esquerda. */
+   .topbar .brand .sync-new-bell{position:absolute;right:52px;top:50%;transform:translateY(-50%);margin:0!important}
+ }
  `;document.head.appendChild(s)}
  function toast(text,type='ok'){let t=document.querySelector('.sync-quick-toast-v017');if(!t){t=document.createElement('div');t.className='sync-quick-toast-v017';document.body.appendChild(t)}t.textContent=text;t.className=`sync-quick-toast-v017 show ${type}`;clearTimeout(t._timer);t._timer=setTimeout(()=>t.classList.remove('show'),2800)}
  function stats(){const b=document.querySelector('.sync-manual-v012'),cells=[...b?.querySelectorAll('.sync-manual-stat')||[]],o={};cells.forEach(c=>{const l=(c.childNodes[0]?.textContent||'').trim(),n=Number(c.querySelector('b')?.textContent||0);if(l==='Enviar')o.send=n;if(l==='Receber')o.receive=n;if(l==='Já iguais')o.equal=n;if(l==='Conflitos')o.conflict=n});return o}
