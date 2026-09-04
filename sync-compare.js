@@ -1,78 +1,16 @@
-/* MeuControle — V0.4: comparação local x nuvem, somente leitura */
+/* MeuControle — V0.4.1: comparação local x nuvem, somente leitura */
 import { collection, getDocs } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js';
-
 (()=>{
-  if(window.__meuControleSyncCompareLoaded)return;
-  window.__meuControleSyncCompareLoaded=true;
-
-  const ENTRIES_KEY='meu_controle_entries_v2';
-  const VERSION='0.4';
-
-  function localEntries(){
-    try{const v=JSON.parse(localStorage.getItem(ENTRIES_KEY)||'[]');return Array.isArray(v)?v:[]}catch{return[]}
-  }
-  function cloud(){return window.MeuControleCloud||null}
-  function parent(){return document.querySelector('#settingsPage .firebase-sync-box')}
-  function clean(value){
-    if(Array.isArray(value))return value.map(clean);
-    if(value&&typeof value==='object'){
-      const out={};Object.entries(value).forEach(([k,v])=>{if(v!==undefined)out[k]=clean(v)});return out;
-    }
-    return value;
-  }
-  function baseEntry(e){
-    const copy=clean(JSON.parse(JSON.stringify(e||{})));
-    delete copy.syncMeta;delete copy._syncTest;return copy;
-  }
+  if(window.__meuControleSyncCompareLoaded)return;window.__meuControleSyncCompareLoaded=true;
+  const ENTRIES_KEY='meu_controle_entries_v2',VERSION='0.4.1';
+  function localEntries(){try{const v=JSON.parse(localStorage.getItem(ENTRIES_KEY)||'[]');return Array.isArray(v)?v:[]}catch{return[]}}
+  function cloud(){return window.MeuControleCloud||null} function parent(){return document.querySelector('#settingsPage .firebase-sync-box')}
+  function canonical(value){if(Array.isArray(value))return value.map(canonical);if(value&&typeof value==='object'){const out={};Object.keys(value).sort().forEach(k=>{const v=value[k];if(v!==undefined)out[k]=canonical(v)});return out}return value}
+  function baseEntry(e){const copy=canonical(e||{});delete copy.syncMeta;delete copy._syncTest;return canonical(copy)}
   function same(a,b){return JSON.stringify(baseEntry(a))===JSON.stringify(baseEntry(b))}
   function label(e){return e?.description||e?.title||'(sem descrição)'}
   function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-
-  function ensure(){
-    const root=parent();if(!root)return null;
-    let box=root.querySelector('.sync-compare-box');if(box)return box;
-    const style=document.createElement('style');style.textContent=`
-      .sync-compare-box{margin-top:10px;padding:12px;border:1px solid #dfe8e4;border-radius:12px;background:#fbfcfb}
-      .sync-compare-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.sync-compare-head strong{font-size:12px;color:var(--text)}
-      .sync-compare-pill{padding:4px 7px;border-radius:999px;background:#edf5fa;color:#164f78;font-size:9px;font-weight:800;white-space:nowrap}
-      .sync-compare-text{margin:6px 0 0!important;font-size:10px!important;line-height:1.45!important;color:#6e7973!important}
-      .sync-compare-run{width:100%;min-height:38px;margin-top:9px}
-      .sync-compare-summary{display:none;grid-template-columns:repeat(2,1fr);gap:7px;margin-top:9px}.sync-compare-summary.show{display:grid}
-      .sync-compare-stat{padding:8px 9px;border-radius:9px;background:#f4f7f5;font-size:9px;color:#6a766f}.sync-compare-stat b{display:block;margin-top:2px;font-size:13px;color:var(--text)}
-      .sync-compare-result{display:none;margin-top:9px;padding:9px 10px;border-radius:10px;background:#eef7f0;color:#386245;font-size:10px;line-height:1.45}.sync-compare-result.show{display:block}
-      .sync-compare-list{margin-top:7px;font-size:9px;color:#657169;line-height:1.4;overflow-wrap:anywhere}
-      @media(max-width:700px){.sync-compare-summary{grid-template-columns:1fr 1fr}}
-    `;document.head.appendChild(style);
-    box=document.createElement('div');box.className='sync-compare-box';box.innerHTML=`
-      <div class="sync-compare-head"><strong>Mapa local ↔ nuvem</strong><span class="sync-compare-pill">V0.4 · leitura</span></div>
-      <p class="sync-compare-text">Compara os IDs deste aparelho com os documentos da nuvem. Não envia, importa, altera nem exclui nada.</p>
-      <button type="button" class="secondary-action sync-compare-run">Comparar sem alterar</button>
-      <div class="sync-compare-summary"></div><div class="sync-compare-result"></div>`;
-    root.appendChild(box);box.querySelector('.sync-compare-run').addEventListener('click',compare);return box;
-  }
-
-  async function compare(){
-    const box=ensure(),c=cloud(),user=c?.currentUser?.();if(!box)return;
-    const result=box.querySelector('.sync-compare-result'),summary=box.querySelector('.sync-compare-summary');
-    if(!c?.db||!user){result.className='sync-compare-result show';result.textContent='Entre com Google antes de comparar.';return}
-    const btn=box.querySelector('.sync-compare-run');btn.disabled=true;btn.textContent='Lendo local e nuvem...';
-    try{
-      const local=localEntries();const snap=await getDocs(collection(c.db,'users',user.uid,'entries'));
-      const remote=snap.docs.map(d=>({id:d.id,data:d.data()}));
-      const lm=new Map(local.filter(x=>x?.id).map(x=>[x.id,x]));const rm=new Map(remote.map(x=>[x.id,x.data]));
-      const onlyLocal=[],onlyCloud=[],identical=[],different=[];
-      lm.forEach((e,id)=>{if(!rm.has(id))onlyLocal.push(e);else if(same(e,rm.get(id)))identical.push(e);else different.push(e)});
-      rm.forEach((e,id)=>{if(!lm.has(id))onlyCloud.push(e)});
-      summary.innerHTML=`<div class="sync-compare-stat">Só neste aparelho<b>${onlyLocal.length}</b></div><div class="sync-compare-stat">Só na nuvem<b>${onlyCloud.length}</b></div><div class="sync-compare-stat">Nos dois · iguais<b>${identical.length}</b></div><div class="sync-compare-stat">Nos dois · diferentes<b>${different.length}</b></div>`;summary.classList.add('show');
-      const sample=(arr)=>arr.slice(0,3).map(x=>esc(label(x))).join(' · ');
-      const details=[];if(onlyLocal.length)details.push(`Local: ${sample(onlyLocal)}`);if(onlyCloud.length)details.push(`Nuvem: ${sample(onlyCloud)}`);if(different.length)details.push(`Divergentes: ${sample(different)}`);
-      result.className='sync-compare-result show';result.innerHTML=`Comparação concluída ✓ Nenhum dado foi modificado.${details.length?`<div class="sync-compare-list">${details.join('<br>')}</div>`:''}`;
-    }catch(e){result.className='sync-compare-result show';result.textContent=`Não foi possível comparar${e?.code?` (${e.code})`:''}. ${e?.message||''}`.trim()}
-    finally{btn.disabled=false;btn.textContent='Comparar sem alterar'}
-  }
-
-  window.MeuControleSyncCompare={version:VERSION,compare,readOnly:true};
-  window.addEventListener('meucontrole:firebase-ready',()=>setTimeout(ensure,120));window.addEventListener('meucontrole:auth-changed',()=>setTimeout(ensure,120));
-  document.addEventListener('click',e=>{if(e.target.closest('[data-settings-detail="data"]')||e.target.closest('.mobile-settings-back'))setTimeout(ensure,120)});
-  window.addEventListener('load',()=>{setTimeout(ensure,500);setTimeout(ensure,1100)});
+  function ensure(){const root=parent();if(!root)return null;let box=root.querySelector('.sync-compare-box');if(box){const pill=box.querySelector('.sync-compare-pill');if(pill)pill.textContent='V0.4.1 · leitura';return box}const style=document.createElement('style');style.textContent=`.sync-compare-box{margin-top:10px;padding:12px;border:1px solid #dfe8e4;border-radius:12px;background:#fbfcfb}.sync-compare-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.sync-compare-head strong{font-size:12px;color:var(--text)}.sync-compare-pill{padding:4px 7px;border-radius:999px;background:#edf5fa;color:#164f78;font-size:9px;font-weight:800;white-space:nowrap}.sync-compare-text{margin:6px 0 0!important;font-size:10px!important;line-height:1.45!important;color:#6e7973!important}.sync-compare-run{width:100%;min-height:38px;margin-top:9px}.sync-compare-summary{display:none;grid-template-columns:repeat(2,1fr);gap:7px;margin-top:9px}.sync-compare-summary.show{display:grid}.sync-compare-stat{padding:8px 9px;border-radius:9px;background:#f4f7f5;font-size:9px;color:#6a766f}.sync-compare-stat b{display:block;margin-top:2px;font-size:13px;color:var(--text)}.sync-compare-result{display:none;margin-top:9px;padding:9px 10px;border-radius:10px;background:#eef7f0;color:#386245;font-size:10px;line-height:1.45}.sync-compare-result.show{display:block}.sync-compare-list{margin-top:7px;font-size:9px;color:#657169;line-height:1.4;overflow-wrap:anywhere}@media(max-width:700px){.sync-compare-summary{grid-template-columns:1fr 1fr}}`;document.head.appendChild(style);box=document.createElement('div');box.className='sync-compare-box';box.innerHTML=`<div class="sync-compare-head"><strong>Mapa local ↔ nuvem</strong><span class="sync-compare-pill">V0.4.1 · leitura</span></div><p class="sync-compare-text">Compara os dados reais dos lançamentos por ID. Metadados técnicos de sincronização são ignorados. Não envia, importa, altera nem exclui nada.</p><button type="button" class="secondary-action sync-compare-run">Comparar sem alterar</button><div class="sync-compare-summary"></div><div class="sync-compare-result"></div>`;root.appendChild(box);box.querySelector('.sync-compare-run').addEventListener('click',compare);return box}
+  async function compare(){const box=ensure(),c=cloud(),user=c?.currentUser?.();if(!box)return;const result=box.querySelector('.sync-compare-result'),summary=box.querySelector('.sync-compare-summary');if(!c?.db||!user){result.className='sync-compare-result show';result.textContent='Entre com Google antes de comparar.';return}const btn=box.querySelector('.sync-compare-run');btn.disabled=true;btn.textContent='Lendo local e nuvem...';try{const local=localEntries(),snap=await getDocs(collection(c.db,'users',user.uid,'entries')),remote=snap.docs.map(d=>({id:d.id,data:d.data()})),lm=new Map(local.filter(x=>x?.id).map(x=>[x.id,x])),rm=new Map(remote.map(x=>[x.id,x.data])),onlyLocal=[],onlyCloud=[],identical=[],different=[];lm.forEach((e,id)=>{if(!rm.has(id))onlyLocal.push(e);else if(same(e,rm.get(id)))identical.push(e);else different.push(e)});rm.forEach((e,id)=>{if(!lm.has(id))onlyCloud.push(e)});summary.innerHTML=`<div class="sync-compare-stat">Só neste aparelho<b>${onlyLocal.length}</b></div><div class="sync-compare-stat">Só na nuvem<b>${onlyCloud.length}</b></div><div class="sync-compare-stat">Nos dois · iguais<b>${identical.length}</b></div><div class="sync-compare-stat">Nos dois · diferentes<b>${different.length}</b></div>`;summary.classList.add('show');const sample=arr=>arr.slice(0,3).map(x=>esc(label(x))).join(' · '),details=[];if(onlyLocal.length)details.push(`Local: ${sample(onlyLocal)}`);if(onlyCloud.length)details.push(`Nuvem: ${sample(onlyCloud)}`);if(different.length)details.push(`Divergentes: ${sample(different)}`);result.className='sync-compare-result show';result.innerHTML=`Comparação concluída ✓ Nenhum dado foi modificado.${details.length?`<div class="sync-compare-list">${details.join('<br>')}</div>`:''}`;window.dispatchEvent(new CustomEvent('meucontrole:sync-compare-complete',{detail:{onlyLocal:onlyLocal.length,onlyCloud:onlyCloud.length,identical:identical.length,different:different.length}}))}catch(e){result.className='sync-compare-result show';result.textContent=`Não foi possível comparar${e?.code?` (${e.code})`:''}. ${e?.message||''}`.trim()}finally{btn.disabled=false;btn.textContent='Comparar sem alterar'}}
+  window.MeuControleSyncCompare={version:VERSION,compare,readOnly:true};window.addEventListener('meucontrole:firebase-ready',()=>setTimeout(ensure,120));window.addEventListener('meucontrole:auth-changed',()=>setTimeout(ensure,120));document.addEventListener('click',e=>{if(e.target.closest('[data-settings-detail="data"]')||e.target.closest('.mobile-settings-back'))setTimeout(ensure,120)});window.addEventListener('load',()=>{setTimeout(ensure,500);setTimeout(ensure,1100)})
 })();
