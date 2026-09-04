@@ -1,18 +1,8 @@
 /* MeuControle — Agenda + carrossel mobile da Visão geral */
 (function(){
   const mq=window.matchMedia('(max-width:700px)');
-
-  /* ---------- Agenda ---------- */
-  const page=document.getElementById('calendarPage');
-  const shell=page?.querySelector('.calendar-shell');
-  const months=document.getElementById('calendarMonths');
-  const eventsPanel=page?.querySelector('.calendar-events-panel');
-  const title=document.getElementById('calendarMonthTitle');
-  const summary=document.getElementById('calendarMonthSummary');
-
   const monthNames=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-  const monthIndex=name=>monthNames.indexOf(name);
-  const monthName=i=>monthNames[i];
+  const monthIndex=name=>monthNames.indexOf(name),monthName=i=>monthNames[i];
   const adjacent=(month,year,delta)=>{const d=new Date(year,month+delta,1);return{month:d.getMonth(),year:d.getFullYear()}};
 
   const style=document.createElement('style');
@@ -31,24 +21,17 @@
       #calendarPage .mobile-agenda-head{display:block!important;text-align:center;margin:0 0 10px}
       #calendarPage .mobile-agenda-head h2{margin:0;font-size:27px;line-height:1.15;text-transform:none}
       #calendarPage .mobile-agenda-current{margin:8px 0 0;font-size:18px;font-weight:800;color:#24352c}
-
-      #calendarPage .mobile-month-wheel,
-      #dashboardPage .mobile-dashboard-month-wheel{display:grid!important;grid-template-columns:1fr 1.7fr 1fr;align-items:center;width:100%;height:58px;margin:0 0 14px;overflow:hidden;border:1px solid #dbe4df;border-radius:15px;background:#fff;box-shadow:0 5px 16px rgba(0,0,0,.04);touch-action:pan-y;user-select:none}
-      #calendarPage .mobile-month-slot,
-      #dashboardPage .mobile-dashboard-month-slot{height:100%;border:0;background:transparent;color:#829087;font-size:14px;font-weight:700;overflow:hidden;white-space:nowrap;padding:0}
-      #calendarPage .mobile-month-slot.prev,#calendarPage .mobile-month-slot.next,
-      #dashboardPage .mobile-dashboard-month-slot.prev,#dashboardPage .mobile-dashboard-month-slot.next{text-align:center}
-      #calendarPage .mobile-month-slot.current,
-      #dashboardPage .mobile-dashboard-month-slot.current{position:relative;color:var(--primary);font-size:17px;background:var(--primary-soft);border-left:1px solid #dce7ee;border-right:1px solid #dce7ee}
-      #calendarPage .mobile-month-slot.current::after,
-      #dashboardPage .mobile-dashboard-month-slot.current::after{content:"";position:absolute;left:28%;right:28%;bottom:7px;height:3px;border-radius:3px;background:var(--primary)}
-
+      #calendarPage .mobile-month-wheel,#dashboardPage .mobile-dashboard-month-wheel{display:grid!important;grid-template-columns:1fr 1.7fr 1fr;align-items:center;width:100%;height:58px;margin:0 0 14px;overflow:hidden;border:1px solid #dbe4df;border-radius:15px;background:#fff;box-shadow:0 5px 16px rgba(0,0,0,.04);touch-action:pan-y;user-select:none}
+      #calendarPage .mobile-month-slot,#dashboardPage .mobile-dashboard-month-slot{height:100%;border:0;background:transparent;color:#829087;font-size:14px;font-weight:700;overflow:hidden;white-space:nowrap;padding:0}
+      #calendarPage .mobile-month-slot.prev,#calendarPage .mobile-month-slot.next,#dashboardPage .mobile-dashboard-month-slot.prev,#dashboardPage .mobile-dashboard-month-slot.next{text-align:center}
+      #calendarPage .mobile-month-slot.current,#dashboardPage .mobile-dashboard-month-slot.current{position:relative;color:var(--primary);font-size:17px;background:var(--primary-soft);border-left:1px solid #dce7ee;border-right:1px solid #dce7ee}
+      #calendarPage .mobile-month-slot.current::after,#dashboardPage .mobile-dashboard-month-slot.current::after{content:"";position:absolute;left:28%;right:28%;bottom:7px;height:3px;border-radius:3px;background:var(--primary)}
+      #dashboardPage .mobile-dashboard-month-slot.current{display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.05;padding-bottom:4px}
+      #dashboardPage .mobile-dashboard-month-slot.current .dash-month-year{display:block;margin-top:4px;font-size:10px;font-weight:700;letter-spacing:.04em;color:#718078}
       #dashboardPage .dashboard-toolbar{display:block!important;margin-bottom:10px!important}
       #dashboardPage .dashboard-toolbar>div:first-child p{display:none!important}
       #dashboardPage .dashboard-toolbar>div:first-child h2{margin-bottom:8px!important}
       #dashboardPage .dashboard-toolbar .month-nav{display:none!important}
-      #dashboardPage .mobile-dashboard-current{text-align:center;margin:0 0 10px;font-size:18px;font-weight:800;color:#24352c}
-
       #calendarPage .calendar-events-scroll .item{margin-bottom:12px}
       #calendarPage .item .status-dot{visibility:hidden!important}
       #calendarPage .item.today .status-dot,#calendarPage .item.late .status-dot{visibility:visible!important;animation:mobileAgendaPulse 1.7s ease-in-out infinite!important}
@@ -61,81 +44,30 @@
   `;
   document.head.appendChild(style);
 
+  /* Agenda */
+  const page=document.getElementById('calendarPage'),shell=page?.querySelector('.calendar-shell'),months=document.getElementById('calendarMonths'),eventsPanel=page?.querySelector('.calendar-events-panel'),title=document.getElementById('calendarMonthTitle'),summary=document.getElementById('calendarMonthSummary');
   if(page&&shell&&months&&eventsPanel&&title){
-    const head=document.createElement('div');
-    head.className='mobile-agenda-head';
-    head.innerHTML='<h2>Agenda</h2><div class="mobile-agenda-current"></div>';
-    shell.insertBefore(head,shell.firstChild);
-
-    const wheel=document.createElement('div');
-    wheel.className='mobile-month-wheel';
-    wheel.innerHTML='<button type="button" class="mobile-month-slot prev" aria-label="Mês anterior"></button><button type="button" class="mobile-month-slot current" aria-label="Mês atual selecionado"></button><button type="button" class="mobile-month-slot next" aria-label="Próximo mês"></button>';
-    head.after(wheel);
-
+    const head=document.createElement('div');head.className='mobile-agenda-head';head.innerHTML='<h2>Agenda</h2><div class="mobile-agenda-current"></div>';shell.insertBefore(head,shell.firstChild);
+    const wheel=document.createElement('div');wheel.className='mobile-month-wheel';wheel.innerHTML='<button type="button" class="mobile-month-slot prev" aria-label="Mês anterior"></button><button type="button" class="mobile-month-slot current" aria-label="Mês atual selecionado"></button><button type="button" class="mobile-month-slot next" aria-label="Próximo mês"></button>';head.after(wheel);
     const prev=wheel.querySelector('.prev'),current=wheel.querySelector('.current'),next=wheel.querySelector('.next'),currentLabel=head.querySelector('.mobile-agenda-current');
-
-    function selected(){
-      const text=title.textContent.trim();
-      const match=text.match(/^(.+)\s+(\d{4})$/);
-      if(!match)return{month:new Date().getMonth(),year:new Date().getFullYear()};
-      const m=monthIndex(match[1]);return{month:m<0?new Date().getMonth():m,year:Number(match[2])};
-    }
-    function sync(){
-      if(!mq.matches)return;
-      const s=selected(),p=adjacent(s.month,s.year,-1),n=adjacent(s.month,s.year,1);
-      currentLabel.textContent=`${monthName(s.month)} ${s.year}`;
-      current.textContent=monthName(s.month);prev.textContent=monthName(p.month);next.textContent=monthName(n.month);
-      if(summary)summary.style.display='none';
-    }
-    function clickMonth(targetMonth,targetYear){
-      if(targetYear!==selected().year){
-        const yearBtn=targetYear<selected().year?document.getElementById('calendarPrevYear'):document.getElementById('calendarNextYear');yearBtn?.click();
-      }
-      requestAnimationFrame(()=>{const btn=[...months.querySelectorAll('.calendar-month-btn')].find(b=>b.querySelector('span')?.textContent===monthName(targetMonth));btn?.click();requestAnimationFrame(sync)});
-    }
+    function selected(){const text=title.textContent.trim(),match=text.match(/^(.+)\s+(\d{4})$/);if(!match)return{month:new Date().getMonth(),year:new Date().getFullYear()};const m=monthIndex(match[1]);return{month:m<0?new Date().getMonth():m,year:Number(match[2])}}
+    function sync(){if(!mq.matches)return;const s=selected(),p=adjacent(s.month,s.year,-1),n=adjacent(s.month,s.year,1);currentLabel.textContent=`${monthName(s.month)} ${s.year}`;current.textContent=monthName(s.month);prev.textContent=monthName(p.month);next.textContent=monthName(n.month);if(summary)summary.style.display='none'}
+    function clickMonth(targetMonth,targetYear){if(targetYear!==selected().year){const yearBtn=targetYear<selected().year?document.getElementById('calendarPrevYear'):document.getElementById('calendarNextYear');yearBtn?.click()}requestAnimationFrame(()=>{const btn=[...months.querySelectorAll('.calendar-month-btn')].find(b=>b.querySelector('span')?.textContent===monthName(targetMonth));btn?.click();requestAnimationFrame(sync)})}
     function move(delta){const s=selected(),t=adjacent(s.month,s.year,delta);clickMonth(t.month,t.year)}
     prev.onclick=()=>move(-1);next.onclick=()=>move(1);current.onclick=()=>{};
-    let startX=null;
-    wheel.addEventListener('touchstart',e=>{startX=e.touches[0].clientX},{passive:true});
-    wheel.addEventListener('touchend',e=>{if(startX===null)return;const dx=e.changedTouches[0].clientX-startX;startX=null;if(Math.abs(dx)<38)return;move(dx<0?1:-1)},{passive:true});
-    new MutationObserver(sync).observe(title,{childList:true,subtree:true,characterData:true});
-    document.querySelectorAll('.nav-btn[data-page="calendar"]').forEach(b=>b.addEventListener('click',()=>requestAnimationFrame(sync)));
-    mq.addEventListener?.('change',sync);sync();
+    let startX=null;wheel.addEventListener('touchstart',e=>{startX=e.touches[0].clientX},{passive:true});wheel.addEventListener('touchend',e=>{if(startX===null)return;const dx=e.changedTouches[0].clientX-startX;startX=null;if(Math.abs(dx)<38)return;move(dx<0?1:-1)},{passive:true});
+    new MutationObserver(sync).observe(title,{childList:true,subtree:true,characterData:true});document.querySelectorAll('.nav-btn[data-page="calendar"]').forEach(b=>b.addEventListener('click',()=>requestAnimationFrame(sync)));mq.addEventListener?.('change',sync);sync();
   }
 
-  /* ---------- Visão geral ---------- */
-  const dashboard=document.getElementById('dashboardPage');
-  const toolbar=dashboard?.querySelector('.dashboard-toolbar');
-  const dashLabel=document.getElementById('dashMonthLabel');
-  const dashPrev=document.getElementById('dashPrevMonth');
-  const dashNext=document.getElementById('dashNextMonth');
+  /* Visão geral */
+  const dashboard=document.getElementById('dashboardPage'),toolbar=dashboard?.querySelector('.dashboard-toolbar'),dashLabel=document.getElementById('dashMonthLabel'),dashPrev=document.getElementById('dashPrevMonth'),dashNext=document.getElementById('dashNextMonth');
   if(dashboard&&toolbar&&dashLabel&&dashPrev&&dashNext){
-    const currentLabel=document.createElement('div');currentLabel.className='mobile-dashboard-current';
-    const wheel=document.createElement('div');wheel.className='mobile-dashboard-month-wheel';
-    wheel.innerHTML='<button type="button" class="mobile-dashboard-month-slot prev" aria-label="Mês anterior"></button><button type="button" class="mobile-dashboard-month-slot current" aria-label="Mês selecionado"></button><button type="button" class="mobile-dashboard-month-slot next" aria-label="Próximo mês"></button>';
-    toolbar.after(currentLabel,wheel);
+    const wheel=document.createElement('div');wheel.className='mobile-dashboard-month-wheel';wheel.innerHTML='<button type="button" class="mobile-dashboard-month-slot prev" aria-label="Mês anterior"></button><button type="button" class="mobile-dashboard-month-slot current" aria-label="Mês selecionado"></button><button type="button" class="mobile-dashboard-month-slot next" aria-label="Próximo mês"></button>';toolbar.after(wheel);
     const prev=wheel.querySelector('.prev'),current=wheel.querySelector('.current'),next=wheel.querySelector('.next');
-
-    function selectedDash(){
-      const text=dashLabel.textContent.trim();
-      const match=text.match(/^(.+)\s+(\d{4})$/);
-      if(!match)return{month:new Date().getMonth(),year:new Date().getFullYear()};
-      const m=monthIndex(match[1]);return{month:m<0?new Date().getMonth():m,year:Number(match[2])};
-    }
-    function syncDash(){
-      if(!mq.matches)return;
-      const s=selectedDash(),p=adjacent(s.month,s.year,-1),n=adjacent(s.month,s.year,1);
-      currentLabel.textContent=`${monthName(s.month)} ${s.year}`;
-      current.textContent=monthName(s.month);prev.textContent=monthName(p.month);next.textContent=monthName(n.month);
-    }
-    prev.onclick=()=>{dashPrev.click();requestAnimationFrame(syncDash)};
-    next.onclick=()=>{dashNext.click();requestAnimationFrame(syncDash)};
-    current.onclick=()=>{};
-    let startX=null;
-    wheel.addEventListener('touchstart',e=>{startX=e.touches[0].clientX},{passive:true});
-    wheel.addEventListener('touchend',e=>{if(startX===null)return;const dx=e.changedTouches[0].clientX-startX;startX=null;if(Math.abs(dx)<38)return;(dx<0?dashNext:dashPrev).click();requestAnimationFrame(syncDash)},{passive:true});
-    new MutationObserver(syncDash).observe(dashLabel,{childList:true,subtree:true,characterData:true});
-    document.querySelectorAll('.nav-btn[data-page="dashboard"]').forEach(b=>b.addEventListener('click',()=>requestAnimationFrame(syncDash)));
-    mq.addEventListener?.('change',syncDash);syncDash();
+    function selectedDash(){const text=dashLabel.textContent.trim(),match=text.match(/^(.+)\s+(\d{4})$/);if(!match)return{month:new Date().getMonth(),year:new Date().getFullYear()};const m=monthIndex(match[1]);return{month:m<0?new Date().getMonth():m,year:Number(match[2])}}
+    function syncDash(){if(!mq.matches)return;const s=selectedDash(),p=adjacent(s.month,s.year,-1),n=adjacent(s.month,s.year,1);current.innerHTML=`<span>${monthName(s.month)}</span><small class="dash-month-year">${s.year}</small>`;prev.textContent=monthName(p.month);next.textContent=monthName(n.month)}
+    prev.onclick=()=>{dashPrev.click();requestAnimationFrame(syncDash)};next.onclick=()=>{dashNext.click();requestAnimationFrame(syncDash)};current.onclick=()=>{};
+    let startX=null;wheel.addEventListener('touchstart',e=>{startX=e.touches[0].clientX},{passive:true});wheel.addEventListener('touchend',e=>{if(startX===null)return;const dx=e.changedTouches[0].clientX-startX;startX=null;if(Math.abs(dx)<38)return;(dx<0?dashNext:dashPrev).click();requestAnimationFrame(syncDash)},{passive:true});
+    new MutationObserver(syncDash).observe(dashLabel,{childList:true,subtree:true,characterData:true});document.querySelectorAll('.nav-btn[data-page="dashboard"]').forEach(b=>b.addEventListener('click',()=>requestAnimationFrame(syncDash)));mq.addEventListener?.('change',syncDash);syncDash();
   }
 })();
