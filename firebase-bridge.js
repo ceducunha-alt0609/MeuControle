@@ -12,7 +12,7 @@ import {
 import { getFirestore } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js';
 
 const firebaseConfig={
-  apiKey:'AIzaSyANa-pk5bj3phYLAm2X1jPu1pVw3U4eMOI',
+  apiKey:'AIzaSyANa-pk5bj3phYlAm2X1jPulpVw3U4eMOI',
   authDomain:'meucontrole-b8f2d.firebaseapp.com',
   projectId:'meucontrole-b8f2d',
   storageBucket:'meucontrole-b8f2d.firebasestorage.app',
