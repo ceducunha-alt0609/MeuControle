@@ -5,6 +5,17 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#1f6f4a">
   <title>Meu Controle V2</title>
+  <script>
+    /* Evita mostrar o Painel por um instante quando outra tela será restaurada. */
+    try{
+      const navState=JSON.parse(localStorage.getItem('meu_controle_nav_state_v2')||'{}');
+      if(navState.page&&navState.page!=='dashboard')document.documentElement.classList.add('nav-restore-pending');
+    }catch{}
+  </script>
+  <style>
+    html.nav-restore-pending{background:#f3f6f8}
+    html.nav-restore-pending body{visibility:hidden}
+  </style>
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
