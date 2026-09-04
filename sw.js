@@ -1,4 +1,4 @@
-const CACHE='meu-controle-v2-11';
+const CACHE='meu-controle-v2-12';
 const ASSETS=[
   './','./index.html','./style.css','./app.js','./mobile-launches.js','./mobile-agenda.js','./manifest.json',
   './favicon.png','./apple-touch-icon.png','./app-icon.svg','./logo-horizontal.svg',
@@ -8,7 +8,7 @@ const ASSETS=[
 
 const FONT_LINKS=`<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap" rel="stylesheet">`;
 
-const JS_FIX=`\n/* V2.11 — atualização confiável do PWA */\n(function(){\n  try{\n    if('serviceWorker' in navigator){\n      navigator.serviceWorker.getRegistration().then(r=>r&&r.update()).catch(()=>{});\n    }\n  }catch{}\n  try{\n    const originalUpdateInstallUI=updateInstallUI;\n    updateInstallUI=function(){\n      const btn=$('installAppBtn'),title=$('installStatusTitle'),text=$('installStatusText');\n      if(!btn||!title||!text)return;\n      const standalone=window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;\n      if(standalone){\n        title.textContent='Meu Controle instalado ✓';\n        text.textContent='Você já está usando o app instalado neste computador.';\n        btn.textContent='Aplicativo instalado';\n        btn.disabled=true;\n        const help=document.querySelector('.install-help');\n        if(help)help.textContent='Instalação concluída. O Meu Controle abre em janela própria como aplicativo.';\n        return;\n      }\n      originalUpdateInstallUI();\n    };\n    const refresh=()=>setTimeout(updateInstallUI,250);\n    window.addEventListener('load',refresh);\n    window.addEventListener('focus',refresh);\n    try{window.matchMedia('(display-mode: standalone)').addEventListener('change',refresh)}catch{}\n    setTimeout(updateInstallUI,700);\n  }catch{}\n})();\n`;
+const JS_FIX=`\n/* V2.12 — atualização confiável do PWA */\n(function(){\n  try{\n    if('serviceWorker' in navigator){\n      navigator.serviceWorker.getRegistration().then(r=>r&&r.update()).catch(()=>{});\n    }\n  }catch{}\n  try{\n    const originalUpdateInstallUI=updateInstallUI;\n    updateInstallUI=function(){\n      const btn=$('installAppBtn'),title=$('installStatusTitle'),text=$('installStatusText');\n      if(!btn||!title||!text)return;\n      const standalone=window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;\n      if(standalone){\n        title.textContent='Meu Controle instalado ✓';\n        text.textContent='Você já está usando o app instalado neste computador.';\n        btn.textContent='Aplicativo instalado';\n        btn.disabled=true;\n        const help=document.querySelector('.install-help');\n        if(help)help.textContent='Instalação concluída. O Meu Controle abre em janela própria como aplicativo.';\n        return;\n      }\n      originalUpdateInstallUI();\n    };\n    const refresh=()=>setTimeout(updateInstallUI,250);\n    window.addEventListener('load',refresh);\n    window.addEventListener('focus',refresh);\n    try{window.matchMedia('(display-mode: standalone)').addEventListener('change',refresh)}catch{}\n    setTimeout(updateInstallUI,700);\n  }catch{}\n})();\n`;
 
 self.addEventListener('install',e=>{
   self.skipWaiting();
@@ -56,7 +56,11 @@ async function freshAppJs(request){
   try{
     const response=await fetch(request,{cache:'no-store'});
     if(!response.ok)throw new Error('network');
-    const text=await response.text();
+    let text=await response.text();
+    text=text.replace(
+      "window.addEventListener('beforeinstallprompt',e=>{\n  e.preventDefault();\n  deferredInstallPrompt=e;\n  updateInstallUI();\n});",
+      "window.addEventListener('beforeinstallprompt',e=>{\n  // Mantém a promoção nativa do navegador e também registra a oferta para instalação manual.\n  deferredInstallPrompt=e;\n  updateInstallUI();\n});"
+    );
     const fresh=new Response(text+JS_FIX,{status:response.status,statusText:response.statusText,headers:{'Content-Type':'application/javascript; charset=utf-8','Cache-Control':'no-store'}});
     await cachePut(request,fresh.clone());
     return fresh;
