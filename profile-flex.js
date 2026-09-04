@@ -75,7 +75,11 @@
       .profile-trash-btn{width:42px;height:42px;min-width:42px;padding:0;border:0;border-radius:12px;background:#f8eeee;color:#a53a3a;font-size:18px;display:grid;place-items:center;box-shadow:none}
       .profile-trash-btn:hover,.profile-trash-btn:focus-visible{background:#f2dddd;transform:none}
       .profile-lock-icon{width:42px;height:42px;display:grid;place-items:center;opacity:.55;font-size:15px}
-      @media(max-width:700px){.profile-trash-btn,.profile-lock-icon{width:40px;height:40px;min-width:40px}.profile-row{padding-right:10px}}
+      @media(max-width:700px){
+        .profile-trash-btn,.profile-lock-icon{width:40px;height:40px;min-width:40px}
+        .profile-row{padding-right:10px}
+        #settingsPage .profiles-list{max-height:none!important;height:auto!important;overflow:visible!important;padding-right:0!important}
+      }
     `;
     document.head.appendChild(style);
 
