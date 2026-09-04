@@ -1,0 +1,49 @@
+/* Meu Controle — V0.27: central de Configurações desktop em 4 cards + modais */
+(function(){
+ if(window.__meuControleDesktopSettingsV027Loaded)return;window.__meuControleDesktopSettingsV027Loaded=true;
+ const mq=matchMedia('(min-width:701px)');
+ const page=document.getElementById('settingsPage'),grid=page?.querySelector('.settings-grid'),title=page?.querySelector('.settings-title');
+ if(!page||!grid||!title)return;
+ function cards(){return [...grid.querySelectorAll(':scope > .settings-card')]}
+ function find(kind){return cards().find(c=>{const h=(c.querySelector('h3')?.textContent||'').trim().toLowerCase();return kind==='data'?h.includes('dados e segurança'):kind==='profiles'?h==='perfis':kind==='appearance'?h==='aparência':kind==='app'?h==='aplicativo':false})}
+ const defs=[
+  ['data','▣','Dados e segurança','Backup, restauração e sincronização.'],
+  ['profiles','♙','Perfis','Gerencie os perfis do Meu Controle.'],
+  ['appearance','◐','Aparência','Fonte, tema e preferências visuais.'],
+  ['app','▤','Aplicativo','Instalação e informações do aplicativo.']
+ ];
+ const style=document.createElement('style');style.textContent=`
+ @media(min-width:701px){
+  #settingsPage.desktop-settings-v027 .settings-grid{display:none!important}
+  #settingsPage .desktop-settings-home-v027{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-top:16px}
+  #settingsPage .desktop-settings-card-v027{min-height:190px;padding:24px 22px;border:1px solid #dfe7e2;border-radius:18px;background:linear-gradient(145deg,#fff,#fbfcfc);color:var(--text);box-shadow:0 8px 24px rgba(22,79,120,.055);display:flex;flex-direction:column;align-items:flex-start;text-align:left;position:relative;overflow:hidden;transition:.18s ease}
+  #settingsPage .desktop-settings-card-v027:hover{transform:translateY(-4px);border-color:rgba(22,79,120,.24);box-shadow:0 14px 30px rgba(22,79,120,.11)}
+  #settingsPage .desktop-settings-icon-v027{width:54px;height:54px;border-radius:15px;background:var(--primary-soft);color:var(--primary);display:grid;place-items:center;font-family:system-ui,sans-serif;font-size:25px;font-weight:800;margin-bottom:19px}
+  #settingsPage .desktop-settings-card-v027 strong{font-size:20px;line-height:1.15;color:#24352c}
+  #settingsPage .desktop-settings-card-v027 small{display:block;margin-top:8px;color:#748178;font-size:13px;line-height:1.45;font-weight:400}
+  #settingsPage .desktop-settings-arrow-v027{position:absolute;right:20px;bottom:18px;font-family:system-ui,sans-serif;font-size:25px;color:#a0aaa5}
+  .desktop-settings-modal-v027{position:fixed;inset:0;z-index:3000;display:none;align-items:center;justify-content:center;padding:28px;background:rgba(13,37,53,.38);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
+  .desktop-settings-modal-v027.open{display:flex}
+  .desktop-settings-dialog-v027{width:min(980px,calc(100vw - 56px));max-height:calc(100vh - 70px);overflow:auto;background:#f7f9f8;border:1px solid rgba(255,255,255,.8);border-radius:22px;box-shadow:0 24px 65px rgba(0,0,0,.24);padding:22px;position:relative}
+  .desktop-settings-dialog-head-v027{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:14px}
+  .desktop-settings-dialog-head-v027 h2{margin:0;font-size:24px;color:#20382c}
+  .desktop-settings-close-v027{width:40px;height:40px;padding:0;border-radius:12px;background:#e9efec;color:#355143;font-family:system-ui,sans-serif;font-size:23px;box-shadow:none}
+  .desktop-settings-close-v027:hover{background:#e0e9e4;transform:none}
+  .desktop-settings-slot-v027>.settings-card{display:block!important;width:100%!important;max-width:none!important;margin:0!important;box-sizing:border-box!important}
+  .desktop-settings-slot-v027>.settings-card>h3{display:none!important}
+  .desktop-settings-slot-v027>.settings-card>p:first-of-type{margin-top:0!important}
+  body.desktop-settings-modal-open-v027{overflow:hidden}
+ }
+ @media(min-width:701px) and (max-width:980px){#settingsPage .desktop-settings-home-v027{grid-template-columns:repeat(2,minmax(0,1fr))}}
+ @media(max-width:700px){.desktop-settings-home-v027,.desktop-settings-modal-v027{display:none!important}}
+ `;document.head.appendChild(style);
+ const home=document.createElement('section');home.className='desktop-settings-home-v027';home.innerHTML=defs.map(d=>`<button type="button" class="desktop-settings-card-v027" data-settings-kind="${d[0]}"><span class="desktop-settings-icon-v027">${d[1]}</span><strong>${d[2]}</strong><small>${d[3]}</small><span class="desktop-settings-arrow-v027">›</span></button>`).join('');grid.before(home);
+ const modal=document.createElement('div');modal.className='desktop-settings-modal-v027';modal.innerHTML='<div class="desktop-settings-dialog-v027" role="dialog" aria-modal="true"><div class="desktop-settings-dialog-head-v027"><h2></h2><button type="button" class="desktop-settings-close-v027" aria-label="Fechar">×</button></div><div class="desktop-settings-slot-v027"></div></div>';document.body.appendChild(modal);
+ const slot=modal.querySelector('.desktop-settings-slot-v027'),mh=modal.querySelector('h2');let active=null,next=null;
+ function restore(){if(active&&next?.parentNode===grid)grid.insertBefore(active,next);else if(active)grid.appendChild(active);active=null;next=null;slot.innerHTML=''}
+ function close(){modal.classList.remove('open');document.body.classList.remove('desktop-settings-modal-open-v027');setTimeout(restore,0)}
+ function open(kind){if(!mq.matches)return;restore();const c=find(kind);if(!c)return;active=c;next=c.nextElementSibling;mh.textContent=defs.find(d=>d[0]===kind)?.[2]||'Configurações';slot.appendChild(c);modal.classList.add('open');document.body.classList.add('desktop-settings-modal-open-v027');modal.querySelector('.desktop-settings-close-v027').focus()}
+ home.querySelectorAll('[data-settings-kind]').forEach(b=>b.onclick=()=>open(b.dataset.settingsKind));modal.querySelector('.desktop-settings-close-v027').onclick=close;modal.addEventListener('click',e=>{if(e.target===modal)close()});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal.classList.contains('open'))close()});
+ function mode(){if(mq.matches){page.classList.add('desktop-settings-v027');title.querySelector('h2').textContent='⚙ Configurações';title.querySelector('p').textContent='Dados, perfis e preferências do Meu Controle.'}else{close();page.classList.remove('desktop-settings-v027')}}
+ mq.addEventListener?.('change',mode);mode();window.MeuControleDesktopSettingsV027={version:'0.27',open,close};
+})();
