@@ -1,7 +1,10 @@
 /* Meu Controle — V0.35: splash + briefing da semana na abertura (desktop e mobile) */
 (()=>{
  if(window.__meuControleStartupBriefV035Loaded)return;window.__meuControleStartupBriefV035Loaded=true;
- const VERSION='0.35';
+ const VERSION='0.35.1';
+ const navigationType=()=>{try{return performance.getEntriesByType?.('navigation')?.[0]?.type||((performance.navigation?.type===1)?'reload':'navigate')}catch{return'navigate'}};
+ /* Atualizar a página não é uma nova abertura: mantém o contexto e não exibe splash/briefing. */
+ if(navigationType()==='reload'){window.MeuControleStartupBriefV035={version:VERSION,skippedOnReload:true};return;}
  const today=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
  const addDays=(iso,n)=>{const [y,m,d]=iso.split('-').map(Number),x=new Date(y,m-1,d);x.setDate(x.getDate()+n);return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}`};
  const entriesNow=()=>{try{return Array.isArray(entries)?entries:JSON.parse(localStorage.getItem('meu_controle_entries_v2')||'[]')}catch{try{return JSON.parse(localStorage.getItem('meu_controle_entries_v2')||'[]')}catch{return[]}}};
