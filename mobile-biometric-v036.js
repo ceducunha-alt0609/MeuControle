@@ -1,4 +1,4 @@
-/* MeuControle — V0.36: desbloqueio biométrico local somente no mobile */
+/* MeuControle — V0.37: desbloqueio local por autenticador do aparelho somente no mobile */
 (function(){
   if(window.__meuControleMobileBiometricV036Loaded)return;
   window.__meuControleMobileBiometricV036Loaded=true;
@@ -8,7 +8,7 @@
 
   const KEY='meu_controle_mobile_biometric_v1';
   const SESSION_KEY='meu_controle_mobile_biometric_unlocked_v1';
-  const VERSION='0.36';
+  const VERSION='0.37';
 
   const bytes=n=>crypto.getRandomValues(new Uint8Array(n));
   const toB64=urlBytes=>btoa(String.fromCharCode(...new Uint8Array(urlBytes))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
@@ -17,7 +17,15 @@
     const padded=base+'='.repeat((4-base.length%4)%4);
     return Uint8Array.from(atob(padded),c=>c.charCodeAt(0));
   };
-  function read(){try{return JSON.parse(localStorage.getItem(KEY)||'null')}catch{return null}}
+  function rawRead(){try{return JSON.parse(localStorage.getItem(KEY)||'null')}catch{return null}}
+  function read(){
+    const state=rawRead();
+    if(state&&state.version!==VERSION){
+      try{localStorage.removeItem(KEY);sessionStorage.removeItem(SESSION_KEY)}catch{}
+      return null;
+    }
+    return state;
+  }
   function save(v){try{localStorage.setItem(KEY,JSON.stringify(v))}catch{}}
   function clear(){try{localStorage.removeItem(KEY);sessionStorage.removeItem(SESSION_KEY)}catch{}}
   function unlocked(){try{return sessionStorage.getItem(SESSION_KEY)==='1'}catch{return false}}
@@ -79,7 +87,12 @@
         rp:{name:'Meu Controle',id:location.hostname},
         user:{id:userId,name:'meucontrole-local',displayName:'Meu Controle'},
         pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],
-        authenticatorSelection:{authenticatorAttachment:'platform',residentKey:'preferred',userVerification:'required'},
+        authenticatorSelection:{
+          authenticatorAttachment:'platform',
+          residentKey:'discouraged',
+          requireResidentKey:false,
+          userVerification:'required'
+        },
         timeout:60000,
         attestation:'none'
       }});
@@ -87,10 +100,11 @@
       save({enabled:true,credentialId:toB64(credential.rawId),userId:toB64(userId),createdAt:new Date().toISOString(),version:VERSION});
       markUnlocked();
       renderSettings(box);
+      setMessage(box,'Entrada por biometria ativada neste aparelho.');
       return true;
     }catch(e){
       if(e?.name==='NotAllowedError')setMessage(box,'Ativação cancelada ou não confirmada no aparelho.');
-      else if(e?.name==='InvalidStateError')setMessage(box,'Este aparelho já possui uma credencial semelhante. Tente novamente ou remova a anterior nas configurações do navegador.');
+      else if(e?.name==='InvalidStateError')setMessage(box,'O aparelho recusou criar uma nova credencial local. Tente desativar e ativar novamente após fechar o app.');
       else setMessage(box,'Não foi possível ativar a entrada por biometria neste aparelho.');
       return false;
     }finally{btn.disabled=false;renderSettings(box)}
@@ -103,7 +117,7 @@
       const assertion=await navigator.credentials.get({publicKey:{
         challenge:bytes(32),
         rpId:location.hostname,
-        allowCredentials:[{type:'public-key',id:fromB64(state.credentialId)}],
+        allowCredentials:[{type:'public-key',id:fromB64(state.credentialId),transports:['internal']}],
         userVerification:'required',
         timeout:60000
       }});
@@ -137,7 +151,7 @@
     if(box)return box;
     box=document.createElement('div');
     box.className='mobile-biometric-box-v036';
-    box.innerHTML=`<div class="mobile-biometric-head-v036"><div><h4>Entrada por biometria</h4><p>Desbloqueie o MeuControle usando a segurança do próprio celular.</p></div><span class="mobile-biometric-state-v036">Desativada</span></div><button type="button" class="mobile-biometric-action-v036">Ativar entrada por biometria</button><div class="mobile-biometric-note-v036">O MeuControle não recebe nem armazena sua impressão digital, rosto ou PIN.</div><div class="mobile-biometric-message-v036"></div>`;
+    box.innerHTML=`<div class="mobile-biometric-head-v036"><div><h4>Entrada por biometria</h4><p>Desbloqueie o MeuControle usando a segurança do próprio celular.</p></div><span class="mobile-biometric-state-v036">Desativada</span></div><button type="button" class="mobile-biometric-action-v036">Ativar entrada por biometria</button><div class="mobile-biometric-note-v036">Usa somente o autenticador local do aparelho quando o navegador permitir. O MeuControle não recebe nem armazena sua impressão digital, rosto ou PIN.</div><div class="mobile-biometric-message-v036"></div>`;
     card.appendChild(box);
     box.querySelector('.mobile-biometric-action-v036').onclick=async()=>{
       const state=read();
@@ -146,7 +160,14 @@
       }else await registerBiometric(box);
     };
     renderSettings(box);
-    platformAvailable().then(ok=>{if(!ok&&!read()?.enabled)setMessage(box,'Biometria/PIN não disponível para este PWA neste aparelho ou navegador.')});
+    const old=rawRead();
+    if(old&&old.version!==VERSION){
+      clear();
+      setMessage(box,'A configuração anterior foi removida. Ative novamente para usar o modo local corrigido.');
+      renderSettings(box);
+    }else{
+      platformAvailable().then(ok=>{if(!ok&&!read()?.enabled)setMessage(box,'Biometria/PIN não disponível para este PWA neste aparelho ou navegador.')});
+    }
     return box;
   }
 
