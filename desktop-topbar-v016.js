@@ -1,123 +1,16 @@
-/* Meu Controle — V0.16: refino da topbar desktop (perfil compacto + sininho integrado) */
+/* Meu Controle — V0.33: topbar desktop com ferramentas estáveis e busca na segunda linha */
 (function(){
   if(window.__meuControleDesktopTopbarV016Loaded)return;
   window.__meuControleDesktopTopbarV016Loaded=true;
-
   const mq=window.matchMedia('(min-width:701px)');
-
-  function installStyles(){
-    if(document.getElementById('desktopTopbarV016Style'))return;
-    const st=document.createElement('style');
-    st.id='desktopTopbarV016Style';
-    st.textContent=`
-      @media(min-width:701px){
-        .topbar-upper{grid-template-columns:minmax(250px,1fr) auto minmax(250px,1fr)}
-        .desktop-top-tools-v016{justify-self:end;display:flex;align-items:center;gap:10px;position:relative}
-        .desktop-profile-btn-v016{height:42px;min-width:128px;max-width:210px;padding:0 12px;border:1px solid rgba(255,255,255,.28);border-radius:13px;background:rgba(255,255,255,.12);color:#fff;display:flex;align-items:center;gap:8px;box-shadow:none}
-        .desktop-profile-btn-v016:hover,.desktop-profile-btn-v016:focus-visible{background:rgba(255,255,255,.2);transform:none}
-        .desktop-profile-btn-v016 .desktop-profile-name-v016{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;text-align:left}
-        .desktop-profile-menu-v016{position:absolute;right:0;top:50px;width:230px;max-height:320px;overflow:auto;padding:7px;background:#fff;border:1px solid #dfe6e1;border-radius:13px;box-shadow:0 16px 38px rgba(0,0,0,.2);z-index:1300;color:var(--text)}
-        .desktop-profile-menu-v016[hidden]{display:none!important}
-        .desktop-profile-option-v016{width:100%;min-height:40px;padding:8px 10px;background:transparent;color:#263a30;display:flex;align-items:center;gap:9px;text-align:left;border-radius:9px;box-shadow:none}
-        .desktop-profile-option-v016:hover{background:var(--primary-soft);transform:none}
-        .desktop-profile-option-v016.active{background:var(--primary-soft);color:var(--primary)}
-        .desktop-profile-check-v016{width:18px;text-align:center;font-weight:900}
-        .topbar-lower .profile-filter-wrap{display:none!important}
-        .topbar-lower{justify-content:flex-start}
-        .desktop-top-tools-v016 .sync-new-bell{margin-left:0}
-      }
-    `;
-    document.head.appendChild(st);
-  }
-
-  function profileData(){
-    try{
-      const list=Array.isArray(profiles)?profiles:[];
-      return [{id:'all',name:'Todos'},...list.map(p=>({id:p.id,name:p.name}))];
-    }catch{return [{id:'all',name:'Todos'}]}
-  }
-
-  function currentId(){
-    try{return typeof activeProfile!=='undefined'&&activeProfile?activeProfile:'all'}catch{return 'all'}
-  }
-
-  function currentName(){
-    const id=currentId();
-    return profileData().find(p=>p.id===id)?.name||'Todos';
-  }
-
-  function selectProfile(id){
-    const select=document.getElementById('profileFilter');
-    if(!select)return;
-    if([...select.options].some(o=>o.value===id)){
-      select.value=id;
-      select.dispatchEvent(new Event('change',{bubbles:true}));
-    }
-    updateButton();
-  }
-
-  function buildMenu(menu){
-    menu.innerHTML='';
-    const active=currentId();
-    profileData().forEach(p=>{
-      const b=document.createElement('button');
-      b.type='button';
-      b.className='desktop-profile-option-v016'+(p.id===active?' active':'');
-      b.innerHTML=`<span class="desktop-profile-check-v016">${p.id===active?'✓':''}</span><span></span>`;
-      b.lastElementChild.textContent=p.name;
-      b.onclick=()=>{selectProfile(p.id);menu.hidden=true};
-      menu.appendChild(b);
-    });
-  }
-
-  function updateButton(){
-    const btn=document.querySelector('.desktop-profile-btn-v016');
-    const menu=document.querySelector('.desktop-profile-menu-v016');
-    if(btn){
-      const name=btn.querySelector('.desktop-profile-name-v016');
-      if(name)name.textContent=currentName();
-      btn.title=`Perfil em uso: ${currentName()}`;
-    }
-    if(menu&&!menu.hidden)buildMenu(menu);
-  }
-
-  function moveBell(tools){
-    const bell=document.querySelector('.sync-new-bell');
-    if(bell&&bell.parentElement!==tools)tools.insertBefore(bell,tools.firstChild);
-  }
-
-  function install(){
-    installStyles();
-    if(!mq.matches)return;
-    const upper=document.querySelector('.topbar-upper');
-    if(!upper)return;
-    let tools=upper.querySelector('.desktop-top-tools-v016');
-    if(!tools){
-      tools=document.createElement('div');
-      tools.className='desktop-top-tools-v016';
-      const btn=document.createElement('button');
-      btn.type='button';
-      btn.className='desktop-profile-btn-v016';
-      btn.setAttribute('aria-haspopup','menu');
-      btn.innerHTML='<span aria-hidden="true">👤</span><span class="desktop-profile-name-v016"></span><span aria-hidden="true">▾</span>';
-      const menu=document.createElement('div');
-      menu.className='desktop-profile-menu-v016';
-      menu.hidden=true;
-      btn.onclick=e=>{e.stopPropagation();buildMenu(menu);menu.hidden=!menu.hidden};
-      menu.onclick=e=>e.stopPropagation();
-      tools.append(btn,menu);
-      upper.appendChild(tools);
-    }
-    moveBell(tools);
-    updateButton();
-  }
-
-  document.addEventListener('click',()=>{const m=document.querySelector('.desktop-profile-menu-v016');if(m)m.hidden=true});
-  document.getElementById('profileFilter')?.addEventListener('change',()=>setTimeout(updateButton,0));
-  window.addEventListener('meucontrole:sync-manual-v012-complete',()=>setTimeout(()=>{install();const t=document.querySelector('.desktop-top-tools-v016');if(t)moveBell(t)},120));
-  window.addEventListener('load',()=>{setTimeout(install,300);setTimeout(install,2300)});
-  mq.addEventListener?.('change',()=>setTimeout(install,0));
-  setTimeout(install,0);
-
-  window.MeuControleDesktopTopbarV016={version:'0.16',refresh:install};
+  function installStyles(){if(document.getElementById('desktopTopbarV016Style'))return;const st=document.createElement('style');st.id='desktopTopbarV016Style';st.textContent=`@media(min-width:701px){.topbar-upper{grid-template-columns:minmax(250px,1fr) auto minmax(250px,1fr)}.desktop-top-tools-v016{justify-self:end;display:flex;align-items:flex-start;gap:10px;position:relative;min-width:280px}.desktop-profile-btn-v016{height:42px;min-width:128px;max-width:210px;padding:0 12px;border:1px solid rgba(255,255,255,.28);border-radius:13px;background:rgba(255,255,255,.12);color:#fff;display:flex;align-items:center;gap:8px;box-shadow:none}.desktop-profile-btn-v016:hover,.desktop-profile-btn-v016:focus-visible{background:rgba(255,255,255,.2);transform:none}.desktop-profile-btn-v016 .desktop-profile-name-v016{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;text-align:left}.desktop-profile-menu-v016{position:absolute;right:0;top:50px;width:230px;max-height:320px;overflow:auto;padding:7px;background:#fff;border:1px solid #dfe6e1;border-radius:13px;box-shadow:0 16px 38px rgba(0,0,0,.2);z-index:1600;color:var(--text)}.desktop-profile-menu-v016[hidden]{display:none!important}.desktop-profile-option-v016{width:100%;min-height:40px;padding:8px 10px;background:transparent;color:#263a30;display:flex;align-items:center;gap:9px;text-align:left;border-radius:9px;box-shadow:none}.desktop-profile-option-v016:hover{background:var(--primary-soft);transform:none}.desktop-profile-option-v016.active{background:var(--primary-soft);color:var(--primary)}.desktop-profile-check-v016{width:18px;text-align:center;font-weight:900}.topbar-lower .profile-filter-wrap{display:none!important}.topbar-lower{justify-content:flex-start}.desktop-top-tools-v016 .sync-new-bell{margin-left:0;position:absolute;right:290px;top:8px}.desktop-top-tools-v016 .sync-quick-v017{margin-left:auto}}`;document.head.appendChild(st)}
+  function profileData(){try{const list=Array.isArray(profiles)?profiles:[];return [{id:'all',name:'Todos'},...list.map(p=>({id:p.id,name:p.name}))]}catch{return [{id:'all',name:'Todos'}]}}
+  function currentId(){try{return typeof activeProfile!=='undefined'&&activeProfile?activeProfile:'all'}catch{return 'all'}}
+  function currentName(){const id=currentId();return profileData().find(p=>p.id===id)?.name||'Todos'}
+  function selectProfile(id){const select=document.getElementById('profileFilter');if(!select)return;if([...select.options].some(o=>o.value===id)){select.value=id;select.dispatchEvent(new Event('change',{bubbles:true}))}updateButton()}
+  function buildMenu(menu){menu.innerHTML='';const active=currentId();profileData().forEach(p=>{const b=document.createElement('button');b.type='button';b.className='desktop-profile-option-v016'+(p.id===active?' active':'');b.innerHTML=`<span class="desktop-profile-check-v016">${p.id===active?'✓':''}</span><span></span>`;b.lastElementChild.textContent=p.name;b.onclick=()=>{selectProfile(p.id);menu.hidden=true};menu.appendChild(b)})}
+  function updateButton(){const btn=document.querySelector('.desktop-profile-btn-v016'),menu=document.querySelector('.desktop-profile-menu-v016');if(btn){const name=btn.querySelector('.desktop-profile-name-v016');if(name)name.textContent=currentName();btn.title=`Perfil em uso: ${currentName()}`}if(menu&&!menu.hidden)buildMenu(menu)}
+  function moveBell(tools){const bell=document.querySelector('.sync-new-bell');if(bell&&bell.parentElement!==tools)tools.appendChild(bell)}
+  function install(){installStyles();if(!mq.matches)return;const upper=document.querySelector('.topbar-upper');if(!upper)return;let tools=upper.querySelector('.desktop-top-tools-v016');if(!tools){tools=document.createElement('div');tools.className='desktop-top-tools-v016';const btn=document.createElement('button');btn.type='button';btn.className='desktop-profile-btn-v016';btn.setAttribute('aria-haspopup','menu');btn.innerHTML='<span aria-hidden="true">👤</span><span class="desktop-profile-name-v016"></span><span aria-hidden="true">▾</span>';const menu=document.createElement('div');menu.className='desktop-profile-menu-v016';menu.hidden=true;btn.onclick=e=>{e.stopPropagation();buildMenu(menu);menu.hidden=!menu.hidden};menu.onclick=e=>e.stopPropagation();tools.append(btn,menu);upper.appendChild(tools)}moveBell(tools);updateButton()}
+  document.addEventListener('click',()=>{const m=document.querySelector('.desktop-profile-menu-v016');if(m)m.hidden=true});document.getElementById('profileFilter')?.addEventListener('change',()=>setTimeout(updateButton,0));window.addEventListener('meucontrole:sync-manual-v012-complete',()=>setTimeout(()=>{install();const t=document.querySelector('.desktop-top-tools-v016');if(t)moveBell(t)},120));window.addEventListener('load',()=>{setTimeout(install,300);setTimeout(install,2300)});mq.addEventListener?.('change',()=>setTimeout(install,0));setTimeout(install,0);window.MeuControleDesktopTopbarV016={version:'0.33',refresh:install};
 })();
