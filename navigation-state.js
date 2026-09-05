@@ -50,7 +50,9 @@
   function saveContext(forcedPage){
     if(restoring)return;
     const page=validPages.has(forcedPage)?forcedPage:visiblePage();
-    const patch={page};
+    const patch={page,windowScrollY:window.scrollY||0};
+    const listScroll=document.querySelector('#launchesPage .list-scroll');
+    if(listScroll)patch.launchListScrollTop=listScroll.scrollTop||0;
     if(page==='launches'){
       patch.launchMode=launchMode();
       const activeTab=document.querySelector('#launchesPage .tab.active');
@@ -114,19 +116,30 @@
   }
 
   function restoreDetails(state,page){
-    if(!matchMedia('(max-width:700px)').matches)return;
-    if(page==='launches'){
-      const lp=document.getElementById('launchesPage');
-      lp?.classList.remove('mobile-launch-form','mobile-launch-list');
-      if(state.launchMode==='form')lp?.classList.add('mobile-launch-form');
-      if(state.launchMode==='list')lp?.classList.add('mobile-launch-list');
-      if(state.launchMode==='list'&&state.launchFilter){
-        document.querySelector(`#launchesPage .tab[data-filter="${state.launchFilter}"]`)?.click();
+    if(page==='launches'&&state.launchFilter){
+      document.querySelector(`#launchesPage .tab[data-filter="${state.launchFilter}"]`)?.click();
+    }
+    if(matchMedia('(max-width:700px)').matches){
+      if(page==='launches'){
+        const lp=document.getElementById('launchesPage');
+        lp?.classList.remove('mobile-launch-form','mobile-launch-list');
+        if(state.launchMode==='form')lp?.classList.add('mobile-launch-form');
+        if(state.launchMode==='list')lp?.classList.add('mobile-launch-list');
+      }
+      if(page==='settings'&&state.settingsDetail&&state.settingsDetail!=='home'){
+        document.querySelector(`.mobile-more-card[data-more="${state.settingsDetail}"]`)?.click();
       }
     }
-    if(page==='settings'&&state.settingsDetail&&state.settingsDetail!=='home'){
-      document.querySelector(`.mobile-more-card[data-more="${state.settingsDetail}"]`)?.click();
-    }
+  }
+
+  function restoreScroll(state,page){
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      if(page==='launches'&&Number.isFinite(state.launchListScrollTop)){
+        const listScroll=document.querySelector('#launchesPage .list-scroll');
+        if(listScroll)listScroll.scrollTop=state.launchListScrollTop;
+      }
+      if(Number.isFinite(state.windowScrollY))window.scrollTo(0,state.windowScrollY);
+    }));
   }
 
   function restore(){
@@ -135,7 +148,7 @@
     activatePage(page);
     restoreMonths(state);
     restoreDetails(state,page);
-    window.scrollTo(0,0);
+    restoreScroll(state,page);
     reveal();
   }
 
