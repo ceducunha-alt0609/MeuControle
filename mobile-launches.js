@@ -90,7 +90,7 @@
       #launchesPage.mobile-launch-list .item.late .status-dot{background:#b53d3d!important;box-shadow:0 0 0 0 rgba(181,61,61,.42)}
       #launchesPage.mobile-launch-list .item.done .status-dot{visibility:hidden!important;animation:none!important}
 
-      /* V2.47 — separadores mensais somente na consulta mobile. */
+      /* V2.48 — meses + bloco de concluídos dentro de cada mês, somente mobile. */
       #launchesPage.mobile-launch-list #list{gap:10px!important}
       #launchesPage.mobile-launch-list .mobile-month-header{
         margin:10px 0 2px;
@@ -110,6 +110,23 @@
       #launchesPage.mobile-launch-list .mobile-month-header span{font-size:11px;font-weight:700;color:#748078;white-space:nowrap}
       #launchesPage.mobile-launch-list .mobile-month-header.tone-1{background:linear-gradient(90deg,rgba(var(--primary-rgb),.06),rgba(255,255,255,.72));border-left-color:rgba(var(--primary-rgb),.5)}
       #launchesPage.mobile-launch-list .mobile-month-header.tone-2{background:linear-gradient(90deg,rgba(209,168,0,.075),rgba(255,255,255,.78));border-color:rgba(209,168,0,.16);border-left-color:rgba(209,168,0,.62)}
+      #launchesPage.mobile-launch-list .mobile-done-header{
+        margin:4px 0 0;
+        padding:7px 10px;
+        border-top:1px solid #dfe6e1;
+        border-bottom:1px solid #edf1ee;
+        background:linear-gradient(90deg,rgba(98,112,104,.07),rgba(255,255,255,.3));
+        color:#69766f;
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:10px;
+      }
+      #launchesPage.mobile-launch-list .mobile-done-header strong{font-size:11px;letter-spacing:.055em;text-transform:uppercase;color:#637168}
+      #launchesPage.mobile-launch-list .mobile-done-header span{font-size:10px;font-weight:700;color:#8a958f;white-space:nowrap}
+      #launchesPage.mobile-launch-list .item.done{opacity:.52!important}
+      #launchesPage.mobile-launch-list .item.done .item-main,
+      #launchesPage.mobile-launch-list .item.done .amount{text-decoration:line-through;text-decoration-thickness:1.2px;text-decoration-color:rgba(70,84,76,.48)}
     }
     @keyframes mobileStatusPulse{
       0%,100%{transform:scale(1);box-shadow:0 0 0 0 currentColor}
@@ -162,38 +179,62 @@
   home.querySelector('[data-mobile-launch="form"]').onclick=()=>{document.getElementById('clearBtn')?.click();openMode('form');};
   home.querySelector('[data-mobile-launch="list"]').onclick=()=>openMode('list');
 
-  /* Agrupa visualmente os cards por mês sem alterar dados nem renderização desktop. */
+  /* Agrupa por mês; em Todos, concluídos ficam no rodapé do próprio mês. */
   const launchList=document.getElementById('list');
   function groupMobileLaunchMonths(){
-    if(!mq.matches||!launchList||launchList.querySelector('.mobile-month-header'))return;
+    if(!mq.matches||!launchList)return;
+    launchList.querySelectorAll('.mobile-month-header,.mobile-done-header').forEach(h=>h.remove());
     const items=[...launchList.children].filter(el=>el.classList?.contains('item'));
     if(!items.length)return;
-    let currentKey='';
+
+    const groups=[];
+    const groupMap=new Map();
     items.forEach(item=>{
       const meta=item.querySelector('.meta')?.textContent||'';
       const match=meta.match(/\b(\d{2})\/(\d{2})\/(\d{4})\b/);
       if(!match)return;
-      const [,day,month,year]=match;
-      const key=`${year}-${month}`;
-      if(key===currentKey)return;
-      currentKey=key;
-      const monthIndex=Number(month)-1;
-      const label=new Date(Number(year),monthIndex,1).toLocaleDateString('pt-BR',{month:'long',year:'numeric'}).replace(/^./,c=>c.toUpperCase());
-      const count=items.filter(other=>{
-        const m=(other.querySelector('.meta')?.textContent||'').match(/\b(\d{2})\/(\d{2})\/(\d{4})\b/);
-        return m&&m[2]===month&&m[3]===year;
-      }).length;
+      const month=match[2],year=match[3],key=`${year}-${month}`;
+      if(!groupMap.has(key)){
+        const group={key,month,year,items:[]};
+        groupMap.set(key,group);groups.push(group);
+      }
+      groupMap.get(key).items.push(item);
+    });
+
+    const activeFilter=document.querySelector('#launchesPage .tabs .tab.active')?.dataset.filter||'all';
+    const fragment=document.createDocumentFragment();
+    groups.forEach(group=>{
+      const monthIndex=Number(group.month)-1;
+      const label=new Date(Number(group.year),monthIndex,1).toLocaleDateString('pt-BR',{month:'long',year:'numeric'}).replace(/^./,c=>c.toUpperCase());
       const header=document.createElement('div');
       header.className=`mobile-month-header tone-${monthIndex%3}`;
       header.setAttribute('aria-label',`Lançamentos de ${label}`);
-      header.innerHTML=`<strong>${label}</strong><span>${count} ${count===1?'item':'itens'}</span>`;
-      launchList.insertBefore(header,item);
+      header.innerHTML=`<strong>${label}</strong><span>${group.items.length} ${group.items.length===1?'item':'itens'}</span>`;
+      fragment.appendChild(header);
+
+      const pending=group.items.filter(item=>!item.classList.contains('done'));
+      const done=group.items.filter(item=>item.classList.contains('done'));
+      pending.forEach(item=>fragment.appendChild(item));
+
+      if(done.length&&activeFilter==='all'){
+        const doneHeader=document.createElement('div');
+        doneHeader.className='mobile-done-header';
+        doneHeader.innerHTML=`<strong>✓ Concluídos</strong><span>${done.length} ${done.length===1?'item':'itens'}</span>`;
+        fragment.appendChild(doneHeader);
+      }
+      done.forEach(item=>fragment.appendChild(item));
     });
+    launchList.appendChild(fragment);
   }
   if(launchList){
-    const observer=new MutationObserver(()=>{if(mq.matches&&page.classList.contains('mobile-launch-list'))requestAnimationFrame(groupMobileLaunchMonths);});
+    const observer=new MutationObserver(()=>{
+      if(mq.matches&&page.classList.contains('mobile-launch-list')&&!launchList.querySelector('.mobile-month-header'))requestAnimationFrame(groupMobileLaunchMonths);
+    });
     observer.observe(launchList,{childList:true});
-    mq.addEventListener?.('change',()=>{if(!mq.matches)launchList.querySelectorAll('.mobile-month-header').forEach(h=>h.remove());else requestAnimationFrame(groupMobileLaunchMonths)});
+    mq.addEventListener?.('change',()=>{
+      if(!mq.matches)launchList.querySelectorAll('.mobile-month-header,.mobile-done-header').forEach(h=>h.remove());
+      else requestAnimationFrame(groupMobileLaunchMonths);
+    });
   }
 
   const originalShowPage=window.showPage;
