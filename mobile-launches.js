@@ -89,6 +89,27 @@
       #launchesPage.mobile-launch-list .item.today .status-dot{background:#d27a00!important;box-shadow:0 0 0 0 rgba(210,122,0,.42)}
       #launchesPage.mobile-launch-list .item.late .status-dot{background:#b53d3d!important;box-shadow:0 0 0 0 rgba(181,61,61,.42)}
       #launchesPage.mobile-launch-list .item.done .status-dot{visibility:hidden!important;animation:none!important}
+
+      /* V2.47 — separadores mensais somente na consulta mobile. */
+      #launchesPage.mobile-launch-list #list{gap:10px!important}
+      #launchesPage.mobile-launch-list .mobile-month-header{
+        margin:10px 0 2px;
+        padding:10px 12px 9px 13px;
+        border:1px solid rgba(var(--primary-rgb),.13);
+        border-left:4px solid rgba(var(--primary-rgb),.72);
+        border-radius:10px;
+        background:linear-gradient(90deg,rgba(var(--primary-rgb),.095),rgba(var(--primary-rgb),.025));
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:10px;
+        box-shadow:0 2px 7px rgba(0,0,0,.025);
+      }
+      #launchesPage.mobile-launch-list .mobile-month-header:first-child{margin-top:0}
+      #launchesPage.mobile-launch-list .mobile-month-header strong{font-size:13px;letter-spacing:.045em;text-transform:uppercase;color:var(--primary-dark)}
+      #launchesPage.mobile-launch-list .mobile-month-header span{font-size:11px;font-weight:700;color:#748078;white-space:nowrap}
+      #launchesPage.mobile-launch-list .mobile-month-header.tone-1{background:linear-gradient(90deg,rgba(var(--primary-rgb),.06),rgba(255,255,255,.72));border-left-color:rgba(var(--primary-rgb),.5)}
+      #launchesPage.mobile-launch-list .mobile-month-header.tone-2{background:linear-gradient(90deg,rgba(209,168,0,.075),rgba(255,255,255,.78));border-color:rgba(209,168,0,.16);border-left-color:rgba(209,168,0,.62)}
     }
     @keyframes mobileStatusPulse{
       0%,100%{transform:scale(1);box-shadow:0 0 0 0 currentColor}
@@ -140,8 +161,45 @@
   function openMode(mode){if(!mq.matches)return;clearMode();page.classList.add(mode==='list'?'mobile-launch-list':'mobile-launch-form');window.scrollTo({top:0,behavior:'smooth'});}
   home.querySelector('[data-mobile-launch="form"]').onclick=()=>{document.getElementById('clearBtn')?.click();openMode('form');};
   home.querySelector('[data-mobile-launch="list"]').onclick=()=>openMode('list');
+
+  /* Agrupa visualmente os cards por mês sem alterar dados nem renderização desktop. */
+  const launchList=document.getElementById('list');
+  function groupMobileLaunchMonths(){
+    if(!mq.matches||!launchList||launchList.querySelector('.mobile-month-header'))return;
+    const items=[...launchList.children].filter(el=>el.classList?.contains('item'));
+    if(!items.length)return;
+    let currentKey='';
+    items.forEach(item=>{
+      const meta=item.querySelector('.meta')?.textContent||'';
+      const match=meta.match(/\b(\d{2})\/(\d{2})\/(\d{4})\b/);
+      if(!match)return;
+      const [,day,month,year]=match;
+      const key=`${year}-${month}`;
+      if(key===currentKey)return;
+      currentKey=key;
+      const monthIndex=Number(month)-1;
+      const label=new Date(Number(year),monthIndex,1).toLocaleDateString('pt-BR',{month:'long',year:'numeric'}).replace(/^./,c=>c.toUpperCase());
+      const count=items.filter(other=>{
+        const m=(other.querySelector('.meta')?.textContent||'').match(/\b(\d{2})\/(\d{2})\/(\d{4})\b/);
+        return m&&m[2]===month&&m[3]===year;
+      }).length;
+      const header=document.createElement('div');
+      header.className=`mobile-month-header tone-${monthIndex%3}`;
+      header.setAttribute('aria-label',`Lançamentos de ${label}`);
+      header.innerHTML=`<strong>${label}</strong><span>${count} ${count===1?'item':'itens'}</span>`;
+      launchList.insertBefore(header,item);
+    });
+  }
+  if(launchList){
+    const observer=new MutationObserver(()=>{if(mq.matches&&page.classList.contains('mobile-launch-list'))requestAnimationFrame(groupMobileLaunchMonths);});
+    observer.observe(launchList,{childList:true});
+    mq.addEventListener?.('change',()=>{if(!mq.matches)launchList.querySelectorAll('.mobile-month-header').forEach(h=>h.remove());else requestAnimationFrame(groupMobileLaunchMonths)});
+  }
+
   const originalShowPage=window.showPage;
   if(typeof originalShowPage==='function'){window.showPage=function(target){originalShowPage(target);if(target==='launches'&&mq.matches){if(formPanel.classList.contains('editing'))openMode('form');else openHome();}};}
   document.querySelectorAll('.nav-btn[data-page="launches"]').forEach(btn=>{btn.addEventListener('click',()=>{if(mq.matches)setTimeout(openHome,0)});});
+  const originalOpenMode=openMode;
+  openMode=function(mode){originalOpenMode(mode);if(mode==='list')requestAnimationFrame(groupMobileLaunchMonths);};
   mq.addEventListener?.('change',()=>{if(!mq.matches)clearMode()});
 })();
