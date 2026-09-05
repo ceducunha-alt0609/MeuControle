@@ -1,4 +1,4 @@
-/* Meu Controle — V0.19: cards desktop em 2 colunas + ações ao abrir + concluídos no final */
+/* Meu Controle — V0.20: cards desktop em 2 colunas + agrupamento mensal + concluídos por mês */
 (function(){
   if(window.__meuControleDesktopLaunchesV019Loaded)return;
   window.__meuControleDesktopLaunchesV019Loaded=true;
@@ -64,20 +64,43 @@
         #launchesPage .item.desktop-card-open .item-actions{display:flex}
         #launchesPage .item.desktop-card-open .notes:not(:empty){display:block}
         #launchesPage .item.done{opacity:.52}
-        #launchesPage .desktop-done-heading-v019{
+        #launchesPage .item.done .item-main,
+        #launchesPage .item.done .amount{text-decoration:line-through;text-decoration-thickness:1.2px;text-decoration-color:rgba(70,84,76,.48)}
+
+        #launchesPage .desktop-month-heading-v020{
           grid-column:1/-1;
           display:flex;
           align-items:center;
-          gap:10px;
-          margin:8px 0 0;
-          padding:10px 4px 2px;
-          color:#6d7a72;
-          font-size:12px;
-          font-weight:800;
-          text-transform:uppercase;
-          letter-spacing:.05em;
+          justify-content:space-between;
+          gap:14px;
+          margin:10px 0 0;
+          padding:11px 14px;
+          border:1px solid rgba(var(--primary-rgb),.13);
+          border-left:4px solid rgba(var(--primary-rgb),.72);
+          border-radius:10px;
+          background:linear-gradient(90deg,rgba(var(--primary-rgb),.085),rgba(var(--primary-rgb),.02));
         }
-        #launchesPage .desktop-done-heading-v019::after{content:"";height:1px;background:#dfe6e1;flex:1}
+        #launchesPage .desktop-month-heading-v020:first-child{margin-top:0}
+        #launchesPage .desktop-month-heading-v020 strong{font-size:13px;letter-spacing:.045em;text-transform:uppercase;color:var(--primary-dark)}
+        #launchesPage .desktop-month-heading-v020 span{font-size:11px;font-weight:700;color:#748078;white-space:nowrap}
+        #launchesPage .desktop-month-heading-v020.tone-1{background:linear-gradient(90deg,rgba(var(--primary-rgb),.055),rgba(255,255,255,.74));border-left-color:rgba(var(--primary-rgb),.5)}
+        #launchesPage .desktop-month-heading-v020.tone-2{background:linear-gradient(90deg,rgba(209,168,0,.07),rgba(255,255,255,.8));border-color:rgba(209,168,0,.16);border-left-color:rgba(209,168,0,.62)}
+
+        #launchesPage .desktop-done-heading-v020{
+          grid-column:1/-1;
+          display:flex;
+          align-items:center;
+          justify-content:space-between;
+          gap:10px;
+          margin:2px 0 0;
+          padding:8px 10px;
+          border-top:1px solid #dfe6e1;
+          border-bottom:1px solid #edf1ee;
+          background:linear-gradient(90deg,rgba(98,112,104,.07),rgba(255,255,255,.3));
+          color:#69766f;
+        }
+        #launchesPage .desktop-done-heading-v020 strong{font-size:11px;letter-spacing:.055em;text-transform:uppercase;color:#637168}
+        #launchesPage .desktop-done-heading-v020 span{font-size:10px;font-weight:700;color:#8a958f;white-space:nowrap}
         #launchesPage .desktop-card-hint-v019{font-size:10px;color:#87928c;margin-top:auto}
       }
       @media(min-width:701px) and (max-width:1180px){
@@ -125,27 +148,48 @@
       return pass&&(!q||searchableText(e).includes(q));
     });
     const byDate=(a,b)=>(a.date+(a.time||'')).localeCompare(b.date+(b.time||''));
-    const pending=source.filter(e=>!e.done).sort(byDate);
-    const done=source.filter(e=>e.done).sort(byDate);
 
     const box=$('list');
     box.innerHTML='';
     $('emptyState').classList.toggle('hidden',source.length>0);
     $('emptyState').textContent=q?'Nenhum lançamento encontrado.':'Nenhum lançamento ainda.';
+    if(!source.length)return;
 
-    if(currentFilter==='done'){
-      done.forEach(e=>box.appendChild(attachCardBehavior(createItemNode(e),e)));
-      return;
-    }
+    const sorted=source.slice().sort(byDate);
+    const groups=[];
+    const map=new Map();
+    sorted.forEach(e=>{
+      const [year,month]=e.date.split('-');
+      const key=`${year}-${month}`;
+      if(!map.has(key)){
+        const group={key,year:Number(year),month:Number(month),items:[]};
+        map.set(key,group);groups.push(group);
+      }
+      map.get(key).items.push(e);
+    });
 
-    pending.forEach(e=>box.appendChild(attachCardBehavior(createItemNode(e),e)));
-    if(currentFilter==='all'&&done.length){
-      const h=document.createElement('div');
-      h.className='desktop-done-heading-v019';
-      h.textContent=`Concluídos (${done.length})`;
-      box.appendChild(h);
+    groups.forEach(group=>{
+      const monthIndex=group.month-1;
+      const label=new Date(group.year,monthIndex,1).toLocaleDateString('pt-BR',{month:'long',year:'numeric'}).replace(/^./,c=>c.toUpperCase());
+      const monthHeading=document.createElement('div');
+      monthHeading.className=`desktop-month-heading-v020 tone-${monthIndex%3}`;
+      monthHeading.innerHTML=`<strong>${label}</strong><span>${group.items.length} ${group.items.length===1?'item':'itens'}</span>`;
+      box.appendChild(monthHeading);
+
+      const pending=group.items.filter(e=>!e.done).sort(byDate);
+      const done=group.items.filter(e=>e.done).sort(byDate);
+
+      pending.forEach(e=>box.appendChild(attachCardBehavior(createItemNode(e),e)));
+
+      if(done.length&&currentFilter==='all'){
+        const doneHeading=document.createElement('div');
+        doneHeading.className='desktop-done-heading-v020';
+        doneHeading.innerHTML=`<strong>✓ Concluídos</strong><span>${done.length} ${done.length===1?'item':'itens'}</span>`;
+        box.appendChild(doneHeading);
+      }
+
       done.forEach(e=>box.appendChild(attachCardBehavior(createItemNode(e),e)));
-    }
+    });
   }
 
   if(originalRenderList){
@@ -158,5 +202,5 @@
   installStyles();
   window.addEventListener('load',()=>setTimeout(()=>{try{if(typeof renderList==='function')renderList()}catch{}},500));
   matchMedia('(min-width:701px)').addEventListener?.('change',()=>setTimeout(()=>{try{renderList()}catch{}},50));
-  window.MeuControleDesktopLaunchesV019={version:'0.19'};
+  window.MeuControleDesktopLaunchesV019={version:'0.20'};
 })();
