@@ -37,6 +37,7 @@
     if(h==='aplicativo')return'app';
     if(h==='perfis')return'profiles';
     if(h==='aparência')return'appearance';
+    if(h==='ajuda')return'help-v037';
     return'home';
   }
   function monthFromLabel(id){
