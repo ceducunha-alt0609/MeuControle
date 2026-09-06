@@ -1,4 +1,4 @@
-/* MeuControle — V0.37: desbloqueio local por autenticador do aparelho somente no mobile */
+/* MeuControle — V0.37.1: desbloqueio local por autenticador do aparelho somente no mobile */
 (function(){
   if(window.__meuControleMobileBiometricV036Loaded)return;
   window.__meuControleMobileBiometricV036Loaded=true;
@@ -8,7 +8,8 @@
 
   const KEY='meu_controle_mobile_biometric_v1';
   const SESSION_KEY='meu_controle_mobile_biometric_unlocked_v1';
-  const VERSION='0.37';
+  const CREDENTIAL_VERSION='0.37';
+  const MODULE_VERSION='0.37.1';
 
   const bytes=n=>crypto.getRandomValues(new Uint8Array(n));
   const toB64=urlBytes=>btoa(String.fromCharCode(...new Uint8Array(urlBytes))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
@@ -20,7 +21,7 @@
   function rawRead(){try{return JSON.parse(localStorage.getItem(KEY)||'null')}catch{return null}}
   function read(){
     const state=rawRead();
-    if(state&&state.version!==VERSION){
+    if(state&&state.version!==CREDENTIAL_VERSION){
       try{localStorage.removeItem(KEY);sessionStorage.removeItem(SESSION_KEY)}catch{}
       return null;
     }
@@ -52,7 +53,8 @@
         .mobile-biometric-lock-card-v036{width:min(390px,100%);text-align:center}
         .mobile-biometric-lock-card-v036 img{width:82px;height:82px;border-radius:22px;box-shadow:0 14px 36px rgba(0,0,0,.22)}
         .mobile-biometric-lock-card-v036 h1{margin:16px 0 5px;font-size:25px}
-        .mobile-biometric-lock-card-v036 p{margin:0 auto 20px;max-width:300px;font-size:13px;line-height:1.5;opacity:.82}
+        .mobile-biometric-lock-card-v036 p{margin:0 auto 12px;max-width:310px;font-size:13px;line-height:1.5;opacity:.86}
+        .mobile-biometric-browser-note-v036{margin:0 auto 18px;max-width:320px;padding:9px 11px;border:1px solid rgba(255,255,255,.16);border-radius:11px;background:rgba(255,255,255,.08);font-size:10px;line-height:1.45;color:rgba(255,255,255,.76)}
         .mobile-biometric-unlock-v036{width:100%;min-height:50px;background:#fff!important;color:#164f78!important;border-radius:13px!important;font-size:15px!important}
         .mobile-biometric-lock-msg-v036{min-height:18px;margin-top:10px;font-size:11px;line-height:1.4;color:#ffe1ae}
         .mobile-biometric-emergency-v036{margin-top:12px;background:transparent!important;color:rgba(255,255,255,.72)!important;font-size:11px!important;font-weight:600!important;padding:8px!important}
@@ -97,7 +99,7 @@
         attestation:'none'
       }});
       if(!credential)throw new Error('credential-empty');
-      save({enabled:true,credentialId:toB64(credential.rawId),userId:toB64(userId),createdAt:new Date().toISOString(),version:VERSION});
+      save({enabled:true,credentialId:toB64(credential.rawId),userId:toB64(userId),createdAt:new Date().toISOString(),version:CREDENTIAL_VERSION});
       markUnlocked();
       renderSettings(box);
       setMessage(box,'Entrada por biometria ativada neste aparelho.');
@@ -125,7 +127,7 @@
       markUnlocked();
       return true;
     }catch(e){
-      if(messageEl)messageEl.textContent=e?.name==='NotAllowedError'?'Não confirmado. Toque no botão para tentar novamente.':'Não foi possível validar neste aparelho.';
+      if(messageEl)messageEl.textContent=e?.name==='NotAllowedError'?'Identidade não confirmada. Toque no botão para tentar novamente.':'Não foi possível validar sua identidade neste aparelho.';
       return false;
     }
   }
@@ -161,7 +163,7 @@
     };
     renderSettings(box);
     const old=rawRead();
-    if(old&&old.version!==VERSION){
+    if(old&&old.version!==CREDENTIAL_VERSION){
       clear();
       setMessage(box,'A configuração anterior foi removida. Ative novamente para usar o modo local corrigido.');
       renderSettings(box);
@@ -175,15 +177,16 @@
     if(document.querySelector('.mobile-biometric-lock-v036')||unlocked())return;
     const state=read();if(!state?.enabled)return;
     const lock=document.createElement('div');lock.className='mobile-biometric-lock-v036';
-    lock.innerHTML=`<div class="mobile-biometric-lock-card-v036"><img src="icons/icon-192.png" alt=""><h1>Meu Controle</h1><p>Confirme sua identidade no celular para entrar.</p><button type="button" class="mobile-biometric-unlock-v036">Desbloquear com biometria</button><div class="mobile-biometric-lock-msg-v036"></div><button type="button" class="mobile-biometric-emergency-v036">Problemas para entrar?</button></div>`;
+    lock.innerHTML=`<div class="mobile-biometric-lock-card-v036"><img src="icons/icon-192.png" alt=""><h1>Confirme sua identidade</h1><p>Use a biometria ou o bloqueio de tela do seu celular para entrar no MeuControle.</p><div class="mobile-biometric-browser-note-v036">Na próxima etapa, o Android/navegador pode mostrar o endereço deste aplicativo. Essa identificação é exibida pelo sistema por segurança e não pode ser ocultada pelo MeuControle.</div><button type="button" class="mobile-biometric-unlock-v036">Continuar para biometria</button><div class="mobile-biometric-lock-msg-v036"></div><button type="button" class="mobile-biometric-emergency-v036">Problemas para entrar?</button></div>`;
     document.body.appendChild(lock);
     const unlock=lock.querySelector('.mobile-biometric-unlock-v036');
     const msg=lock.querySelector('.mobile-biometric-lock-msg-v036');
     unlock.onclick=async()=>{
-      unlock.disabled=true;unlock.textContent='Confirmando...';msg.textContent='';
+      unlock.disabled=true;unlock.textContent='Aguardando confirmação...';msg.textContent='Confirme sua identidade na tela segura do aparelho.';
+      await new Promise(r=>setTimeout(r,220));
       const ok=await authenticate(msg);
       if(ok)lock.remove();
-      else{unlock.disabled=false;unlock.textContent='Desbloquear com biometria';}
+      else{unlock.disabled=false;unlock.textContent='Tentar novamente';}
     };
     lock.querySelector('.mobile-biometric-emergency-v036').onclick=()=>{
       if(confirm('Se a biometria deste aparelho não estiver mais disponível, você pode desativar esta trava local e entrar normalmente. Deseja desativar?')){
@@ -196,5 +199,5 @@
   const boot=()=>{ensureSettings();showLock()};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,0),{once:true});else setTimeout(boot,0);
   window.addEventListener('load',()=>setTimeout(ensureSettings,350));
-  window.MeuControleMobileBiometric={version:VERSION,enabled:()=>!!read()?.enabled,lock:()=>{try{sessionStorage.removeItem(SESSION_KEY)}catch{}showLock()}};
+  window.MeuControleMobileBiometric={version:MODULE_VERSION,enabled:()=>!!read()?.enabled,lock:()=>{try{sessionStorage.removeItem(SESSION_KEY)}catch{}showLock()}};
 })();
