@@ -1,8 +1,8 @@
-/* MeuControle — V0.42.1: diagnóstico geral + card mobile */
+/* MeuControle — V0.42.2: diagnóstico geral em card + modal desktop/mobile */
 (function(){
   if(window.__meuControleAppDiagnosticsV042Loaded)return;
   window.__meuControleAppDiagnosticsV042Loaded=true;
-  const VERSION='0.42.1';
+  const VERSION='0.42.2';
   const LAST_SYNC_KEY='meu_controle_last_sync_success_v018';
   const ENTRIES_KEY='meu_controle_entries_v2';
   const PROFILES_KEY='meu_controle_profiles_v2';
@@ -16,21 +16,14 @@
   function installStyles(){
     if(document.getElementById('appDiagnosticsV042Style'))return;
     const st=document.createElement('style');st.id='appDiagnosticsV042Style';st.textContent=`
-      .mc-appdiag-v042{margin-top:16px;padding-top:15px;border-top:1px solid #e2e9e5}
-      .mc-appdiag-head-v042{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.mc-appdiag-head-v042 h4{margin:0;font-size:15px;color:#2b4035}.mc-appdiag-head-v042 p{margin:4px 0 0!important;font-size:11px!important;color:#748079!important;line-height:1.45!important}
-      .mc-appdiag-state-v042{padding:5px 8px;border-radius:8px;background:#edf5fa;color:#164f78;font:800 10px system-ui,sans-serif;white-space:nowrap}
+      .mc-appdiag-v042{margin-top:16px;padding:0;border:1px solid #e2e9e5;border-radius:14px;background:#fafcfb;overflow:hidden}
+      .mc-appdiag-head-v042{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px;cursor:pointer;transition:.16s ease}.mc-appdiag-head-v042:hover{background:#f5f8f6}.mc-appdiag-head-v042 h4{margin:0;font-size:14px;color:#2b4035}.mc-appdiag-head-v042 p{margin:3px 0 0!important;font-size:10px!important;color:#748079!important;line-height:1.45!important}
+      .mc-appdiag-state-v042{margin-left:auto;padding:5px 8px;border-radius:8px;background:#edf5fa;color:#164f78;font:800 10px system-ui,sans-serif;white-space:nowrap}.mc-appdiag-arrow-v042{color:#9aa69f;font:700 24px system-ui,sans-serif}
       .mc-appdiag-grid-v042{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px}.mc-appdiag-item-v042{padding:10px 11px;border:1px solid #e5ebe7;border-radius:10px;background:#fafcfb;min-width:0}.mc-appdiag-item-v042 span{display:block;font-size:9px;color:#7b8780;text-transform:uppercase;letter-spacing:.035em}.mc-appdiag-item-v042 strong{display:block;margin-top:4px;font-size:11px;color:#34473d;overflow-wrap:anywhere}
-      .mc-appdiag-actions-v042{display:flex;gap:8px;margin-top:11px}.mc-appdiag-actions-v042 button{min-height:38px!important;padding:8px 12px!important;font-size:11px!important}.mc-appdiag-copy-v042{background:var(--primary)!important;color:#fff!important}.mc-appdiag-note-v042{margin:10px 0 0!important;font-size:10px!important;color:#7a8580!important;line-height:1.45!important}
-      .mc-appdiag-mobile-arrow-v042{display:none;color:#9aa69f;font:700 24px system-ui,sans-serif}
-      .mc-appdiag-backdrop-v042{position:fixed;inset:0;z-index:100650;background:rgba(13,29,40,.5);backdrop-filter:blur(5px);display:flex;align-items:flex-end;padding:14px}.mc-appdiag-sheet-v042{width:100%;max-height:86vh;overflow:auto;background:#fff;border-radius:20px 20px 15px 15px;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px));box-shadow:0 -16px 45px rgba(0,0,0,.22);color:#263a30}.mc-appdiag-sheet-head-v042{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}.mc-appdiag-sheet-head-v042 h3{margin:0;font-size:19px}.mc-appdiag-sheet-head-v042 p{margin:4px 0 0;font-size:11px;color:#748079}.mc-appdiag-sheet-close-v042{width:36px;height:36px;padding:0!important;border:0!important;border-radius:10px!important;background:#eef3f0!important;color:#526158!important;font-size:20px!important;box-shadow:none!important}
-      @media(max-width:700px){
-        .mc-appdiag-v042{margin-top:16px;padding:0;border:1px solid #e2e9e5;border-radius:14px;background:#fafcfb;overflow:hidden}
-        .mc-appdiag-v042>.mc-appdiag-head-v042{padding:14px;align-items:center;cursor:pointer}
-        .mc-appdiag-v042>.mc-appdiag-head-v042 h4{font-size:14px}.mc-appdiag-v042>.mc-appdiag-head-v042 p{font-size:10px!important;margin-top:3px!important}
-        .mc-appdiag-v042>.mc-appdiag-head-v042 .mc-appdiag-state-v042{margin-left:auto}.mc-appdiag-mobile-arrow-v042{display:block}
-        .mc-appdiag-v042>.mc-appdiag-grid-v042,.mc-appdiag-v042>.mc-appdiag-actions-v042,.mc-appdiag-v042>.mc-appdiag-note-v042{display:none!important}
-        .mc-appdiag-sheet-v042 .mc-appdiag-grid-v042{grid-template-columns:1fr 1fr}.mc-appdiag-sheet-v042 .mc-appdiag-actions-v042{display:grid;grid-template-columns:1fr 1fr}.mc-appdiag-sheet-v042 .mc-appdiag-actions-v042 button{width:100%}
-      }
+      .mc-appdiag-actions-v042{display:flex;gap:8px;margin-top:13px}.mc-appdiag-actions-v042 button{min-height:38px!important;padding:8px 12px!important;font-size:11px!important}.mc-appdiag-copy-v042{background:var(--primary)!important;color:#fff!important}.mc-appdiag-note-v042{margin:10px 0 0!important;font-size:10px!important;color:#7a8580!important;line-height:1.45!important}
+      .mc-appdiag-v042>.mc-appdiag-grid-v042,.mc-appdiag-v042>.mc-appdiag-actions-v042,.mc-appdiag-v042>.mc-appdiag-note-v042{display:none!important}
+      .mc-appdiag-backdrop-v042{position:fixed;inset:0;z-index:100650;background:rgba(13,29,40,.5);backdrop-filter:blur(5px);display:flex;align-items:center;justify-content:center;padding:24px}.mc-appdiag-sheet-v042{width:min(820px,calc(100vw - 48px));max-height:calc(100vh - 60px);overflow:auto;background:#fff;border-radius:20px;padding:20px;box-shadow:0 24px 65px rgba(0,0,0,.24);color:#263a30}.mc-appdiag-sheet-head-v042{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}.mc-appdiag-sheet-head-v042 h3{margin:0;font-size:21px}.mc-appdiag-sheet-head-v042 p{margin:4px 0 0;font-size:11px;color:#748079}.mc-appdiag-sheet-close-v042{width:36px;height:36px;padding:0!important;border:0!important;border-radius:10px!important;background:#eef3f0!important;color:#526158!important;font-size:20px!important;box-shadow:none!important}
+      @media(max-width:700px){.mc-appdiag-backdrop-v042{align-items:flex-end;padding:14px}.mc-appdiag-sheet-v042{width:100%;max-height:86vh;border-radius:20px 20px 15px 15px;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px))}.mc-appdiag-sheet-head-v042 h3{font-size:19px}.mc-appdiag-sheet-v042 .mc-appdiag-grid-v042{grid-template-columns:1fr 1fr}.mc-appdiag-sheet-v042 .mc-appdiag-actions-v042{display:grid;grid-template-columns:1fr 1fr}.mc-appdiag-sheet-v042 .mc-appdiag-actions-v042 button{width:100%}}
     `;document.head.appendChild(st);
   }
 
@@ -55,16 +48,16 @@
 
   async function copyFrom(box,btn){const d=box?._diag||await collect(),text=diagnosticText(d);try{await navigator.clipboard.writeText(text)}catch{const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();try{document.execCommand('copy')}catch{}ta.remove()}const old=btn.textContent;btn.textContent='Copiado ✓';setTimeout(()=>btn.textContent=old,1600)}
   function bindActions(root){root.querySelectorAll('.mc-appdiag-refresh-v042').forEach(b=>b.onclick=render);root.querySelectorAll('.mc-appdiag-copy-v042').forEach(b=>b.onclick=()=>copyFrom(root,b))}
-  function closeSheet(){document.querySelector('.mc-appdiag-backdrop-v042')?.remove();document.body.style.overflow=''}
-  function openSheet(){if(!isMobile()||document.querySelector('.mc-appdiag-backdrop-v042'))return;const bd=document.createElement('div');bd.className='mc-appdiag-backdrop-v042';bd.innerHTML=`<section class="mc-appdiag-sheet-v042" role="dialog" aria-modal="true" aria-label="Diagnóstico do aplicativo"><div class="mc-appdiag-sheet-head-v042"><div><h3>Diagnóstico do aplicativo</h3><p>Estado técnico do MeuControle neste aparelho.</p></div><button type="button" class="mc-appdiag-sheet-close-v042" aria-label="Fechar">×</button></div>${detailHTML()}</section>`;document.body.appendChild(bd);document.body.style.overflow='hidden';bd.querySelector('.mc-appdiag-sheet-close-v042').onclick=closeSheet;bd.onclick=e=>{if(e.target===bd)closeSheet()};bindActions(bd.querySelector('.mc-appdiag-sheet-v042'));render()}
+  function closeDialog(){document.querySelector('.mc-appdiag-backdrop-v042')?.remove();document.body.style.overflow=''}
+  function openDialog(){if(document.querySelector('.mc-appdiag-backdrop-v042'))return;const bd=document.createElement('div');bd.className='mc-appdiag-backdrop-v042';bd.innerHTML=`<section class="mc-appdiag-sheet-v042" role="dialog" aria-modal="true" aria-label="Diagnóstico do aplicativo"><div class="mc-appdiag-sheet-head-v042"><div><h3>Diagnóstico do aplicativo</h3><p>Estado técnico do MeuControle neste aparelho.</p></div><button type="button" class="mc-appdiag-sheet-close-v042" aria-label="Fechar">×</button></div>${detailHTML()}</section>`;document.body.appendChild(bd);document.body.style.overflow='hidden';bd.querySelector('.mc-appdiag-sheet-close-v042').onclick=closeDialog;bd.onclick=e=>{if(e.target===bd)closeDialog()};bindActions(bd.querySelector('.mc-appdiag-sheet-v042'));render()}
 
   function ensure(){
     installStyles();const help=document.querySelector('.mc-help-card-v037');if(!help)return null;let box=help.querySelector('.mc-appdiag-v042');if(box)return box;
-    box=document.createElement('section');box.className='mc-appdiag-v042';box.innerHTML=`<div class="mc-appdiag-head-v042" role="button" tabindex="0" aria-label="Abrir diagnóstico do aplicativo"><div><h4>Diagnóstico do aplicativo</h4><p>Estado técnico do MeuControle neste aparelho. Apenas leitura.</p></div><span class="mc-appdiag-state-v042">Verificando…</span><span class="mc-appdiag-mobile-arrow-v042">›</span></div>${detailHTML()}`;help.appendChild(box);bindActions(box);const head=box.querySelector('.mc-appdiag-head-v042');head.onclick=()=>{if(isMobile())openSheet()};head.onkeydown=e=>{if(isMobile()&&(e.key==='Enter'||e.key===' ')){e.preventDefault();openSheet()}};return box;
+    box=document.createElement('section');box.className='mc-appdiag-v042';box.innerHTML=`<div class="mc-appdiag-head-v042" role="button" tabindex="0" aria-label="Abrir diagnóstico do aplicativo"><div><h4>Diagnóstico do aplicativo</h4><p>Verifique conexão, cache, Firebase, sincronização e dados locais.</p></div><span class="mc-appdiag-state-v042">Verificando…</span><span class="mc-appdiag-arrow-v042">›</span></div>${detailHTML()}`;help.appendChild(box);bindActions(box);const head=box.querySelector('.mc-appdiag-head-v042');head.onclick=openDialog;head.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openDialog()}};return box;
   }
 
   function boot(){const box=ensure();if(box)render();else setTimeout(boot,250)}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,80),{once:true});else setTimeout(boot,80);
-  window.addEventListener('online',render);window.addEventListener('offline',render);window.addEventListener('meucontrole:auth-changed',()=>setTimeout(render,120));window.addEventListener('meucontrole:sync-manual-v012-complete',()=>setTimeout(render,180));document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSheet()});document.addEventListener('click',e=>{if(e.target.closest('[data-settings-kind="help"]')||e.target.closest('[data-more="help-v037"]'))setTimeout(()=>{ensure();render()},120)});
-  window.MeuControleAppDiagnosticsV042={version:VERSION,refresh:render,collect,open:openSheet};
+  window.addEventListener('online',render);window.addEventListener('offline',render);window.addEventListener('meucontrole:auth-changed',()=>setTimeout(render,120));window.addEventListener('meucontrole:sync-manual-v012-complete',()=>setTimeout(render,180));document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDialog()});document.addEventListener('click',e=>{if(e.target.closest('[data-settings-kind="help"]')||e.target.closest('[data-more="help-v037"]'))setTimeout(()=>{ensure();render()},120)});
+  window.MeuControleAppDiagnosticsV042={version:VERSION,refresh:render,collect,open:openDialog};
 })();
