@@ -33,6 +33,7 @@ window.MeuControleCloud={
   auth,
   db,
   currentUser:()=>auth.currentUser,
+  signOut:()=>signOut(auth),
   ready:true
 };
 window.dispatchEvent(new CustomEvent('meucontrole:firebase-ready'));
