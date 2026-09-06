@@ -6,6 +6,7 @@
   const VERSION='0.38';
   const DURATION=7000;
   let timer=null;
+  let settleTimer=null;
   let pendingUndo=null;
 
   const clone=value=>{
@@ -45,6 +46,7 @@
 
   function hideToast(){
     clearTimeout(timer);timer=null;
+    clearTimeout(settleTimer);settleTimer=null;
     const toast=document.querySelector('.mc-undo-v038');
     toast?.classList.remove('show');
     pendingUndo=null;
@@ -52,9 +54,12 @@
 
   function offerUndo(label,snapshot){
     clearTimeout(timer);
+    clearTimeout(settleTimer);settleTimer=null;
     pendingUndo={label,snapshot:clone(snapshot)};
     const toast=ensureToast();
     toast.querySelector('.mc-undo-copy-v038 strong').textContent=label;
+    toast.querySelector('.mc-undo-copy-v038 span').textContent='Você pode desfazer esta ação por alguns segundos.';
+    toast.querySelector('.mc-undo-btn-v038').style.display='';
     requestAnimationFrame(()=>toast.classList.add('show'));
     timer=setTimeout(hideToast,DURATION);
   }
@@ -73,13 +78,9 @@
       toast.querySelector('.mc-undo-copy-v038 span').textContent='O estado anterior foi restaurado.';
       toast.querySelector('.mc-undo-btn-v038').style.display='none';
       toast.classList.add('show');
-      setTimeout(()=>{
+      settleTimer=setTimeout(()=>{
         toast.classList.remove('show');
-        setTimeout(()=>{
-          const btn=toast.querySelector('.mc-undo-btn-v038');
-          btn.style.display='';
-          toast.querySelector('.mc-undo-copy-v038 span').textContent='Você pode desfazer esta ação por alguns segundos.';
-        },180);
+        settleTimer=null;
       },1800);
     }catch(e){console.warn('[MeuControle Undo] Falha ao restaurar estado',e)}
   }
