@@ -1,4 +1,4 @@
-/* MeuControle — V0.49.2: seleção em lote refinada */
+/* MeuControle — V0.49.3: seleção em lote refinada + carregamento garantido da camada de exclusões */
 (()=>{
   if(window.__mcBulkDeleteV049)return;window.__mcBulkDeleteV049=true;
   const selected=new Set();
@@ -20,6 +20,7 @@
     .mc-bulk-check-wrap[hidden]{display:none!important}
     .mc-bulk-check{width:18px;height:18px;margin:0;accent-color:var(--primary);cursor:pointer}
     #launchesPage .item.mc-bulk-selected{outline:2px solid rgba(var(--primary-rgb),.42);outline-offset:-1px;background:rgba(var(--primary-rgb),.045)}
+    .mc-bulk-notice{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);z-index:2800;width:min(430px,calc(100vw - 28px));padding:11px 13px;border:1px solid #ead9bd;border-left:4px solid #b7812e;border-radius:12px;background:#fff9ef;color:#79531f;box-shadow:0 12px 30px rgba(22,43,32,.16);font-size:12px;font-weight:700;text-align:center}
     @media(max-width:700px){
       #launchesPage.mobile-launch-list .tabs .mc-bulk-start{display:none!important}
       #launchesPage.mobile-launch-list .mc-bulk-toolbar.active{position:fixed;left:12px;right:12px;bottom:84px;z-index:1450;margin:0;padding:8px 9px;border-radius:14px;background:#fff;box-shadow:0 10px 30px rgba(20,40,30,.20);display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;gap:6px;align-items:center}
@@ -27,9 +28,21 @@
       #launchesPage.mobile-launch-list .mc-bulk-toolbar button{min-height:36px;padding:7px 9px;font-size:11px;white-space:nowrap}
       #launchesPage.mobile-launch-list .item.mc-bulk-selectable{padding-left:49px!important}
       #launchesPage.mobile-launch-list .mc-bulk-check-wrap{left:14px;top:24px;transform:none}
+      .mc-bulk-notice{bottom:92px}
     }
   `;
   document.head.appendChild(style);
+
+  function notice(text){
+    document.querySelector('.mc-bulk-notice')?.remove();
+    const n=document.createElement('div');n.className='mc-bulk-notice';n.textContent=text;document.body.appendChild(n);setTimeout(()=>n.remove(),3600);
+  }
+  async function ensureMutations(){
+    if(window.MeuControleMutations?.deleteEntries)return window.MeuControleMutations;
+    try{await import('./mutation-sync-v050.js?rev=20260907c')}catch(e){console.warn('[MeuControle bulk] mutation loader',e)}
+    for(let i=0;i<20;i++){if(window.MeuControleMutations?.deleteEntries)return window.MeuControleMutations;await new Promise(r=>setTimeout(r,50))}
+    return null;
+  }
 
   const listPanel=document.querySelector('#launchesPage .list-panel');
   const tabs=listPanel?.querySelector('.tabs');
@@ -60,10 +73,9 @@
   function setMode(on,firstId=''){selectionMode=!!on;if(!selectionMode)selected.clear();else if(firstId)selected.add(firstId);decorate()}
   async function deleteSelected(){
     const ids=visibleIds().filter(id=>selected.has(id));if(!ids.length)return;
-    if(window.MeuControleMutations?.deleteEntries){const ok=await window.MeuControleMutations.deleteEntries(ids);if(!ok)return}else{
-      if(!confirm(`Excluir ${ids.length} lançamento${ids.length===1?'':'s'} selecionado${ids.length===1?'':'s'}?`))return;
-      if(typeof createAutoBackup==='function')createAutoBackup(`Antes de excluir ${ids.length} lançamentos em lote`);const remove=new Set(ids);entries=entries.filter(e=>!remove.has(e.id));save();renderAll();
-    }
+    const mutations=await ensureMutations();
+    if(!mutations){notice('Não foi possível preparar a exclusão sincronizada. Reabra o MeuControle e tente novamente.');return}
+    const ok=await mutations.deleteEntries(ids);if(!ok)return;
     selected.clear();selectionMode=false;decorate();try{window.MeuControlePush?.sync?.()}catch{}
   }
   startBtn.onclick=()=>setMode(true);
@@ -88,5 +100,6 @@
   };
   const originalRenderList=renderList;renderList=function(){originalRenderList();decorate()};
   window.addEventListener('resize',()=>{if(!mobile()&&selectionMode)decorate()});
+  setTimeout(()=>ensureMutations(),120);
   updateToolbar();renderList();
 })();
