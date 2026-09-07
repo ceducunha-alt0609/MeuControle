@@ -1,10 +1,12 @@
-/* MeuControle — V0.47: registro FCM + fila de lembretes para push com app fechado */
-import { getMessaging, getToken, isSupported } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-messaging.js';
+/* MeuControle — V0.47.1: registro FCM com VAPID + fila de lembretes para push com app fechado */
+import { getMessaging, getToken, deleteToken, isSupported } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-messaging.js';
 import { collection, doc, getDocs, writeBatch, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js';
 
 (()=>{
   if(window.__mcPushFcmV047)return;window.__mcPushFcmV047=true;
-  const VERSION='0.47',ENTRIES_KEY='meu_controle_entries_v2',ENABLED_KEY='meu_controle_notifications_enabled_v1',DEVICE_KEY='meu_controle_device_id_v1',DAY=86400000;
+  const VERSION='0.47.1',ENTRIES_KEY='meu_controle_entries_v2',ENABLED_KEY='meu_controle_notifications_enabled_v1',DEVICE_KEY='meu_controle_device_id_v1',DAY=86400000;
+  const VAPID_KEY='BMAb3SY40giuzwWw9fTToAhDp-G41POwcBPkqj6zKJiFEFnZBb4GVyO0aoXYUx-7DKZtTcDz4m6BtnaPY1GHjB0';
+  const VAPID_MARKER_KEY='meu_controle_fcm_vapid_marker_v1',VAPID_MARKER='firebase-webpush-2026-09-07';
   let busy=false,lastHash='',lastToken='';
   const cloud=()=>window.MeuControleCloud||null;
   const readEntries=()=>{try{const v=JSON.parse(localStorage.getItem(ENTRIES_KEY)||'[]');return Array.isArray(v)?v:[]}catch{return[]}};
@@ -17,8 +19,18 @@ import { collection, doc, getDocs, writeBatch, serverTimestamp } from 'https://w
   function status(text){ensureStatus();document.querySelectorAll('.mc-push-status-v047 strong').forEach(x=>x.textContent=text)}
   async function clearPending(db,uid,did){const ref=collection(db,'users',uid,'pushReminders'),snap=await getDocs(ref),docs=snap.docs.filter(d=>d.data()?.deviceId===did&&!d.data()?.sent);for(let i=0;i<docs.length;i+=400){const b=writeBatch(db);docs.slice(i,i+400).forEach(d=>b.delete(d.ref));await b.commit()}}
   async function saveQueue(db,uid,did,token){const list=queue();for(let i=0;i<list.length;i+=350){const b=writeBatch(db);for(const a of list.slice(i,i+350)){const id=`${did}__${a.entryId}__${a.phase}__${a.fireAt}`.replace(/[^A-Za-z0-9_-]/g,'_');b.set(doc(db,'users',uid,'pushReminders',id),{...a,deviceId:did,token,sent:false,updatedAt:serverTimestamp()})}await b.commit()}return list.length}
-  async function sync(force=false){if(busy)return;busy=true;try{ensureStatus();const c=cloud(),u=c?.currentUser?.();if(!c?.db||!u){status('Entre no Google');return}const did=deviceId();if(!enabled()){status('Desativado');await clearPending(c.db,u.uid,did);return}if(!('serviceWorker'in navigator)){status('Sem service worker');return}if(!(await isSupported())){status('Push indisponível');return}const reg=await navigator.serviceWorker.ready,messaging=getMessaging(c.app),token=await getToken(messaging,{serviceWorkerRegistration:reg});if(!token){status('Registro pendente');return}lastToken=token;await writeDevice(c.db,u.uid,did,token);if(force||hash()!==lastHash){await clearPending(c.db,u.uid,did);const n=await saveQueue(c.db,u.uid,did,token);lastHash=hash();status(`Registrado ✓ · ${n} aviso${n===1?'':'s'}`)}else status('Registrado ✓')}catch(e){console.warn('[MeuControle push]',e);status(e?.code==='permission-denied'?'Firebase recusou registro':'Não configurado')}finally{busy=false}}
-  async function writeDevice(db,uid,did,token){const b=writeBatch(db);b.set(doc(db,'users',uid,'pushDevices',did),{deviceId:did,token,active:true,updatedAt:serverTimestamp(),platform:navigator.userAgent.includes('Android')?'android':'web'});await b.commit()}
+  async function ensureVapidToken(messaging,reg){
+    if(localStorage.getItem(VAPID_MARKER_KEY)!==VAPID_MARKER){
+      status('Atualizando registro...');
+      try{await deleteToken(messaging)}catch{}
+      lastToken='';
+    }
+    const token=await getToken(messaging,{serviceWorkerRegistration:reg,vapidKey:VAPID_KEY});
+    if(token)localStorage.setItem(VAPID_MARKER_KEY,VAPID_MARKER);
+    return token;
+  }
+  async function sync(force=false){if(busy)return;busy=true;try{ensureStatus();const c=cloud(),u=c?.currentUser?.();if(!c?.db||!u){status('Entre no Google');return}const did=deviceId();if(!enabled()){status('Desativado');await clearPending(c.db,u.uid,did);return}if(!('serviceWorker'in navigator)){status('Sem service worker');return}if(!(await isSupported())){status('Push indisponível');return}const reg=await navigator.serviceWorker.ready,messaging=getMessaging(c.app),token=await ensureVapidToken(messaging,reg);if(!token){status('Registro pendente');return}lastToken=token;await writeDevice(c.db,u.uid,did,token);if(force||hash()!==lastHash){await clearPending(c.db,u.uid,did);const n=await saveQueue(c.db,u.uid,did,token);lastHash=hash();status(`Registrado ✓ · ${n} aviso${n===1?'':'s'}`)}else status('Registrado ✓')}catch(e){console.warn('[MeuControle push]',e);status(e?.code==='permission-denied'?'Firebase recusou registro':'Não configurado')}finally{busy=false}}
+  async function writeDevice(db,uid,did,token){const b=writeBatch(db);b.set(doc(db,'users',uid,'pushDevices',did),{deviceId:did,token,active:true,updatedAt:serverTimestamp(),platform:navigator.userAgent.includes('Android')?'android':'web',vapid:'custom-v1'});await b.commit()}
   function trigger(){setTimeout(()=>sync(true),350)}
   function boot(){ensureStatus();sync(true);setInterval(()=>{ensureStatus();if(hash()!==lastHash||!lastToken)sync(true);else sync(false)},60000);window.addEventListener('focus',()=>sync(false));window.addEventListener('meucontrole:auth-changed',trigger);document.getElementById('entryForm')?.addEventListener('submit',trigger);document.addEventListener('click',e=>{if(e.target.closest('.doneBtn,.deleteBtn,[data-duplicate-entry]'))trigger()})}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,900),{once:true});else setTimeout(boot,900);
