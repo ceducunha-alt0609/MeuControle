@@ -1,7 +1,7 @@
-/* Meu Controle — V0.20: Sync rápido com carregamento garantido da sincronização de exclusões */
+/* Meu Controle — V0.21: Sync rápido com motor dedicado V0.15 */
 (function(){
  if(window.__meuControleSyncQuickV017Loaded)return;window.__meuControleSyncQuickV017Loaded=true;
- const VERSION='0.20';
+ const VERSION='0.21';
  const LAST_SYNC_KEY='meu_controle_last_sync_success_v018';
  let busy=false;
  function style(){if(document.getElementById('syncQuickV017Style'))return;const s=document.createElement('style');s.id='syncQuickV017Style';s.textContent=`
@@ -24,14 +24,14 @@
  function stats(){const b=document.querySelector('.sync-manual-v012'),cells=[...b?.querySelectorAll('.sync-manual-stat')||[]],o={};cells.forEach(c=>{const l=(c.childNodes[0]?.textContent||'').trim(),n=Number(c.querySelector('b')?.textContent||0);if(l==='Enviar')o.send=n;if(l==='Receber')o.receive=n;if(l==='Excluir nuvem')o.delete=n;if(l==='Já iguais')o.equal=n;if(l==='Conflitos')o.conflict=n});return o}
  function setState(kind,label){document.querySelectorAll('.sync-quick-v017').forEach(b=>{b.classList.remove('ok','warn','busy');if(kind)b.classList.add(kind);b.disabled=kind==='busy';b.innerHTML=`<span class="sync-quick-icon">${kind==='ok'?'✓':kind==='warn'?'!':'↻'}</span><span class="sync-quick-label">${label}</span>`;const last=formatLastSync();b.title=kind==='ok'?(last?`Sincronização em dia • Última sincronização: ${last}`:'Sincronização em dia'):kind==='warn'?(last?`Sincronização precisa de atenção • Última sincronização bem-sucedida: ${last}`:'Sincronização precisa de atenção'):(last?`Sincronizar agora • Última sincronização: ${last}`:'Sincronizar agora')})}
  async function ensureCore(){
-   if(!window.MeuControleMutations?.process){try{await import('./mutation-sync-v050.js?rev=20260907c')}catch(e){console.warn('[MeuControle Sync] mutation loader',e)}}
+   if(!window.MeuControleMutations?.process){try{await import('./mutation-sync-v050.js?rev=20260907d')}catch(e){console.warn('[MeuControle Sync] mutation loader',e)}}
    let api=window.MeuControleSyncManualV012;
-   if(!api||api.version!=='0.13'){
-     try{window.__meuControleSyncManualV012Loaded=false;await import('./sync-manual-v012.js?rev=20260907c')}catch(e){console.warn('[MeuControle Sync] manual loader',e)}
+   if(!api||api.version!=='0.15'){
+     try{await import('./sync-manual-v013.js?rev=20260907d')}catch(e){console.warn('[MeuControle Sync] dedicated engine loader',e)}
      api=window.MeuControleSyncManualV012;
    }
    if(!window.MeuControleMutations?.process)throw new Error('A camada de alterações ainda não carregou. Feche e reabra o MeuControle.');
-   if(!api||api.version!=='0.13')throw new Error('O motor de sincronização ainda não atualizou. Feche e reabra o MeuControle.');
+   if(!api||api.version!=='0.15')throw new Error('O motor dedicado de sincronização não carregou. Feche e reabra o MeuControle.');
    return api;
  }
  async function run(){if(busy)return;busy=true;setState('busy','Sync');toast('↻ Sincronizando...','Conferindo dados locais, nuvem e exclusões.','busy',0);try{const api=await ensureCore();await window.MeuControleMutations.process();await window.MeuControleMutations.reconcile();await api.preview();await new Promise(r=>setTimeout(r,120));let s=stats();if([s.send,s.receive,s.delete,s.equal,s.conflict].some(v=>v===undefined))throw new Error('Não foi possível conferir os dois lados com a versão atual do Sync.');if(s.conflict){setState('warn','Atenção');toast('⚠ Sincronização requer atenção',`${s.conflict} conflito${s.conflict===1?' encontrado':'s encontrados'}. Nada foi alterado.`,'warn');return}const total=(s.send||0)+(s.receive||0)+(s.delete||0);if(!total){const iso=markSuccess();setState('ok','Sync OK');toast('✓ Tudo sincronizado',`${s.equal} lançamento${s.equal===1?'':'s'} nos dois lados • Última sincronização: ${formatLastSync(iso)}`,'ok');return}const parts=[];if(s.send)parts.push(`enviar ${s.send}`);if(s.receive)parts.push(`receber ${s.receive}`);if(s.delete)parts.push(`excluir ${s.delete}`);toast('↻ Sincronizando...',`Atualizando ${total} operação${total===1?'':'ões'} (${parts.join(' · ')}).`,'busy',0);await api.execute();toast('↻ Sincronizando...','Validando o resultado final.','busy',0);await new Promise(r=>setTimeout(r,220));await api.preview();await new Promise(r=>setTimeout(r,100));s=stats();if(s.conflict||s.send||s.receive||s.delete)throw new Error('A conferência final não fechou. Abra a área de Sincronização.');const iso=markSuccess();setState('ok','Sync OK');toast('✓ Sincronização concluída',`${total} operação${total===1?'':'ões'} aplicada${total===1?'':'s'} • Última sincronização: ${formatLastSync(iso)}`,'ok')}catch(e){setState('warn','Atenção');toast('⚠ Não foi possível sincronizar',e?.message||'Verifique sua conexão e tente novamente.','warn',4200)}finally{busy=false;document.querySelectorAll('.sync-quick-v017').forEach(b=>b.disabled=false)}}
