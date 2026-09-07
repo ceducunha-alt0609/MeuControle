@@ -54,5 +54,7 @@ import { doc, getDoc, writeBatch, serverTimestamp } from 'https://www.gstatic.co
   async function deleteEntries(ids){ids=[...new Set(ids)].filter(Boolean);if(!ids.length)return false;if(!(await confirmDelete(ids.length)))return false;if(typeof createAutoBackup==='function')createAutoBackup(ids.length===1?'Antes de excluir lançamento':`Antes de excluir ${ids.length} lançamentos em lote`);const remove=new Set(ids);entries=entries.filter(e=>!remove.has(e.id));save();renderAll();queueMutations({deletes:ids});toast(ids.length===1?'Exclusão realizada ✓':`${ids.length} lançamentos excluídos ✓`,'ok');return true}
 
   window.addEventListener('online',()=>processQueue());window.addEventListener('focus',()=>processQueue());window.addEventListener('meucontrole:auth-changed',()=>setTimeout(processQueue,350));setTimeout(processQueue,1200);
-  window.MeuControleMutationsV051={version:'0.51',toast,confirmDelete,deleteEntries,queueMutations,process:processQueue,readQueue};
+  const api={version:'0.51',toast,confirmDelete,deleteEntries,queueMutations,process:processQueue,readQueue};
+  window.MeuControleMutationsV051=api;
+  window.MeuControleMutations=api;
 })();
