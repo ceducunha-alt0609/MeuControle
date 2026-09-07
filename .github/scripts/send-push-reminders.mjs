@@ -1,11 +1,6 @@
 import admin from 'firebase-admin';
 
-const raw=process.env.FIREBASE_SERVICE_ACCOUNT;
-if(!raw){console.log('FIREBASE_SERVICE_ACCOUNT ausente; nada enviado.');process.exit(0)}
-let serviceAccount;
-try{serviceAccount=JSON.parse(raw)}catch{throw new Error('FIREBASE_SERVICE_ACCOUNT não contém JSON válido.')}
-
-admin.initializeApp({credential:admin.credential.cert(serviceAccount)});
+admin.initializeApp({credential:admin.credential.applicationDefault(),projectId:'meucontrole-b8f2d'});
 const db=admin.firestore(),auth=admin.auth(),messaging=admin.messaging();
 const now=Date.now(),STALE=12*60*60*1000;
 let pageToken,checked=0,sent=0,skipped=0,failed=0;
