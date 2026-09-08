@@ -1,4 +1,4 @@
-/* MeuControle — Motor Único de Operações V1.0
+/* MeuControle — Motor Único de Operações V1.01
    Regra: ação local -> operação persistente -> Firebase -> confirmação.
 */
 import { collection, doc, getDocs, getDoc, writeBatch, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js';
@@ -116,17 +116,21 @@ import { collection, doc, getDocs, getDoc, writeBatch, serverTimestamp } from 'h
     ({remoteAll,tombIds}=await legacyRepair(c,u,remoteAll,tombIds));
     let local=bridge()?.getEntries?.()||parseEntries(nativeGetItem.call(localStorage,ENTRY_KEY));
     const localMap=new Map(local.filter(e=>e?.id).map(e=>[e.id,e])),remoteMap=new Map(remoteAll.filter(e=>e?.id&&!tombIds.has(e.id)).map(e=>[e.id,e]));
-    let removed=0,received=0,uploaded=0;
+    const pendingOps=readOps();
+    let removed=0,received=0,uploaded=0,updated=0;
     for(const id of tombIds)if(localMap.has(id)){localMap.delete(id);removed++}
-    for(const [id,re] of remoteMap)if(!localMap.has(id)){localMap.set(id,clean(re));received++}
+    for(const [id,re] of remoteMap){
+      if(!localMap.has(id)){localMap.set(id,clean(re));received++;continue}
+      if(!pendingOps[id]&&canonical(localMap.get(id))!==canonical(re)){localMap.set(id,clean(re));updated++}
+    }
     const localOnly=[...localMap.values()].filter(e=>!remoteMap.has(e.id)&&!tombIds.has(e.id));
     if(localOnly.length){const batch=writeBatch(c.db),at=new Date().toISOString();for(const e of localOnly){batch.set(doc(c.db,'users',u.uid,'entries',e.id),{...clean(e),syncMeta:{mode:'operations-v1-reconcile',sourceDeviceId:deviceId(),uploadedAt:at,deletedAt:null}});batch.delete(doc(c.db,'users',u.uid,'entryTombstones',e.id));uploaded++}await batch.commit()}
-    if(removed||received){feedbackMuted=true;suspendTrack=true;try{bridge()?.replaceEntries?.([...localMap.values()],{render:true,backupReason:'Antes de aplicar sincronização da nuvem'})}finally{suspendTrack=false;feedbackMuted=false}}
-    markSync();return{removed,received,uploaded,pending:Object.keys(readOps()).length};
+    if(removed||received||updated){feedbackMuted=true;suspendTrack=true;try{bridge()?.replaceEntries?.([...localMap.values()],{render:true,backupReason:'Antes de aplicar sincronização da nuvem'})}finally{suspendTrack=false;feedbackMuted=false}}
+    markSync();return{removed,received,updated,uploaded,pending:Object.keys(readOps()).length};
   }
 
   async function deleteEntries(ids){ids=[...new Set(ids||[])].filter(Boolean);if(!ids.length)return false;if(!(await confirmDelete(ids.length)))return false;feedbackMuted=true;try{bridge()?.removeEntries?.(ids,{backupReason:ids.length===1?'Antes de excluir lançamento':`Antes de excluir ${ids.length} lançamentos em lote`})}finally{feedbackMuted=false}toast(ids.length===1?'Exclusão realizada ✓':`${ids.length} lançamentos excluídos ✓`);return true}
 
   ensureUi();window.addEventListener('online',()=>processPending({showFeedback:true}));window.addEventListener('focus',()=>processPending({showFeedback:false}));window.addEventListener('meucontrole:auth-changed',()=>setTimeout(()=>processPending({showFeedback:false}),350));setTimeout(()=>processPending({showFeedback:false}),1000);
-  window.MeuControleOps={version:'1.0',toast,confirmDelete,deleteEntries,processPending,syncNow,pendingCount:()=>Object.keys(readOps()).length};
+  window.MeuControleOps={version:'1.01',toast,confirmDelete,deleteEntries,processPending,syncNow,pendingCount:()=>Object.keys(readOps()).length};
 })();
