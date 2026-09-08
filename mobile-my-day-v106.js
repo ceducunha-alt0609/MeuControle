@@ -1,6 +1,7 @@
 /* MeuControle — V1.06: destaque “Meu dia” no Painel mobile */
 (()=>{
   if(window.__mcMobileMyDayV106)return;window.__mcMobileMyDayV106=true;
+  import('./global-contrast-v107.js').catch(()=>{});
   const mq=matchMedia('(max-width:700px)');
 
   function installStyle(){
