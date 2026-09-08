@@ -69,7 +69,7 @@
     if(!card||!label||!main||!sub)return;
     label.textContent='Meu dia';
     const count=Number(String(main.textContent||'0').replace(/[^0-9-]/g,''))||0;
-    sub.textContent=count===0?'Sem tarefas pra hoje':count===1?'1 tarefa para hoje':`${count} tarefas para hoje`;
+    sub.textContent=count===0?'Sem tarefas pra hoje':count===1?'Tarefa para hoje':'Tarefas para hoje';
   }
 
   function boot(){installStyle();refresh();
