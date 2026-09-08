@@ -1,7 +1,15 @@
 /* V1.08 - Painel desktop: Meu Dia central */
 (()=>{
+  function ensureDesktopStyle(){
+    if(document.getElementById('desktopMyDayStyle'))return;
+    const style=document.createElement('style');
+    style.id='desktopMyDayStyle';
+    style.textContent='@media(min-width:701px){#dashboardPage .premium-card[data-dash="today"]{border-width:2px!important}}';
+    document.head.appendChild(style);
+  }
   function applyDesktopMyDay(){
     if(window.matchMedia('(max-width:700px)').matches)return;
+    ensureDesktopStyle();
     const grid=document.querySelector('#dashboardPage .premium-cards');
     if(!grid)return;
     const month=grid.querySelector('[data-dash="month"]');
