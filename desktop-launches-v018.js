@@ -1,5 +1,6 @@
-/* Meu Controle — V0.18: refino desktop de Lançamentos + tipos adicionais. */
+/* Meu Controle — V0.18.3: refino desktop + tipos adicionais + limpeza de atalho antigo. */
 (function(){
+  document.getElementById('desktopQuickEntryV023')?.remove();
   if(window.__meuControleDesktopLaunchesV018Loaded)return;
   window.__meuControleDesktopLaunchesV018Loaded=true;
 
@@ -30,5 +31,5 @@
     }
   `;
   document.head.appendChild(st);
-  window.MeuControleDesktopLaunchesV018={version:'0.18.2'};
+  window.MeuControleDesktopLaunchesV018={version:'0.18.3'};
 })();
