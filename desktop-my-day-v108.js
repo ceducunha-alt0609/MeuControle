@@ -7,6 +7,10 @@
     style.textContent='@media(min-width:701px){#dashboardPage .premium-card[data-dash="today"]{border-width:2px!important}}';
     document.head.appendChild(style);
   }
+  function desiredSubText(main){
+    const count=Number(String(main?.textContent||'0').replace(/[^0-9-]/g,''))||0;
+    return count===0?'Sem tarefas pra hoje':count===1?'Tarefa para hoje':'Tarefas para hoje';
+  }
   function applyDesktopMyDay(){
     if(window.matchMedia('(max-width:700px)').matches)return;
     ensureDesktopStyle();
@@ -21,17 +25,23 @@
     const label=today.querySelector('.premium-label');
     const main=today.querySelector('#dashTodayMain');
     const sub=today.querySelector('#dashTodaySub');
-    if(label)label.textContent='☀️ Meu Dia';
+    if(label&&label.textContent!=='☀️ Meu Dia')label.textContent='☀️ Meu Dia';
     if(main&&sub){
-      const count=Number(String(main.textContent||'0').replace(/[^0-9-]/g,''))||0;
-      sub.textContent=count===0?'Sem tarefas pra hoje':count===1?'Tarefa para hoje':'Tarefas para hoje';
+      const wanted=desiredSubText(main);
+      if(sub.textContent!==wanted)sub.textContent=wanted;
     }
-    [month,important,today,expenses,late].forEach(card=>grid.appendChild(card));
+    const order=[month,important,today,expenses,late];
+    const current=[...grid.children].filter(el=>el.matches('.premium-card'));
+    if(order.some((card,i)=>current[i]!==card))order.forEach(card=>grid.appendChild(card));
   }
   function boot(){
     applyDesktopMyDay();
     const main=document.getElementById('dashTodayMain');
-    if(main)new MutationObserver(applyDesktopMyDay).observe(main,{childList:true,subtree:true,characterData:true});
+    const sub=document.getElementById('dashTodaySub');
+    if(main)new MutationObserver(()=>requestAnimationFrame(applyDesktopMyDay)).observe(main,{childList:true,subtree:true,characterData:true});
+    if(sub)new MutationObserver(()=>requestAnimationFrame(applyDesktopMyDay)).observe(sub,{childList:true,subtree:true,characterData:true});
+    setTimeout(applyDesktopMyDay,50);
+    setTimeout(applyDesktopMyDay,250);
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});
   else boot();
