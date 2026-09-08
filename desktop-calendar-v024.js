@@ -1,4 +1,4 @@
-/* Meu Controle — V0.26: calendário desktop premium glass azul */
+/* Meu Controle — V0.27: calendário desktop premium + concluídos padronizados */
 (function(){
  if(window.__meuControleDesktopCalendarV024Loaded)return;window.__meuControleDesktopCalendarV024Loaded=true;
  const mq=matchMedia('(min-width:701px)');
@@ -30,7 +30,8 @@
   #calendarPage .calendar-search{display:none!important}
   #calendarPage .calendar-events-scroll{overflow:auto;padding-right:4px}
   #calendarPage #calendarEventsList{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:start}
-  #calendarPage .item{display:grid;grid-template-columns:12px minmax(0,1fr);gap:9px 11px;align-items:start;min-height:112px;padding:15px;background:#fff;cursor:pointer;transition:.16s ease}
+  #calendarPage .item{display:grid;grid-template-columns:22px minmax(0,1fr);gap:9px 11px;align-items:start;min-height:112px;padding:15px;background:#fff;cursor:pointer;transition:.16s ease}
+  #calendarPage .item .status-dot{align-self:start;justify-self:center;margin-top:2px}
   #calendarPage .item:hover{transform:translateY(-1px);box-shadow:0 8px 18px rgba(0,0,0,.06)}
   #calendarPage .item-title{font-size:17px;line-height:1.15}
   #calendarPage .item-title-row{align-items:center;flex-wrap:wrap}
@@ -44,6 +45,9 @@
   #calendarPage .item.calendar-card-open-v024 .item-actions{display:flex}
   #calendarPage .item.calendar-card-open-v024 .notes:not(:empty){display:block}
   #calendarPage .item.done{opacity:.52}
+  #calendarPage .item.done .status-dot{width:20px!important;height:20px!important;border-radius:5px!important;background:#8eaaa0!important;display:flex!important;align-items:center!important;justify-content:center!important;color:#fff!important;font:800 14px/1 system-ui,sans-serif!important}
+  #calendarPage .item.done .status-dot::after{content:"✓"}
+  #calendarPage .item.done .item-title,#calendarPage .item.done .meta,#calendarPage .item.done .badge,#calendarPage .item.done .amount{text-decoration:line-through;text-decoration-thickness:1.2px;text-decoration-color:rgba(70,84,76,.56)}
  }
  @media(min-width:701px) and (max-width:1180px){#calendarPage #calendarEventsList{grid-template-columns:repeat(2,minmax(0,1fr))}#calendarPage .calendar-months{grid-template-columns:repeat(6,1fr);}.calendar-year-inline-v024{grid-column:1/-1;min-height:46px;margin-left:0}}
  `;document.head.appendChild(s)}
@@ -51,5 +55,5 @@
  function desktopRender(){styles();$('calendarYearLabel').textContent=calendarYear;const months=$('calendarMonths');months.innerHTML='';const yearEntries=profileFiltered(entries).filter(e=>Number(e.date.slice(0,4))===calendarYear);for(let m=0;m<12;m++){const count=yearEntries.filter(e=>Number(e.date.slice(5,7))===m+1).length;const b=document.createElement('button');b.className='calendar-month-btn'+(count?' has-events-v025':'')+(m===calendarMonth?' active':'');b.innerHTML=`<span class="month-name-v024">${shortMonths[m]}</span>${count?`<span class="month-badge">${count}</span>`:''}`;b.onclick=()=>{calendarMonth=m;renderCalendar()};months.appendChild(b)}const yc=document.createElement('div');yc.className='calendar-year-inline-v024';yc.innerHTML='<button type="button" aria-label="Ano anterior">‹</button><strong></strong><button type="button" aria-label="Próximo ano">›</button>';yc.querySelector('strong').textContent=calendarYear;const yb=yc.querySelectorAll('button');yb[0].onclick=()=>{calendarYear--;renderCalendar()};yb[1].onclick=()=>{calendarYear++;renderCalendar()};months.appendChild(yc);
   const all=calendarEntries().sort((a,b)=>(a.date+(a.time||'')).localeCompare(b.date+(b.time||'')));$('calendarMonthTitle').textContent=`${monthName(calendarMonth)} ${calendarYear}`;$('calendarMonthSummary').textContent=`${all.length} lançamento${all.length===1?'':'s'} • ${all.filter(e=>!e.done).length} pendente${all.filter(e=>!e.done).length===1?'':'s'} • ${fmtMoney(all.filter(e=>e.type==='despesa').reduce((s,e)=>s+Number(e.value||0),0))} em despesas`;const list=$('calendarEventsList');list.innerHTML='';$('calendarEmpty').classList.toggle('hidden',all.length>0);$('calendarEmpty').textContent='Nenhum lançamento neste mês.';all.forEach(e=>list.appendChild(card(createItemNode(e,'calendar'),e)))}
  if(originalRenderCalendar){renderCalendar=function(){if(mq.matches)return desktopRender();return originalRenderCalendar()}}
- window.addEventListener('load',()=>setTimeout(()=>{try{renderCalendar()}catch{}},600));mq.addEventListener?.('change',()=>setTimeout(()=>{try{renderCalendar()}catch{}},50));styles();setTimeout(()=>{try{if(mq.matches)renderCalendar()}catch{}},120);window.MeuControleDesktopCalendarV024={version:'0.26'};
+ window.addEventListener('load',()=>setTimeout(()=>{try{renderCalendar()}catch{}},600));mq.addEventListener?.('change',()=>setTimeout(()=>{try{renderCalendar()}catch{}},50));styles();setTimeout(()=>{try{if(mq.matches)renderCalendar()}catch{}},120);window.MeuControleDesktopCalendarV024={version:'0.27'};
 })();
