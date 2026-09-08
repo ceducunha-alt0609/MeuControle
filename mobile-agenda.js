@@ -33,16 +33,26 @@
       #dashboardPage .dashboard-toolbar>div:first-child h2{margin-bottom:8px!important}
       #dashboardPage .dashboard-toolbar .month-nav{display:none!important}
       #calendarPage .calendar-events-scroll .item{margin-bottom:12px}
-      #calendarPage .item .status-dot{visibility:hidden!important}
-      #calendarPage .item.today .status-dot,#calendarPage .item.late .status-dot{visibility:visible!important;animation:mobileAgendaPulse 1.7s ease-in-out infinite!important}
+      #calendarPage .item .status-dot{visibility:hidden!important;animation:none!important}
+      #calendarPage .item.today .status-dot,#calendarPage .item.late .status-dot{visibility:visible!important;animation:none!important}
       #calendarPage .item.today .status-dot{background:#d27a00!important}
       #calendarPage .item.late .status-dot{background:#b53d3d!important}
       #calendarPage .item.done .status-dot{visibility:hidden!important;animation:none!important}
+      #calendarPage .item .meta{color:inherit}
+      #calendarPage .item.late .meta .mobile-agenda-date{color:#b53d3d!important}
     }
-    @keyframes mobileAgendaPulse{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(210,122,0,.38)}50%{transform:scale(1.12);box-shadow:0 0 0 6px transparent}}
-    @media(max-width:700px) and (prefers-reduced-motion:reduce){#calendarPage .item.today .status-dot,#calendarPage .item.late .status-dot{animation:none!important}}
   `;
   document.head.appendChild(style);
+
+  function paintLateDates(){
+    if(!mq.matches)return;
+    document.querySelectorAll('#calendarPage .item .meta').forEach(meta=>{
+      if(meta.querySelector('.mobile-agenda-date'))return;
+      const text=meta.textContent||'',match=text.match(/^(\d{2}\/\d{2}\/\d{4})(.*)$/);
+      if(!match)return;
+      meta.textContent='';const d=document.createElement('span');d.className='mobile-agenda-date';d.textContent=match[1];meta.appendChild(d);meta.appendChild(document.createTextNode(match[2]));
+    });
+  }
 
   /* Agenda */
   const page=document.getElementById('calendarPage'),shell=page?.querySelector('.calendar-shell'),months=document.getElementById('calendarMonths'),eventsPanel=page?.querySelector('.calendar-events-panel'),title=document.getElementById('calendarMonthTitle'),summary=document.getElementById('calendarMonthSummary');
@@ -51,12 +61,14 @@
     const wheel=document.createElement('div');wheel.className='mobile-month-wheel';wheel.innerHTML='<button type="button" class="mobile-month-slot prev" aria-label="Mês anterior"></button><button type="button" class="mobile-month-slot current" aria-label="Mês atual selecionado"></button><button type="button" class="mobile-month-slot next" aria-label="Próximo mês"></button>';head.after(wheel);
     const prev=wheel.querySelector('.prev'),current=wheel.querySelector('.current'),next=wheel.querySelector('.next'),currentLabel=head.querySelector('.mobile-agenda-current');
     function selected(){const text=title.textContent.trim(),match=text.match(/^(.+)\s+(\d{4})$/);if(!match)return{month:new Date().getMonth(),year:new Date().getFullYear()};const m=monthIndex(match[1]);return{month:m<0?new Date().getMonth():m,year:Number(match[2])}}
-    function sync(){if(!mq.matches)return;const s=selected(),p=adjacent(s.month,s.year,-1),n=adjacent(s.month,s.year,1);currentLabel.textContent=`${monthName(s.month)} ${s.year}`;current.textContent=monthName(s.month);prev.textContent=monthName(p.month);next.textContent=monthName(n.month);if(summary)summary.style.display='none'}
+    function sync(){if(!mq.matches)return;const s=selected(),p=adjacent(s.month,s.year,-1),n=adjacent(s.month,s.year,1);currentLabel.textContent=`${monthName(s.month)} ${s.year}`;current.textContent=monthName(s.month);prev.textContent=monthName(p.month);next.textContent=monthName(n.month);if(summary)summary.style.display='none';requestAnimationFrame(paintLateDates)}
     function clickMonth(targetMonth,targetYear){if(targetYear!==selected().year){const yearBtn=targetYear<selected().year?document.getElementById('calendarPrevYear'):document.getElementById('calendarNextYear');yearBtn?.click()}requestAnimationFrame(()=>{const btn=[...months.querySelectorAll('.calendar-month-btn')].find(b=>b.querySelector('span')?.textContent===monthName(targetMonth));btn?.click();requestAnimationFrame(sync)})}
     function move(delta){const s=selected(),t=adjacent(s.month,s.year,delta);clickMonth(t.month,t.year)}
     prev.onclick=()=>move(-1);next.onclick=()=>move(1);current.onclick=()=>{};
     let startX=null;wheel.addEventListener('touchstart',e=>{startX=e.touches[0].clientX},{passive:true});wheel.addEventListener('touchend',e=>{if(startX===null)return;const dx=e.changedTouches[0].clientX-startX;startX=null;if(Math.abs(dx)<38)return;move(dx<0?1:-1)},{passive:true});
-    new MutationObserver(sync).observe(title,{childList:true,subtree:true,characterData:true});document.querySelectorAll('.nav-btn[data-page="calendar"]').forEach(b=>b.addEventListener('click',()=>requestAnimationFrame(sync)));mq.addEventListener?.('change',sync);sync();
+    new MutationObserver(sync).observe(title,{childList:true,subtree:true,characterData:true});
+    const eventList=document.getElementById('calendarEventsList');if(eventList)new MutationObserver(()=>requestAnimationFrame(paintLateDates)).observe(eventList,{childList:true,subtree:true});
+    document.querySelectorAll('.nav-btn[data-page="calendar"]').forEach(b=>b.addEventListener('click',()=>requestAnimationFrame(sync)));mq.addEventListener?.('change',sync);sync();
   }
 
   /* Visão geral */
