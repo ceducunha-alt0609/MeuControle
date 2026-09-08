@@ -1,4 +1,4 @@
-/* Meu Controle — V0.20: cards desktop em 2 colunas + agrupamento mensal + concluídos por mês */
+/* Meu Controle — V0.21: cards desktop em 2 colunas + agrupamento mensal + valor na linha do título */
 (function(){
   if(window.__meuControleDesktopLaunchesV019Loaded)return;
   window.__meuControleDesktopLaunchesV019Loaded=true;
@@ -31,8 +31,8 @@
         }
         #launchesPage .item:hover{transform:translateY(-1px);box-shadow:0 8px 18px rgba(0,0,0,.06)}
         #launchesPage .item-main{min-width:0}
-        #launchesPage .item-title-row{align-items:center;flex-wrap:wrap}
-        #launchesPage .item-title{font-size:18px;line-height:1.15}
+        #launchesPage .item-title-row{display:flex;align-items:center;flex-wrap:nowrap;gap:8px;width:100%;min-width:0}
+        #launchesPage .item-title{font-size:18px;line-height:1.15;min-width:0}
         #launchesPage .meta{line-height:1.45}
         #launchesPage .notes{display:none;margin-top:8px;padding-top:8px;border-top:1px solid #e7ece9}
         #launchesPage .item-side{
@@ -52,6 +52,13 @@
           line-height:1.05;
           color:var(--primary);
           white-space:nowrap;
+        }
+        #launchesPage .item-title-row .amount{
+          margin-left:auto;
+          flex:0 0 auto;
+          font-size:18px;
+          line-height:1.15;
+          text-align:right;
         }
         #launchesPage .amount:empty{display:none}
         #launchesPage .item-actions{
@@ -113,6 +120,9 @@
   function attachCardBehavior(fragment,e){
     const article=fragment.querySelector('.item');
     if(!article)return fragment;
+    const titleRow=article.querySelector('.item-title-row');
+    const amount=article.querySelector('.amount');
+    if(titleRow&&amount)titleRow.appendChild(amount);
     article.dataset.entryId=e.id||'';
     article.setAttribute('tabindex','0');
     article.setAttribute('role','button');
@@ -202,5 +212,5 @@
   installStyles();
   window.addEventListener('load',()=>setTimeout(()=>{try{if(typeof renderList==='function')renderList()}catch{}},500));
   matchMedia('(min-width:701px)').addEventListener?.('change',()=>setTimeout(()=>{try{renderList()}catch{}},50));
-  window.MeuControleDesktopLaunchesV019={version:'0.20'};
+  window.MeuControleDesktopLaunchesV019={version:'0.21'};
 })();
