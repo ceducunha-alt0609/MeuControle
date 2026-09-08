@@ -1,4 +1,4 @@
-/* MeuControle — V1.03: acordeão mensal na lista mobile */
+/* MeuControle — V1.031: acordeão mensal na lista mobile */
 (()=>{
   if(window.__mcMobileMonthAccordionV103)return;window.__mcMobileMonthAccordionV103=true;
   const mq=matchMedia('(max-width:700px)');
@@ -16,7 +16,8 @@
         #launchesPage.mobile-launch-list .mobile-month-header.mc-month-collapsed-v103::after{transform:rotate(-90deg)}
         #launchesPage.mobile-launch-list .mobile-month-header.mc-month-collapsed-v103{background:linear-gradient(90deg,rgba(var(--primary-rgb),.045),rgba(255,255,255,.86));border-left-color:rgba(var(--primary-rgb),.38)}
         #launchesPage.mobile-launch-list .mobile-month-header>span{margin-left:auto}
-        #launchesPage.mobile-launch-list .mc-month-hidden-v103{display:none!important}
+        #launchesPage.mobile-launch-list #list .item.mc-month-hidden-v103,
+        #launchesPage.mobile-launch-list #list .mobile-done-header.mc-month-hidden-v103{display:none!important}
       }
     `;document.head.appendChild(st);
   }
@@ -59,5 +60,5 @@
   window.addEventListener('load',()=>setTimeout(schedule,650));
   document.addEventListener('click',e=>{if(e.target.closest('#launchesPage .tabs .tab'))setTimeout(schedule,40)},true);
   setTimeout(schedule,220);
-  window.MeuControleMobileMonthAccordionV103={version:'1.03',refresh:schedule,open:key=>{openKey=key||'';schedule()}};
+  window.MeuControleMobileMonthAccordionV103={version:'1.031',refresh:schedule,open:key=>{openKey=key||'';schedule()}};
 })();
