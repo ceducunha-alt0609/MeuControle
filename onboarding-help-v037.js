@@ -1,8 +1,8 @@
-/* MeuControle — V0.37: onboarding inicial, ajuda contextual e estados vazios */
+/* MeuControle — V0.38: onboarding atualizado para tipos, categorias, perfis e ações */
 (function(){
   if(window.__meuControleOnboardingV037Loaded)return;
   window.__meuControleOnboardingV037Loaded=true;
-  const VERSION='0.37';
+  const VERSION='0.38';
   const TOUR_KEY='meu_controle_onboarding_v037_done';
   const HINT_KEY='meu_controle_launch_hint_v037_seen';
   const isMobile=()=>matchMedia('(max-width:700px)').matches;
@@ -27,10 +27,12 @@
   }
 
   const steps=[
-    {icon:'＋',title:'Comece pelos lançamentos',text:'Cadastre despesas, compromissos, consultas e lembretes. O MeuControle organiza datas, vencimentos e recorrências para você.'},
-    {icon:'✓',title:'Conclua sem perder o histórico',text:'Ao concluir uma tarefa, ela vai para o rodapé do próprio mês. Você continua vendo o que já resolveu sem misturar com o que ainda está pendente.'},
-    {icon:'▦',title:'Veja o mês no calendário',text:'Use o Calendário para enxergar rapidamente o que está previsto em cada mês e encontrar compromissos sem percorrer toda a lista.'},
-    {icon:'⚙',title:'Personalize em Mais',text:'Perfis, backups, aparência, notificações e biometria no celular ficam em Mais/Configurações. Se tiver dúvida depois, a Ajuda continuará disponível lá.'}
+    {icon:'＋',title:'Comece pelos lançamentos',text:'Cadastre despesas, recebimentos, compromissos, consultas, exames e lembretes. Data, hora, recorrência e aviso entram só quando fizerem sentido.'},
+    {icon:'↳',title:'Tipo organiza as categorias',text:'Primeiro escolha o Tipo. Depois, Categoria mostra apenas opções compatíveis com ele. Você também pode criar categorias próprias com ícones.'},
+    {icon:'👤',title:'Perfis separam seus contextos',text:'Use perfis como Pessoal, Trabalho ou Condomínio para manter contextos separados sem misturar os lançamentos. Troque de perfil pelo seletor quando precisar.'},
+    {icon:'✓',title:'Conclua sem perder o histórico',text:'Toque ou clique em um card para abrir as ações. Ao concluir, o lançamento continua no mês de origem, marcado como concluído, sem sumir do histórico.'},
+    {icon:'▦',title:'Veja o mês no calendário',text:'O Calendário mostra rapidamente o que existe em cada mês. No celular, a grade mensal ajuda a localizar os dias com lançamentos sem percorrer a lista inteira.'},
+    {icon:'⚙',title:'Ajuste o app ao seu jeito',text:'Em Mais/Configurações você encontra perfis, backups, aparência, notificações, biometria e Ajuda. O tour também pode ser refeito a qualquer momento.'}
   ];
 
   function tourDone(){try{return localStorage.getItem(TOUR_KEY)==='1'}catch{return true}}
@@ -52,10 +54,12 @@
   function ensureHelp(){
     const grid=$('#settingsPage .settings-grid');if(!grid||$('.mc-help-card-v037'))return;
     const card=document.createElement('article');card.className='settings-card mc-help-card-v037';card.innerHTML=`<h3>Ajuda</h3><p>Respostas rápidas para as principais funções do MeuControle.</p>
-      <details><summary>Como criar um lançamento?</summary><p>Abra Lançamentos e escolha Novo lançamento. Preencha descrição e data; os demais campos podem ser usados conforme sua necessidade.</p></details>
-      <details><summary>Como concluir ou reabrir?</summary><p>Abra o lançamento e use Concluir. Ele permanece no mês de origem, no bloco Concluídos. Para voltar, use Reabrir.</p></details>
-      <details><summary>Como funcionam as recorrências?</summary><p>Escolha Diário, Semanal, Mensal, Semestral ou Anual. Você também pode definir até quando repetir e se o valor será fixo ou variável.</p></details>
-      <details><summary>Para que servem os perfis?</summary><p>Perfis separam contextos como Pessoal, Condomínio ou Trabalho sem misturar os lançamentos. O filtro global escolhe qual perfil visualizar.</p></details>
+      <details><summary>Como criar um lançamento?</summary><p>Abra Lançamentos e escolha Novo lançamento. Selecione o Tipo, depois a Categoria correspondente, informe descrição e data e complete os demais campos apenas se precisar.</p></details>
+      <details><summary>Qual a diferença entre Tipo e Categoria?</summary><p>Tipo define o que o lançamento é: despesa, recebimento, compromisso, consulta, exame ou lembrete. Categoria detalha aquele tipo e mostra apenas opções compatíveis. Você também pode criar categorias próprias.</p></details>
+      <details><summary>Para que servem os perfis?</summary><p>Perfis separam contextos como Pessoal, Condomínio ou Trabalho sem misturar os lançamentos. Troque o perfil pelo seletor para visualizar apenas aquele contexto.</p></details>
+      <details><summary>Como concluir, editar ou duplicar?</summary><p>Toque ou clique em um card para abrir o painel de ações. Você pode Editar, Concluir ou Reabrir, Duplicar e Excluir sem precisar expandir o card.</p></details>
+      <details><summary>Como funcionam as recorrências?</summary><p>Escolha Diário, Semanal, Mensal, Semestral ou Anual. Você também pode definir até quando repetir e, quando aplicável, se o valor será fixo ou variável.</p></details>
+      <details><summary>Como usar o calendário?</summary><p>Escolha o mês para ver os lançamentos previstos. No celular, a grade mensal mostra quais dias têm itens; no desktop, os meses exibem a quantidade de lançamentos.</p></details>
       <details><summary>Como proteger meus dados?</summary><p>Use os backups em Dados e segurança. No celular, a entrada por biometria pode ser ativada em Aplicativo.</p></details>
       <details><summary>Como encontro algo rapidamente?</summary><p>Use a pesquisa em Lançamentos ou Calendário e combine com os filtros Hoje, Próximos, Vencidos e Concluídos.</p></details>
       <div class="mc-help-actions-v037"><button type="button" class="mc-replay-tour-v037">Refazer tour inicial</button></div>`;
@@ -75,7 +79,7 @@
   function ensureLaunchHint(){
     const tabs=$('#launchesPage .tabs');if(!tabs||$('#mcLaunchHintV037'))return;
     if(localStorage.getItem(HINT_KEY)==='1')return;
-    const hint=document.createElement('div');hint.id='mcLaunchHintV037';hint.className='mc-launch-hint-v037';hint.innerHTML=`<span>${isMobile()?'Toque em um lançamento para acessar suas ações.':'Clique em um card para ver editar, concluir ou excluir.'}</span><button type="button" aria-label="Fechar dica">×</button>`;tabs.after(hint);
+    const hint=document.createElement('div');hint.id='mcLaunchHintV037';hint.className='mc-launch-hint-v037';hint.innerHTML=`<span>${isMobile()?'Toque em um lançamento para abrir as ações.':'Clique em um card para abrir editar, concluir, duplicar ou excluir.'}</span><button type="button" aria-label="Fechar dica">×</button>`;tabs.after(hint);
     const dismiss=()=>{try{localStorage.setItem(HINT_KEY,'1')}catch{}hint.remove()};hint.querySelector('button').onclick=dismiss;
     $('#list')?.addEventListener('click',e=>{if(e.target.closest('.item'))dismiss()},{once:true});
   }
