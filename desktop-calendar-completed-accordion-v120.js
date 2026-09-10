@@ -1,4 +1,4 @@
-/* Meu Controle — V1.20: concluídos no rodapé + acordeão no Calendário desktop */
+/* Meu Controle — V1.21: concluídos no rodapé + acordeão estável no Calendário desktop */
 (function(){
  if(window.__mcDesktopCalendarCompletedAccordionV120)return;window.__mcDesktopCalendarCompletedAccordionV120=true;
  const mq=matchMedia('(min-width:701px)');
@@ -6,6 +6,7 @@
  const title=document.getElementById('calendarMonthTitle');
  if(!list)return;
  const state=new Map();let scheduled=false,arranging=false;
+ let listObserver=null;
  function installStyles(){if(document.getElementById('mcDesktopCalendarCompletedAccordionV120Style'))return;const s=document.createElement('style');s.id='mcDesktopCalendarCompletedAccordionV120Style';s.textContent=`
  @media(min-width:701px){
   #calendarPage .mc-calendar-done-heading-v120{grid-column:1/-1;display:flex;align-items:center;gap:10px;margin:2px 0 0;padding:8px 10px;border-top:1px solid #dfe6e1;border-bottom:1px solid #edf1ee;background:linear-gradient(90deg,rgba(98,112,104,.07),rgba(255,255,255,.3));color:#69766f;cursor:pointer;user-select:none}
@@ -17,8 +18,9 @@
  }
  `;document.head.appendChild(s)}
  function key(){return (title?.textContent||'calendar').trim()||'calendar'}
+ function observeList(){if(!listObserver)return;listObserver.observe(list,{childList:true})}
  function arrange(){
-  scheduled=false;if(!mq.matches||arranging)return;arranging=true;
+  scheduled=false;if(!mq.matches||arranging)return;arranging=true;listObserver?.disconnect();
   try{
    list.querySelectorAll('.mc-calendar-done-heading-v120').forEach(h=>h.remove());
    const items=[...list.children].filter(el=>el.classList?.contains('item'));
@@ -37,9 +39,9 @@
     heading.addEventListener('click',flip);heading.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' ')flip(e)});
     frag.appendChild(heading);done.forEach(i=>frag.appendChild(i));list.appendChild(frag);apply();
    }else list.appendChild(frag);
-  }finally{arranging=false}
+  }finally{arranging=false;observeList()}
  }
  function schedule(){if(scheduled||arranging)return;scheduled=true;requestAnimationFrame(arrange)}
- installStyles();new MutationObserver(schedule).observe(list,{childList:true});if(title)new MutationObserver(schedule).observe(title,{childList:true,subtree:true,characterData:true});mq.addEventListener?.('change',schedule);window.addEventListener('load',()=>setTimeout(schedule,650));setTimeout(schedule,250);
- window.MeuControleDesktopCalendarCompletedAccordionV120={version:'1.20',refresh:schedule};
+ installStyles();listObserver=new MutationObserver(schedule);observeList();if(title)new MutationObserver(schedule).observe(title,{childList:true,subtree:true,characterData:true});mq.addEventListener?.('change',schedule);window.addEventListener('load',()=>setTimeout(schedule,650));setTimeout(schedule,250);
+ window.MeuControleDesktopCalendarCompletedAccordionV120={version:'1.21',refresh:schedule};
 })();
