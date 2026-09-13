@@ -1,4 +1,4 @@
-/* MeuControle — V1.30.1: modo Claro / Escuro / Automático, isolado da lógica do app */
+/* MeuControle — V1.30.2: modo Claro / Escuro / Automático, isolado da lógica do app */
 (function(){
  if(window.__mcAppearanceModeV130)return;window.__mcAppearanceModeV130=true;
  const KEY='meu_controle_color_mode_v1',mq=matchMedia('(prefers-color-scheme: dark)');
@@ -9,6 +9,12 @@
  body.mc-dark .panel,body.mc-dark .calendar-shell,body.mc-dark .premium-cards,body.mc-dark .premium-card,body.mc-dark .settings-card,body.mc-dark .calendar-events-panel,body.mc-dark .calendar-months{background:#182229;color:#e7edf1;border-color:#2d3b44}
  body.mc-dark .premium-card strong,body.mc-dark .premium-card .premium-label,body.mc-dark .panel h2,body.mc-dark .calendar-shell h2,body.mc-dark .calendar-shell h3,body.mc-dark .settings-card h3{color:#eef3f6}
  body.mc-dark .premium-card small,body.mc-dark .dashboard-toolbar p,body.mc-dark .dashboard-hint,body.mc-dark .panel-head p,body.mc-dark .list-top p,body.mc-dark .calendar-head p,body.mc-dark .calendar-events-head p,body.mc-dark .settings-title p,body.mc-dark .settings-card p,body.mc-dark .meta,body.mc-dark .notes{color:#9eabb3}
+ /* Painel — contraste confortável sem transformar textos secundários em títulos */
+ body.mc-dark #dashboardPage .premium-card .premium-label{color:#c4d0d7!important}
+ body.mc-dark #dashboardPage .premium-card small{color:#aebbc3!important}
+ body.mc-dark #dashboardPage .dashboard-toolbar p,body.mc-dark #dashboardPage .dashboard-hint{color:#9fadb5!important}
+ body.mc-dark #dashboardPage .today-card .premium-label{color:#c3dce9!important}
+ body.mc-dark #dashboardPage .today-card small{color:#abc4d1!important}
  body.mc-dark .today-card{background:#1a3040;border-color:#31536a}
  body.mc-dark .today-card strong{color:#d9edf9}
  body.mc-dark .item,body.mc-dark .dashboard-card,body.mc-dark .profile-row,body.mc-dark .auto-backup-row,body.mc-dark .businessday-info,body.mc-dark .recurrence-options{background:#1b262d;color:#e7edf1;border-color:#314049}
