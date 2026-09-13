@@ -1,10 +1,11 @@
-/* Meu Controle — V0.22: cards desktop em 2 colunas + agrupamento mensal + acordeão */
+/* Meu Controle — V0.22.1: cards desktop estáveis, sem rerender tardio */
 (function(){
   if(window.__meuControleDesktopLaunchesV019Loaded)return;
   window.__meuControleDesktopLaunchesV019Loaded=true;
 
   const originalRenderList = typeof renderList==='function' ? renderList : null;
   const monthState=new Map();
+  const mq=matchMedia('(min-width:701px)');
   const currentMonthKey=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`};
 
   function installStyles(){
@@ -17,6 +18,7 @@
         #launchesPage #list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:start}
         #launchesPage .item{display:grid;grid-template-columns:12px minmax(0,1fr);gap:10px 12px;align-items:start;min-height:118px;padding:16px;cursor:pointer;transition:.16s ease;background:#fff}
         #launchesPage .item:hover{transform:translateY(-1px);box-shadow:0 8px 18px rgba(0,0,0,.06)}
+        #launchesPage .item:focus-visible,#launchesPage .desktop-month-heading-v020:focus-visible{outline:3px solid rgba(var(--primary-rgb),.28);outline-offset:2px}
         #launchesPage .item-main{min-width:0}
         #launchesPage .item-title-row{display:flex;align-items:center;flex-wrap:nowrap;gap:8px;width:100%;min-width:0}
         #launchesPage .item-title{font-size:18px;line-height:1.15;min-width:0}
@@ -51,6 +53,7 @@
         #launchesPage .desktop-done-heading-v020 span{font-size:10px;font-weight:700;color:#8a958f;white-space:nowrap}
       }
       @media(min-width:701px) and (max-width:1180px){#launchesPage #list{grid-template-columns:1fr}}
+      @media(prefers-reduced-motion:reduce){#launchesPage .item,#launchesPage .desktop-month-heading-v020,#launchesPage .desktop-month-toggle{transition:none!important}}
     `;
     document.head.appendChild(st);
   }
@@ -95,7 +98,8 @@
     });
   }
 
-  if(originalRenderList){renderList=function(){if(matchMedia('(min-width:701px)').matches)return desktopRenderList();return originalRenderList()}}
-  installStyles();window.addEventListener('load',()=>setTimeout(()=>{try{if(typeof renderList==='function')renderList()}catch{}},500));matchMedia('(min-width:701px)').addEventListener?.('change',()=>setTimeout(()=>{try{renderList()}catch{}},50));
-  window.MeuControleDesktopLaunchesV019={version:'0.22'};
+  if(originalRenderList){renderList=function(){if(mq.matches)return desktopRenderList();return originalRenderList()}}
+  installStyles();
+  mq.addEventListener?.('change',()=>{try{renderList()}catch{}});
+  window.MeuControleDesktopLaunchesV019={version:'0.22.1',refresh:desktopRenderList};
 })();
