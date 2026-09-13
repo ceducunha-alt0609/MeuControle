@@ -1,6 +1,7 @@
-/* MeuControle — V1.33: acabamento dark do painel flutuante de ações desktop */
+/* MeuControle — V1.33.1: acabamento dark + arraste livre do painel flutuante desktop */
 (function(){
  if(window.__mcDarkActionsV133)return;window.__mcDarkActionsV133=true;
+ if(!document.querySelector('script[data-mc-drag2d-v134]')){const s=document.createElement('script');s.src='./desktop-actions-drag-v134.js';s.dataset.mcDrag2dV134='1';document.head.appendChild(s)}
  const st=document.createElement('style');st.id='mcDarkActionsV133Style';st.textContent=`
  @media(min-width:701px){
   body.mc-dark .mc-desktop-actions-v113{background:#182229!important;border-color:#34434c!important;color:#e7edf1!important;box-shadow:0 18px 48px rgba(0,0,0,.38)!important}
