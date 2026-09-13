@@ -1,2 +1,2 @@
-/* Meu Controle - Service Worker bootstrap V3.49: prepaint anti-flicker mobile Home + desktop Calendario */
-importScripts('./sw-core-v316.js');
+/* Meu Controle - Service Worker bootstrap V3.50: primeiro paint protegido na Home mobile */
+importScripts('./sw-core-v316.js?v=350');
