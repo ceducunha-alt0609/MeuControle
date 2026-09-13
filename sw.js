@@ -1,2 +1,2 @@
-/* Meu Controle - Service Worker bootstrap V3.48: indicador Atualizando nos refreshes sensiveis */
-importScripts('./sw-core-v315.js');
+/* Meu Controle - Service Worker bootstrap V3.49: prepaint anti-flicker mobile Home + desktop Calendario */
+importScripts('./sw-core-v316.js');
