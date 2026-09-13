@@ -1,2 +1,2 @@
-/* Meu Controle - Service Worker bootstrap V3.57: tema/prepaint da Home antes do primeiro paint */
-importScripts('./sw-core-v317.js?v=357');
+/* Meu Controle - Service Worker bootstrap V3.58: shell atual antes do primeiro paint */
+importScripts('./sw-core-v318.js?v=358');
