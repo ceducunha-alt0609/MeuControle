@@ -1,4 +1,4 @@
-/* MeuControle — V1.30.3: modo Claro / Escuro / Automático, isolado da lógica do app */
+/* MeuControle — V1.30.4: modo Claro / Escuro / Automático, isolado da lógica do app */
 (function(){
  if(window.__mcAppearanceModeV130)return;window.__mcAppearanceModeV130=true;
  const KEY='meu_controle_color_mode_v1',mq=matchMedia('(prefers-color-scheme: dark)');
@@ -9,7 +9,6 @@
  body.mc-dark .panel,body.mc-dark .calendar-shell,body.mc-dark .premium-cards,body.mc-dark .premium-card,body.mc-dark .settings-card,body.mc-dark .calendar-events-panel,body.mc-dark .calendar-months{background:#182229;color:#e7edf1;border-color:#2d3b44}
  body.mc-dark .premium-card strong,body.mc-dark .premium-card .premium-label,body.mc-dark .panel h2,body.mc-dark .calendar-shell h2,body.mc-dark .calendar-shell h3,body.mc-dark .settings-card h3{color:#eef3f6}
  body.mc-dark .premium-card small,body.mc-dark .dashboard-toolbar p,body.mc-dark .dashboard-hint,body.mc-dark .panel-head p,body.mc-dark .list-top p,body.mc-dark .calendar-head p,body.mc-dark .calendar-events-head p,body.mc-dark .settings-title p,body.mc-dark .settings-card p,body.mc-dark .meta,body.mc-dark .notes{color:#9eabb3}
- /* Painel — contraste confortável sem transformar textos secundários em títulos */
  body.mc-dark #dashboardPage .premium-card .premium-label{color:#c4d0d7!important}
  body.mc-dark #dashboardPage .premium-card small{color:#aebbc3!important}
  body.mc-dark #dashboardPage .dashboard-toolbar p,body.mc-dark #dashboardPage .dashboard-hint{color:#9fadb5!important}
@@ -37,7 +36,6 @@
  body.mc-dark .theme-choice small{color:#9eabb3}
  body.mc-dark .appearance-choice.active{background:#263d4c;color:#e8f4fb;border-color:#54758b}
  body.mc-dark .topnav .nav-btn.active{background:#182229;color:#dcebf5}
- /* Central Hoje — mesma linguagem grafite azulada do Painel */
  body.mc-dark .central-hoje-v041{background:#182229!important;border-color:#2d3b44!important;box-shadow:0 8px 24px rgba(0,0,0,.16)!important}
  body.mc-dark .central-hoje-head-v041{border-bottom-color:#2d3b44!important}
  body.mc-dark .central-hoje-head-v041 h3,body.mc-dark .central-lane-title-v041 strong{color:#eef3f6!important}
@@ -58,9 +56,14 @@
  @media(max-width:900px) and (min-width:701px){body.mc-dark .central-lane-v041{border-bottom-color:#2d3b44!important}}
  @media(max-width:700px){
   body.mc-dark .topbar-lower{background:#10171c!important}body.mc-dark .topnav{background:#172127!important;border-top-color:#34434c!important}body.mc-dark .topnav .nav-btn{color:#a8b5bd!important}body.mc-dark .topnav .nav-btn.active{background:#223746!important;color:#dcebf5!important}
-  body.mc-dark #dashboardPage .today-card strong,body.mc-dark #dashboardPage #dashTodayMain{color:#e9f5fb!important}
-  body.mc-dark #dashboardPage .today-card small,body.mc-dark #dashboardPage #dashTodaySub{color:#c1d5df!important}
-  body.mc-dark #dashboardPage .month-wheel .active,body.mc-dark #dashboardPage .month-wheel .selected,body.mc-dark #dashboardPage [aria-current="true"]{color:#e9f5fb!important}
+  body.mc-dark #dashboardPage #dashTodayMain{color:#bfe6fa!important;text-shadow:0 0 16px rgba(93,183,230,.12)}
+  body.mc-dark #dashboardPage #dashTodaySub{color:#c9dbe4!important}
+  body.mc-dark #dashboardPage .mobile-dashboard-month-wheel{background:#182229!important;border-color:#34434c!important}
+  body.mc-dark #dashboardPage .mobile-dashboard-month-slot.prev,body.mc-dark #dashboardPage .mobile-dashboard-month-slot.next{background:#182229!important;color:#b6c2c9!important}
+  body.mc-dark #dashboardPage .mobile-dashboard-month-slot.current{background:#fff!important;color:var(--primary)!important;border-left-color:#dce7ee!important;border-right-color:#dce7ee!important}
+  body.mc-dark #dashboardPage .mobile-dashboard-month-slot.current span{color:var(--primary)!important}
+  body.mc-dark #dashboardPage .mobile-dashboard-month-slot.current .dash-month-year{color:#718078!important}
+  body.mc-dark #dashboardPage .mobile-dashboard-month-slot.current::after{background:var(--primary)!important}
   body.mc-dark .central-mobile-card-v041,body.mc-dark .central-mobile-sheet-card-v041{background:#182229!important;color:#e7edf1!important;border-color:#2d3b44!important}
   body.mc-dark .central-mobile-copy-v041 strong,body.mc-dark .central-mobile-sheet-head-v041 h3{color:#eef3f6!important}
   body.mc-dark .central-mobile-copy-v041 span,body.mc-dark .central-mobile-sheet-head-v041 p{color:#b4c0c7!important}
