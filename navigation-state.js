@@ -154,9 +154,14 @@
   }
 
   window.addEventListener('load',()=>{
-    setTimeout(()=>{restore();restoring=false;saveContext();},120);
-    setTimeout(()=>{restore();saveContext();},450);
-  });
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      restore();
+      restoring=false;
+      saveContext();
+      document.documentElement.classList.add('mc-app-ready');
+      window.dispatchEvent(new CustomEvent('meucontrole:app-ready'));
+    }));
+  },{once:true});
   /* Segurança: nunca deixa a interface escondida se algo externo falhar. */
   setTimeout(reveal,1400);
   window.addEventListener('pagehide',()=>saveContext());
