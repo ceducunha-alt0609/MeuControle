@@ -1,2 +1,2 @@
-/* Meu Controle — Service Worker bootstrap V3.27: renova acabamento dark de Aparencia */
+/* Meu Controle — Service Worker bootstrap V3.28: renova acabamento dark do Aplicativo */
 importScripts('./sw-core-v315.js');
