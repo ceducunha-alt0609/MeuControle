@@ -1,4 +1,4 @@
-/* MeuControle — V1.35.4: acabamento dark completo de Configuracoes */
+/* MeuControle — V1.35.5: acabamento dark completo de Configuracoes */
 (function(){
  if(window.__mcDarkSettingsV135)return;window.__mcDarkSettingsV135=true;
  const st=document.createElement('style');st.id='mcDarkSettingsV135Style';st.textContent=`
@@ -42,8 +42,6 @@
   body.mc-dark #settingsPage .app-install-box p,body.mc-dark #settingsPage .app-install-box small{color:#aebbc3!important}
   body.mc-dark #settingsPage .app-install-box strong{color:#edf3f6!important}
   body.mc-dark #settingsPage .settings-card .app-about,body.mc-dark #settingsPage .settings-card [class*="about"]{color:#aebbc3!important}
-
-  /* Ajuda — FAQ e cards tecnicos integrados ao grafite. */
   body.mc-dark #settingsPage .mc-help-card-v037>p{color:#aebbc3!important}
   body.mc-dark #settingsPage .mc-help-card-v037 details{border-color:#40505a!important}
   body.mc-dark #settingsPage .mc-help-card-v037 summary{color:#dce6eb!important}
@@ -62,4 +60,5 @@
  }
  `;document.head.appendChild(st);
  if(!document.querySelector('script[data-mc-overdue-pulse]')){const s=document.createElement('script');s.src='./overdue-pulse-v136.js';s.dataset.mcOverduePulse='1';document.head.appendChild(s)}
+ if(!document.querySelector('script[data-mc-dark-more-mobile]')){const s=document.createElement('script');s.src='./dark-more-mobile-v137.js';s.dataset.mcDarkMoreMobile='1';document.head.appendChild(s)}
 })();
