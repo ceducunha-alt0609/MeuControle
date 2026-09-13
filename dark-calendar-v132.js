@@ -1,6 +1,7 @@
-/* MeuControle — V1.32.1: acabamento dark do Calendario desktop */
+/* MeuControle — V1.32.2: acabamento dark do Calendario desktop */
 (function(){
  if(window.__mcDarkCalendarV132)return;window.__mcDarkCalendarV132=true;
+ if(!document.querySelector('script[data-mc-dark-actions]')){const a=document.createElement('script');a.src='./dark-actions-v133.js';a.dataset.mcDarkActions='1';document.head.appendChild(a)}
  const st=document.createElement('style');st.id='mcDarkCalendarV132Style';st.textContent=`
  @media(min-width:701px){
   body.mc-dark #calendarPage .mc-cal-board-v124{background:#182229!important;border-color:#2d3b44!important;box-shadow:0 5px 18px rgba(0,0,0,.14)!important}
