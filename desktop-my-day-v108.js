@@ -4,7 +4,7 @@
     if(document.getElementById('desktopMyDayStyle'))return;
     const style=document.createElement('style');
     style.id='desktopMyDayStyle';
-    style.textContent='@media(min-width:701px){#dashboardPage .premium-card[data-dash="today"]{border-width:2px!important}} @media(max-width:650px){#dashboardPage .premium-cards{grid-template-columns:repeat(2,minmax(0,1fr))!important}#dashboardPage .premium-card[data-dash="today"]{grid-column:1/-1!important}}';
+    style.textContent='@media(min-width:701px){#dashboardPage .premium-card[data-dash="today"]{border-width:2px!important}} @media(max-width:650px){#dashboardPage .premium-cards{grid-template-columns:repeat(2,minmax(0,1fr))!important}#dashboardPage .premium-card[data-dash="today"]{grid-column:1/-1!important;min-height:104px!important;padding:13px 16px!important}#dashboardPage .premium-card small{font-size:11px!important;line-height:1.25!important}#dashboardPage .premium-card[data-dash="today"] strong{margin-top:4px!important}#dashboardPage .premium-card[data-dash="today"] small{margin-top:3px!important}}';
     document.head.appendChild(style);
   }
   function desiredSubText(main){
