@@ -4,7 +4,7 @@
     if(document.getElementById('desktopMyDayStyle'))return;
     const style=document.createElement('style');
     style.id='desktopMyDayStyle';
-    style.textContent='@media(min-width:701px){#dashboardPage .premium-card[data-dash="today"]{border-width:2px!important}}';
+    style.textContent='@media(min-width:701px){#dashboardPage .premium-card[data-dash="today"]{border-width:2px!important}} @media(max-width:650px){#dashboardPage .premium-cards{grid-template-columns:repeat(2,minmax(0,1fr))!important}}';
     document.head.appendChild(style);
   }
   function desiredSubText(main){
@@ -12,8 +12,8 @@
     return count===0?'Sem tarefas pra hoje':count===1?'Tarefa para hoje':'Tarefas para hoje';
   }
   function applyDesktopMyDay(){
-    if(window.matchMedia('(max-width:700px)').matches)return;
     ensureDesktopStyle();
+    if(window.matchMedia('(max-width:700px)').matches)return;
     const grid=document.querySelector('#dashboardPage .premium-cards');
     if(!grid)return;
     const month=grid.querySelector('[data-dash="month"]');
