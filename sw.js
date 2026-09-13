@@ -1,2 +1,2 @@
-/* Meu Controle — Service Worker bootstrap V3.21: renova acabamento dark do Calendario */
+/* Meu Controle — Service Worker bootstrap V3.22: renova contraste final dark do Calendario */
 importScripts('./sw-core-v315.js');
