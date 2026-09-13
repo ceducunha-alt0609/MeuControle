@@ -1,2 +1,2 @@
-/* Meu Controle — Service Worker bootstrap V3.46: separa Sobre do Meu Controle e Versao no mobile */
+/* Meu Controle - Service Worker bootstrap V3.47 */
 importScripts('./sw-core-v315.js');
