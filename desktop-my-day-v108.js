@@ -1,5 +1,6 @@
-/* V1.08 - Painel desktop: Meu Dia central */
+/* V1.08.1 - Painel desktop: Meu Dia central, sem repintadas redundantes */
 (()=>{
+  if(window.__mcDesktopMyDayV1081)return;window.__mcDesktopMyDayV1081=true;
   function ensureDesktopStyle(){
     if(document.getElementById('desktopMyDayStyle'))return;
     const style=document.createElement('style');
@@ -11,39 +12,21 @@
     const count=Number(String(main?.textContent||'0').replace(/[^0-9-]/g,''))||0;
     return count===0?'Sem tarefas pra hoje':count===1?'Tarefa para hoje':'Tarefas para hoje';
   }
+  let scheduled=false;
   function applyDesktopMyDay(){
-    ensureDesktopStyle();
+    scheduled=false;ensureDesktopStyle();
     if(window.matchMedia('(max-width:700px)').matches)return;
-    const grid=document.querySelector('#dashboardPage .premium-cards');
-    if(!grid)return;
-    const month=grid.querySelector('[data-dash="month"]');
-    const important=grid.querySelector('[data-dash="important"]');
-    const today=grid.querySelector('[data-dash="today"]');
-    const expenses=grid.querySelector('[data-dash="expenses"]');
-    const late=grid.querySelector('[data-dash="late"]');
+    const grid=document.querySelector('#dashboardPage .premium-cards');if(!grid)return;
+    const month=grid.querySelector('[data-dash="month"]'),important=grid.querySelector('[data-dash="important"]'),today=grid.querySelector('[data-dash="today"]'),expenses=grid.querySelector('[data-dash="expenses"]'),late=grid.querySelector('[data-dash="late"]');
     if(!month||!important||!today||!expenses||!late)return;
-    const label=today.querySelector('.premium-label');
-    const main=today.querySelector('#dashTodayMain');
-    const sub=today.querySelector('#dashTodaySub');
+    const label=today.querySelector('.premium-label'),main=today.querySelector('#dashTodayMain'),sub=today.querySelector('#dashTodaySub');
     if(label&&label.textContent!=='☀️ Meu Dia')label.textContent='☀️ Meu Dia';
-    if(main&&sub){
-      const wanted=desiredSubText(main);
-      if(sub.textContent!==wanted)sub.textContent=wanted;
-    }
-    const order=[month,important,today,expenses,late];
-    const current=[...grid.children].filter(el=>el.matches('.premium-card'));
+    if(main&&sub){const wanted=desiredSubText(main);if(sub.textContent!==wanted)sub.textContent=wanted}
+    const order=[month,important,today,expenses,late],current=[...grid.children].filter(el=>el.matches('.premium-card'));
     if(order.some((card,i)=>current[i]!==card))order.forEach(card=>grid.appendChild(card));
   }
-  function boot(){
-    applyDesktopMyDay();
-    const main=document.getElementById('dashTodayMain');
-    const sub=document.getElementById('dashTodaySub');
-    if(main)new MutationObserver(()=>requestAnimationFrame(applyDesktopMyDay)).observe(main,{childList:true,subtree:true,characterData:true});
-    if(sub)new MutationObserver(()=>requestAnimationFrame(applyDesktopMyDay)).observe(sub,{childList:true,subtree:true,characterData:true});
-    setTimeout(applyDesktopMyDay,50);
-    setTimeout(applyDesktopMyDay,250);
-  }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});
-  else boot();
-  window.addEventListener('resize',applyDesktopMyDay);
+  function schedule(){if(scheduled)return;scheduled=true;requestAnimationFrame(applyDesktopMyDay)}
+  function boot(){ensureDesktopStyle();applyDesktopMyDay();const main=document.getElementById('dashTodayMain');if(main)new MutationObserver(schedule).observe(main,{childList:true,subtree:true,characterData:true});window.addEventListener('resize',schedule,{passive:true})}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+  window.MeuControleDesktopMyDayV108={version:'1.08.1',refresh:schedule};
 })();
