@@ -1,4 +1,4 @@
-/* MeuControle — V1.30.4: modo Claro / Escuro / Automático, isolado da lógica do app */
+/* MeuControle — V1.30.5: modo Claro / Escuro / Automático, isolado da lógica do app */
 (function(){
  if(window.__mcAppearanceModeV130)return;window.__mcAppearanceModeV130=true;
  const KEY='meu_controle_color_mode_v1',mq=matchMedia('(prefers-color-scheme: dark)');
@@ -56,7 +56,7 @@
  @media(max-width:900px) and (min-width:701px){body.mc-dark .central-lane-v041{border-bottom-color:#2d3b44!important}}
  @media(max-width:700px){
   body.mc-dark .topbar-lower{background:#10171c!important}body.mc-dark .topnav{background:#172127!important;border-top-color:#34434c!important}body.mc-dark .topnav .nav-btn{color:#a8b5bd!important}body.mc-dark .topnav .nav-btn.active{background:#223746!important;color:#dcebf5!important}
-  body.mc-dark #dashboardPage #dashTodayMain{color:#bfe6fa!important;text-shadow:0 0 16px rgba(93,183,230,.12)}
+  body.mc-dark #dashboardPage .premium-card[data-dash="today"] #dashTodayMain{color:#eef7fb!important;-webkit-text-fill-color:#eef7fb!important;text-shadow:0 1px 12px rgba(121,202,241,.16)!important;opacity:1!important}
   body.mc-dark #dashboardPage #dashTodaySub{color:#c9dbe4!important}
   body.mc-dark #dashboardPage .mobile-dashboard-month-wheel{background:#182229!important;border-color:#34434c!important}
   body.mc-dark #dashboardPage .mobile-dashboard-month-slot.prev,body.mc-dark #dashboardPage .mobile-dashboard-month-slot.next{background:#182229!important;color:#b6c2c9!important}
