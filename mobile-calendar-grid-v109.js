@@ -1,12 +1,13 @@
-/* Meu Controle — V1.09: calendário mensal visual no mobile + concluídos padronizados */
+/* Meu Controle — V1.10: calendário mensal visual no mobile + clique por dia */
 (function(){
   if(window.__meuControleMobileCalendarGridV109Loaded)return;
   window.__meuControleMobileCalendarGridV109Loaded=true;
 
-  const VERSION='1.09';
+  const VERSION='1.10';
   const mq=matchMedia('(max-width:700px)');
   const originalRenderCalendar=typeof renderCalendar==='function'?renderCalendar:null;
   const week=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  let selectedDate='';
 
   function installStyles(){
     if(document.getElementById('mobileCalendarGridV109Style'))return;
@@ -62,8 +63,14 @@
           border-radius:0!important;
           transform:none!important;
         }
+        #calendarPage button.mobile-calendar-day-v109{cursor:pointer}
         #calendarPage .mobile-calendar-day-v109:nth-child(7n){border-right:0}
         #calendarPage .mobile-calendar-day-v109.empty{background:#fbfcfb;color:transparent}
+        #calendarPage .mobile-calendar-day-v109.selected:not(.today){
+          background:var(--primary-soft)!important;
+          color:var(--primary)!important;
+          box-shadow:inset 0 0 0 2px rgba(var(--primary-rgb),.38)!important;
+        }
         #calendarPage .mobile-calendar-day-v109.today{
           margin:3px;
           min-height:41px;
@@ -73,6 +80,9 @@
           background:var(--primary)!important;
           color:#fff!important;
           box-shadow:0 5px 12px rgba(22,79,120,.22)!important;
+        }
+        #calendarPage .mobile-calendar-day-v109.today.selected{
+          box-shadow:0 0 0 3px rgba(var(--primary-rgb),.18),0 5px 12px rgba(22,79,120,.22)!important;
         }
         #calendarPage .mc-day-dots-v109{height:7px;display:flex;align-items:center;justify-content:center;gap:3px}
         #calendarPage .mc-day-dot-v109{width:6px;height:6px;border-radius:50%;display:block}
@@ -128,11 +138,36 @@
     return{late,pending:pending.length>0,done};
   }
 
+  function monthPrefix(){return `${calendarYear}-${String(calendarMonth+1).padStart(2,'0')}-`}
+
+  function renderSelectedDay(){
+    if(!mq.matches||!selectedDate)return;
+    const all=typeof calendarEntries==='function'?calendarEntries().slice():[];
+    const q=String(typeof calendarQuery!=='undefined'?calendarQuery:'').trim().toLowerCase();
+    const items=all.filter(e=>e.date===selectedDate).sort((a,b)=>(a.date+(a.time||'')).localeCompare(b.date+(b.time||''))).filter(e=>!q||typeof searchableText!=='function'||searchableText(e).includes(q));
+    const raw=all.filter(e=>e.date===selectedDate);
+    const list=document.getElementById('calendarEventsList');
+    const empty=document.getElementById('calendarEmpty');
+    const title=document.getElementById('calendarMonthTitle');
+    const summary=document.getElementById('calendarMonthSummary');
+    if(!list||!empty||!title||!summary)return;
+
+    const d=typeof dateOnly==='function'?dateOnly(selectedDate):new Date(`${selectedDate}T12:00:00`);
+    title.textContent=d.toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'}).replace(/^./,c=>c.toUpperCase());
+    summary.textContent=`${raw.length} lançamento${raw.length===1?'':'s'} • ${raw.filter(e=>!e.done).length} pendente${raw.filter(e=>!e.done).length===1?'':'s'}`;
+    list.innerHTML='';
+    empty.classList.toggle('hidden',items.length>0);
+    empty.textContent=q?'Nenhum lançamento encontrado neste dia.':'Nenhum lançamento neste dia.';
+    items.forEach(e=>list.appendChild(createItemNode(e,'calendar')));
+  }
+
   function buildGrid(){
     if(!mq.matches)return;
     const page=document.getElementById('calendarPage');
     const eventsPanel=page?.querySelector('.calendar-events-panel');
     if(!page||!eventsPanel)return;
+
+    if(selectedDate&&!selectedDate.startsWith(monthPrefix()))selectedDate='';
 
     let grid=document.getElementById('mobileCalendarGridV109');
     if(!grid){
@@ -161,16 +196,32 @@
       const items=byDay.get(day)||[];
       const st=dayStatus(items,iso);
       const dots=[st.late?'<i class="mc-day-dot-v109 late"></i>':'',st.pending&&!st.late?'<i class="mc-day-dot-v109 pending"></i>':'',st.done?'<i class="mc-day-dot-v109 done"></i>':''].join('');
-      const label=items.length?`${day}, ${items.length} lançamento${items.length===1?'':'s'}`:`${day}`;
-      cells+=`<span class="mobile-calendar-day-v109${iso===todayISO?' today':''}" aria-label="${label}"><b>${day}</b><span class="mc-day-dots-v109">${dots}</span></span>`;
+      const label=items.length?`${day}, ${items.length} lançamento${items.length===1?'':'s'}`:`${day}, nenhum lançamento`;
+      const cls=`mobile-calendar-day-v109${iso===todayISO?' today':''}${iso===selectedDate?' selected':''}`;
+      cells+=`<button type="button" class="${cls}" data-date="${iso}" aria-label="${label}" aria-pressed="${iso===selectedDate?'true':'false'}"><b>${day}</b><span class="mc-day-dots-v109">${dots}</span></button>`;
     }
     grid.innerHTML=`<div class="mobile-calendar-week-v109">${week.map(x=>`<span>${x}</span>`).join('')}</div><div class="mobile-calendar-days-v109">${cells}</div>`;
+    grid.querySelectorAll('button[data-date]').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const iso=btn.dataset.date||'';
+        if(selectedDate===iso){
+          selectedDate='';
+          if(typeof renderCalendar==='function')renderCalendar();
+          return;
+        }
+        selectedDate=iso;
+        buildGrid();
+        renderSelectedDay();
+        document.querySelector('#calendarPage .calendar-events-panel')?.scrollIntoView({behavior:'smooth',block:'start'});
+      });
+    });
   }
 
   function sync(){
     if(!mq.matches)return;
     installStyles();
     buildGrid();
+    if(selectedDate)renderSelectedDay();
   }
 
   if(originalRenderCalendar){
