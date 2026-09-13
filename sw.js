@@ -1,2 +1,2 @@
-/* Meu Controle — Service Worker bootstrap V3.36: renova prioridade dos vencidos no desktop dark */
+/* Meu Controle — Service Worker bootstrap V3.37: renova acabamento dark da Home mobile */
 importScripts('./sw-core-v315.js');
