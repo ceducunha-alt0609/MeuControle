@@ -1,2 +1,2 @@
-/* Meu Controle — Service Worker bootstrap V3.37: renova acabamento dark da Home mobile */
+/* Meu Controle — Service Worker bootstrap V3.38: renova carrossel dark mobile e contraste do Meu Dia */
 importScripts('./sw-core-v315.js');
