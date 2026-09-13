@@ -29,6 +29,7 @@
       .mobile-more-list{display:grid;grid-template-columns:1fr;gap:10px}
       .mobile-more-card{width:100%;min-height:82px;padding:14px 15px;border:1px solid #dfe6e1;border-radius:15px;background:#fff;color:var(--text);box-shadow:0 5px 16px rgba(0,0,0,.045);display:grid;grid-template-columns:46px minmax(0,1fr) 20px;gap:12px;align-items:center;text-align:left}
       .mobile-more-card:active{transform:scale(.99)}
+      .mobile-more-card:focus-visible,.mobile-profile-choice:focus-visible,.mobile-settings-back:focus-visible{outline:3px solid rgba(var(--primary-rgb),.28)!important;outline-offset:3px!important}
       .mobile-more-icon{width:46px;height:46px;border-radius:13px;background:var(--primary-soft);color:var(--primary);display:flex;align-items:center;justify-content:center;font-family:system-ui,sans-serif;font-size:23px;font-weight:800}
       .mobile-more-copy strong{display:block;font-size:17px;line-height:1.2;color:#24352c}
       .mobile-more-copy small{display:block;margin-top:4px;color:#738078;font-size:11px;line-height:1.35;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -46,7 +47,6 @@
       .mobile-profile-choice.active{background:var(--primary-soft);border-color:rgba(var(--primary-rgb),.35);color:var(--primary)}
       .mobile-profile-choice.active::after{content:"✓";display:flex;align-items:center;justify-content:center;border-color:var(--primary);background:var(--primary);color:#fff;font-family:system-ui,sans-serif;font-size:13px;font-weight:900}
 
-      /* Dados e segurança: ações equivalentes e backup automático mais compacto. */
       #settingsPage .mobile-data-card .settings-actions{display:grid!important;grid-template-columns:1fr 1fr!important;gap:9px!important}
       #settingsPage .mobile-data-card .settings-actions button{width:100%!important;min-width:0!important;min-height:48px!important;padding:10px 8px!important;font-size:14px!important;text-align:center!important}
       #settingsPage .mobile-data-card #importBackupBtn{background:var(--primary-soft)!important;color:var(--primary)!important;border:1px solid rgba(var(--primary-rgb),.24)!important}
@@ -66,8 +66,11 @@
       .mobile-notify-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
       .mobile-notify-state{font-size:12px;font-weight:700;color:#647269}
       .mobile-notify-row button{flex:0 0 auto}
-
       #settingsPage #resetAppearanceBtn{padding:9px 12px!important;font-size:12px!important}
+    }
+    @media(max-width:700px) and (prefers-reduced-motion:reduce){
+      .mobile-more-card,.mobile-profile-choice,.mobile-settings-back{transition:none!important}
+      .mobile-more-card:active{transform:none!important}
     }
   `;
   document.head.appendChild(style);
@@ -126,7 +129,7 @@
     if(!box){box=document.createElement('div');box.className='mobile-profile-choices';const note=card.querySelector('.mobile-profile-current');card.insertBefore(box,note||null)}
     box.innerHTML='';
     [...source.options].forEach(opt=>{
-      const btn=document.createElement('button');btn.type='button';btn.className='mobile-profile-choice';btn.dataset.value=opt.value;btn.textContent=opt.textContent;btn.classList.toggle('active',opt.value===source.value);
+      const btn=document.createElement('button');btn.type='button';btn.className='mobile-profile-choice';btn.dataset.value=opt.value;btn.textContent=opt.textContent;btn.classList.toggle('active',opt.value===source.value);btn.setAttribute('aria-pressed',String(opt.value===source.value));
       btn.onclick=()=>{
         source.value=opt.value;
         source.dispatchEvent(new Event('change',{bubbles:true}));
@@ -137,7 +140,7 @@
   }
   function syncProfileChoices(){
     const source=document.getElementById('mobileProfileFilter')||document.getElementById('profileFilter');
-    document.querySelectorAll('.mobile-profile-choice').forEach(btn=>btn.classList.toggle('active',btn.dataset.value===source?.value));
+    document.querySelectorAll('.mobile-profile-choice').forEach(btn=>{const active=btn.dataset.value===source?.value;btn.classList.toggle('active',active);btn.setAttribute('aria-pressed',String(active))});
   }
 
   function notificationState(){
