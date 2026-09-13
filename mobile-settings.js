@@ -2,6 +2,7 @@
 (function(){
   if(!document.querySelector('script[data-mc-dark-launches-list]')){const s=document.createElement('script');s.src='./dark-launches-list-v131.js';s.dataset.mcDarkLaunchesList='1';document.head.appendChild(s)}
   if(!document.querySelector('script[data-mc-dark-calendar]')){const s=document.createElement('script');s.src='./dark-calendar-v132.js';s.dataset.mcDarkCalendar='1';document.head.appendChild(s)}
+  if(!document.querySelector('script[data-mc-dark-settings]')){const s=document.createElement('script');s.src='./dark-settings-v135.js';s.dataset.mcDarkSettings='1';document.head.appendChild(s)}
   const mq=window.matchMedia('(max-width:700px)');
   const page=document.getElementById('settingsPage');
   const shell=page?.querySelector('.settings-shell');
