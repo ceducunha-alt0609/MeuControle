@@ -1,27 +1,27 @@
-/* MeuControle — V1.36.2: pulso suave e contorno continuo nos cards vencidos pendentes */
+/* MeuControle — V1.36.3: borda uniforme nos vencidos */
 (function(){
  if(window.__mcOverduePulseV136)return;window.__mcOverduePulseV136=true;
- const st=document.createElement('style');st.id='mcOverduePulseV136Style';st.textContent=`
-  @keyframes mc-overdue-pulse-v136{
-    0%,100%{box-shadow:0 0 0 1px rgba(190,55,55,.34),0 0 0 0 rgba(190,55,55,0)}
-    50%{box-shadow:0 0 0 1px rgba(220,72,72,.82),0 0 0 4px rgba(190,55,55,.10)}
-  }
-  .item.late:not(.done){
-    animation:mc-overdue-pulse-v136 2.8s ease-in-out infinite!important;
-    border-color:rgba(205,65,65,.72)!important;
-  }
-  .item.late:not(.done)::before{
-    border-left-color:transparent!important;
-    box-shadow:none!important;
-  }
-  body.mc-dark .item.late:not(.done){
-    animation-name:mc-overdue-pulse-v136!important;
-  }
-  body.mc-dark .item.late:not(.done) .meta{
-    color:#e36a6a!important;
-  }
-  @media(prefers-reduced-motion:reduce){
-    .item.late:not(.done){animation:none!important;box-shadow:0 0 0 1px rgba(190,55,55,.58)!important}
-  }
- `;document.head.appendChild(st);
+ const st=document.createElement('style');
+ st.id='mcOverduePulseV136Style';
+ st.textContent=`
+ @keyframes mc-overdue-pulse-v136{
+   0%,100%{box-shadow:0 0 0 0 rgba(190,55,55,0)}
+   50%{box-shadow:0 0 0 4px rgba(190,55,55,.10)}
+ }
+ .item.late:not(.done),
+ #launchesPage .item.late:not(.done),
+ #calendarPage .item.late:not(.done){
+   border:2px solid rgba(214,71,71,.88)!important;
+   animation:mc-overdue-pulse-v136 2.8s ease-in-out infinite!important;
+ }
+ body.mc-dark #launchesPage .item.late:not(.done),
+ body.mc-dark #calendarPage .item.late:not(.done){
+   border:2px solid rgba(226,79,79,.92)!important;
+ }
+ body.mc-dark .item.late:not(.done) .meta{color:#e36a6a!important}
+ @media(prefers-reduced-motion:reduce){
+   .item.late:not(.done){animation:none!important;box-shadow:none!important}
+ }
+ `;
+ document.head.appendChild(st);
 })();
