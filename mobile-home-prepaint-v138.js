@@ -1,4 +1,4 @@
-/* MeuControle — V1.38.1: evita flash da Home antiga no mobile antes dos refinamentos */
+/* MeuControle — V1.38.2: evita flash da Home antiga no mobile antes dos refinamentos */
 (()=>{
   if(window.__mcMobileHomePrepaintV138)return;window.__mcMobileHomePrepaintV138=true;
   if(!matchMedia('(max-width:700px)').matches)return;
@@ -76,14 +76,13 @@
   const reveal=()=>{
     apply();
     requestAnimationFrame(()=>requestAnimationFrame(()=>{
-      document.documentElement.classList.remove('mc-mobile-home-boot');
+      document.documentElement.classList.remove('mc-mobile-home-boot','mc-dashboard-boot');
     }));
   };
 
   apply();
   queueMicrotask(apply);
 
-  /* O HTML-base fica oculto até os módulos que definem a Home atual terem sido instalados. */
   const started=performance.now();
   const waitReady=()=>{
     const myDayReady=!!window.__mcMobileMyDayV106;
