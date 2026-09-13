@@ -1,2 +1,2 @@
-/* Meu Controle — Service Worker bootstrap V3.31: renova data vermelha dos vencidos no dark */
+/* Meu Controle — Service Worker bootstrap V3.32: renova contorno pulsante continuo dos vencidos */
 importScripts('./sw-core-v315.js');
