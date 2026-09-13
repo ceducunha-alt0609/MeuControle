@@ -1,4 +1,4 @@
-/* MeuControle — V1.32: acabamento dark dos dois paineis do Calendario desktop */
+/* MeuControle — V1.32.1: acabamento dark do Calendario desktop */
 (function(){
  if(window.__mcDarkCalendarV132)return;window.__mcDarkCalendarV132=true;
  const st=document.createElement('style');st.id='mcDarkCalendarV132Style';st.textContent=`
@@ -17,11 +17,12 @@
   body.mc-dark #calendarPage .mc-cal-day-v124.today{background:var(--primary)!important;color:#fff!important}
   body.mc-dark #calendarPage .mc-cal-day-v124.selected:not(.today){background:#263d4c!important;color:#d9edf9!important;box-shadow:inset 0 0 0 1px #54758b!important}
   body.mc-dark #calendarPage .mc-cal-clear-v124{background:#26343c!important;color:#d8e8f1!important}
+  body.mc-dark #calendarPage>.panel-head p,body.mc-dark #calendarPage .panel-head>p{color:#aebbc3!important}
 
   body.mc-dark #calendarPage .calendar-events-panel{background:#182229!important;border-color:#2d3b44!important;color:#e7edf1!important}
   body.mc-dark #calendarPage .calendar-events-head h3,body.mc-dark #calendarPage #calendarMonthTitle{color:#eef3f6!important}
-  body.mc-dark #calendarPage .calendar-events-head p,body.mc-dark #calendarPage #calendarMonthSummary{color:#b8c4ca!important}
-  body.mc-dark #calendarPage .mc-cal-pending-title-v124{color:#b8c4ca!important}
+  body.mc-dark #calendarPage .calendar-events-head p,body.mc-dark #calendarPage #calendarMonthSummary{color:#c1ccd2!important}
+  body.mc-dark #calendarPage .mc-cal-pending-title-v124{color:#c1ccd2!important}
   body.mc-dark #calendarPage #calendarEventsList .item{background:#1b262d!important;color:#e7edf1!important;border-color:#314049!important}
   body.mc-dark #calendarPage #calendarEventsList .item-title{color:#e7edf1!important}
   body.mc-dark #calendarPage #calendarEventsList .item .meta{color:#aebbc3!important}
