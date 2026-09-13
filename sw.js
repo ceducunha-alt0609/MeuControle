@@ -1,2 +1,2 @@
-/* Meu Controle - Service Worker bootstrap V3.55: Ciclo 10/10 de Configuracoes */
-importScripts('./sw-core-v316.js?v=355');
+/* Meu Controle - Service Worker bootstrap V3.56: auditoria global 10/10 */
+importScripts('./sw-core-v317.js?v=356');
