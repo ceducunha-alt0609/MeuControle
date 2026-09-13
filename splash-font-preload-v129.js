@@ -3,6 +3,14 @@
   if(window.__mcSplashAlluraPreload)return;
   window.__mcSplashAlluraPreload=true;
   try{
+    /* Sincronizador runtime: completa a troca Escuro <-> Claro sem precisar recarregar. */
+    if(!document.querySelector('script[data-mc-theme-transition]')){
+      const themeSync=document.createElement('script');
+      themeSync.src='./theme-transition-v140.js';
+      themeSync.dataset.mcThemeTransition='1';
+      document.head.appendChild(themeSync);
+    }
+
     /* Este é o primeiro script do body. Resolve tema e tela salva antes do primeiro paint. */
     let savedPage='dashboard';
     try{
