@@ -1,4 +1,4 @@
-/* MeuControle — V1.38: evita flash dos cards antigos no Calendário desktop */
+/* MeuControle — V1.38.1: evita flash dos cards antigos no Calendário desktop */
 (()=>{
   if(window.__mcDesktopCalendarPrepaintV138)return;window.__mcDesktopCalendarPrepaintV138=true;
   if(!matchMedia('(min-width:701px)').matches)return;
@@ -7,7 +7,8 @@
   style.id='mcDesktopCalendarPrepaintV138Style';
   style.textContent=`
     @media(min-width:701px){
-      html.mc-calendar-prepaint #calendarPage .calendar-layout{
+      html.mc-calendar-prepaint #calendarPage .calendar-layout,
+      html.mc-desktop-calendar-boot #calendarPage .calendar-layout{
         visibility:hidden!important;
       }
     }
@@ -15,9 +16,12 @@
   document.head.appendChild(style);
   document.documentElement.classList.add('mc-calendar-prepaint');
 
-  const reveal=()=>document.documentElement.classList.remove('mc-calendar-prepaint');
+  const reveal=()=>{
+    document.documentElement.classList.remove('mc-calendar-prepaint');
+    document.documentElement.classList.remove('mc-desktop-calendar-boot');
+  };
   const ready=()=>!!document.querySelector('#calendarPage .mc-cal-board-v124');
-  if(ready()){reveal();return}
+  if(ready()){requestAnimationFrame(()=>requestAnimationFrame(reveal));return}
 
   const root=document.getElementById('calendarPage')||document.body;
   const observer=new MutationObserver(()=>{
@@ -29,5 +33,5 @@
   observer.observe(root,{childList:true,subtree:true});
 
   /* Fallback de segurança: nunca deixa a área invisível indefinidamente. */
-  setTimeout(()=>{observer.disconnect();reveal()},1400);
+  setTimeout(()=>{observer.disconnect();reveal()},1800);
 })();
