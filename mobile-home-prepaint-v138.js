@@ -1,4 +1,4 @@
-/* MeuControle — V1.38: evita flash da Home antiga no mobile antes dos refinamentos */
+/* MeuControle — V1.38.1: evita flash da Home antiga no mobile antes dos refinamentos */
 (()=>{
   if(window.__mcMobileHomePrepaintV138)return;window.__mcMobileHomePrepaintV138=true;
   if(!matchMedia('(max-width:700px)').matches)return;
@@ -72,6 +72,25 @@
       sub.textContent=count===0?'Sem tarefas pra hoje':count===1?'Tarefa para hoje':'Tarefas para hoje';
     }
   };
+
+  const reveal=()=>{
+    apply();
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      document.documentElement.classList.remove('mc-mobile-home-boot');
+    }));
+  };
+
   apply();
   queueMicrotask(apply);
+
+  /* O HTML-base fica oculto até os módulos que definem a Home atual terem sido instalados. */
+  const started=performance.now();
+  const waitReady=()=>{
+    const myDayReady=!!window.__mcMobileMyDayV106;
+    const centralReady=!!window.__meuControleCentralHojeV041Loaded;
+    if(myDayReady&&centralReady){reveal();return}
+    if(performance.now()-started>1200){reveal();return}
+    setTimeout(waitReady,16);
+  };
+  waitReady();
 })();
