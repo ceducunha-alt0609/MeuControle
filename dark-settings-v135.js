@@ -1,4 +1,4 @@
-/* MeuControle — V1.35: acabamento dark de Configuracoes — Dados e seguranca + Perfis */
+/* MeuControle — V1.35.1: acabamento dark de Configuracoes — Dados e seguranca + Perfis */
 (function(){
  if(window.__mcDarkSettingsV135)return;window.__mcDarkSettingsV135=true;
  const st=document.createElement('style');st.id='mcDarkSettingsV135Style';st.textContent=`
@@ -15,6 +15,10 @@
   body.mc-dark #settingsPage .sync-box,body.mc-dark #settingsPage .sync-section,body.mc-dark #settingsPage [class*="sync-"]{color:#c0cbd1}
   body.mc-dark #settingsPage .sync-box p,body.mc-dark #settingsPage .sync-section p{color:#aebbc3!important}
   body.mc-dark #settingsPage .sync-box input,body.mc-dark #settingsPage .sync-section input,body.mc-dark #settingsPage .sync-status-box{background:#202d34!important;color:#dce6eb!important;border-color:#40505a!important}
+  body.mc-dark #settingsPage .firebase-sync-box{border-color:#40505a!important}
+  body.mc-dark #settingsPage .firebase-sync-head h4{color:#edf3f6!important}
+  body.mc-dark #settingsPage .firebase-sync-head p{color:#aebbc3!important}
+  body.mc-dark #settingsPage .firebase-sync-user{background:#202d34!important;color:#c4ced3!important;border:1px solid #40505a!important}
 
   body.mc-dark #settingsPage .profiles-list .profile-row{background:#1b262d!important;border-color:#35454e!important;color:#edf3f6!important}
   body.mc-dark #settingsPage .profiles-list .profile-row strong{color:#edf3f6!important}
