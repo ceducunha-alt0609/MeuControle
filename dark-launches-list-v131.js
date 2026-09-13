@@ -1,4 +1,4 @@
-/* MeuControle — V1.31: acabamento dark da lista de Lançamentos desktop */
+/* MeuControle — V1.31.1: acabamento dark de Lançamentos desktop */
 (function(){
  if(window.__mcDarkLaunchesListV131)return;window.__mcDarkLaunchesListV131=true;
  const st=document.createElement('style');st.id='mcDarkLaunchesListV131Style';st.textContent=`
@@ -16,6 +16,16 @@
   body.mc-dark #launchesPage .desktop-done-heading-v020{background:linear-gradient(90deg,#202b31,#1c272d)!important;border-top-color:#3a4952!important;border-bottom-color:#314049!important;color:#aeb9bf!important}
   body.mc-dark #launchesPage .desktop-done-heading-v020 strong{color:#b9c5cb!important}
   body.mc-dark #launchesPage .desktop-done-heading-v020 span{color:#98a6ad!important}
+
+  /* Formulário e cabeçalho: só contraste, sem alterar geometria */
+  body.mc-dark #launchesPage .panel-head p,body.mc-dark #launchesPage .list-top p{color:#aebbc3!important}
+  body.mc-dark #launchesPage form label,body.mc-dark #launchesPage .form-grid label{color:#b9c5cb!important}
+  body.mc-dark #launchesPage form label>span,body.mc-dark #launchesPage .form-grid label>span{color:#b9c5cb!important}
+  body.mc-dark #launchesPage .checkbox-row,body.mc-dark #launchesPage .checkbox-row label{color:#aebbc3!important}
+  body.mc-dark #launchesPage input::placeholder,body.mc-dark #launchesPage textarea::placeholder{color:#83939c!important}
+  body.mc-dark #launchesPage input,body.mc-dark #launchesPage select,body.mc-dark #launchesPage textarea{color:#eef3f6!important}
+  body.mc-dark #launchesPage .filters button:not(.active),body.mc-dark #launchesPage .filter-btn:not(.active){color:#b8c4ca!important;background:#26343c!important;border-color:#314049!important}
+  body.mc-dark #launchesPage .filters button:not(.active):hover,body.mc-dark #launchesPage .filter-btn:not(.active):hover{color:#e2eaee!important;background:#2d3d46!important}
  }
  `;document.head.appendChild(st);
 })();
