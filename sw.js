@@ -1,2 +1,2 @@
-/* Meu Controle — Service Worker bootstrap V3.22: renova contraste final dark do Calendario */
+/* Meu Controle — Service Worker bootstrap V3.23: renova painel flutuante dark */
 importScripts('./sw-core-v315.js');
