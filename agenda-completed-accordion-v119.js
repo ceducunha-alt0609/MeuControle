@@ -1,4 +1,4 @@
-/* Meu Controle — V1.19: Agenda mobile com pendentes acima e concluídos em acordeão */
+/* Meu Controle — V1.20: Agenda mobile com pendentes acima e concluídos em acordeão */
 (function(){
  if(window.__mcAgendaCompletedAccordionV119)return;window.__mcAgendaCompletedAccordionV119=true;
  const mq=matchMedia('(max-width:700px)'),list=document.getElementById('calendarEventsList'),title=document.getElementById('calendarMonthTitle');if(!list||!title)return;
@@ -11,6 +11,10 @@
   #calendarPage .mobile-agenda-done-toggle-v119{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border:1px solid rgba(var(--primary-rgb),.16);border-radius:7px;background:rgba(255,255,255,.68);color:var(--primary);font:800 14px/1 system-ui,sans-serif;transition:transform .16s ease}
   #calendarPage .mobile-agenda-done-header-v119.collapsed .mobile-agenda-done-toggle-v119{transform:rotate(-90deg)}
   #calendarPage #calendarEventsList>.item.mc-agenda-done-hidden-v119{display:none!important}
+  body.mc-dark #calendarPage .mobile-agenda-done-header-v119{background:#1b262d!important;border-top-color:#34434c!important;border-bottom-color:#34434c!important;color:#b8c4ca!important}
+  body.mc-dark #calendarPage .mobile-agenda-done-header-v119 strong{color:#c6d1d7!important}
+  body.mc-dark #calendarPage .mobile-agenda-done-header-v119 .mc-agenda-done-count-v119{color:#9eabb3!important}
+  body.mc-dark #calendarPage .mobile-agenda-done-toggle-v119{background:#26343c!important;border-color:#42545e!important;color:#c9dce7!important}
  }
  `;document.head.appendChild(s)}
  function monthKey(){return (title.textContent||'agenda').trim()}
@@ -28,5 +32,5 @@
   const desired=[...pending,header,...done],current=[...list.children];if(current.length!==desired.length||desired.some((el,i)=>current[i]!==el))list.replaceChildren(...desired);
  }finally{organizing=false}}
  installStyles();new MutationObserver(schedule).observe(list,{childList:true});new MutationObserver(schedule).observe(title,{childList:true,subtree:true,characterData:true});mq.addEventListener?.('change',schedule);document.querySelectorAll('.nav-btn[data-page="calendar"]').forEach(b=>b.addEventListener('click',()=>setTimeout(schedule,40)));window.addEventListener('load',()=>setTimeout(schedule,700));setTimeout(schedule,250);
- window.MeuControleAgendaCompletedAccordionV119={version:'1.19',refresh:schedule};
+ window.MeuControleAgendaCompletedAccordionV119={version:'1.20',refresh:schedule};
 })();
