@@ -1,6 +1,6 @@
-/* V1.08.1 - Painel desktop: Meu Dia central, sem repintadas redundantes */
+/* V1.08.2 - Painel desktop: Meu Dia central, sem repintadas redundantes */
 (()=>{
-  if(window.__mcDesktopMyDayV1081)return;window.__mcDesktopMyDayV1081=true;
+  if(window.__mcDesktopMyDayV1082)return;window.__mcDesktopMyDayV1082=true;
   function ensureDesktopStyle(){
     if(document.getElementById('desktopMyDayStyle'))return;
     const style=document.createElement('style');
@@ -13,6 +13,7 @@
     return count===0?'Sem tarefas pra hoje':count===1?'Tarefa para hoje':'Tarefas para hoje';
   }
   let scheduled=false;
+  function revealDashboard(){requestAnimationFrame(()=>requestAnimationFrame(()=>document.documentElement.classList.remove('mc-dashboard-boot')))}
   function applyDesktopMyDay(){
     scheduled=false;ensureDesktopStyle();
     if(window.matchMedia('(max-width:700px)').matches)return;
@@ -24,9 +25,10 @@
     if(main&&sub){const wanted=desiredSubText(main);if(sub.textContent!==wanted)sub.textContent=wanted}
     const order=[month,important,today,expenses,late],current=[...grid.children].filter(el=>el.matches('.premium-card'));
     if(order.some((card,i)=>current[i]!==card))order.forEach(card=>grid.appendChild(card));
+    revealDashboard();
   }
   function schedule(){if(scheduled)return;scheduled=true;requestAnimationFrame(applyDesktopMyDay)}
   function boot(){ensureDesktopStyle();applyDesktopMyDay();const main=document.getElementById('dashTodayMain');if(main)new MutationObserver(schedule).observe(main,{childList:true,subtree:true,characterData:true});window.addEventListener('resize',schedule,{passive:true})}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
-  window.MeuControleDesktopMyDayV108={version:'1.08.1',refresh:schedule};
+  window.MeuControleDesktopMyDayV108={version:'1.08.2',refresh:schedule};
 })();
