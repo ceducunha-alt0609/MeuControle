@@ -61,4 +61,5 @@
   body.mc-dark #settingsPage .mc-help-card-v037 [class*="session"] small,body.mc-dark #settingsPage .mc-help-card-v037 [class*="exit"] small{color:#aebbc3!important}
  }
  `;document.head.appendChild(st);
+ if(!document.querySelector('script[data-mc-overdue-pulse]')){const s=document.createElement('script');s.src='./overdue-pulse-v136.js';s.dataset.mcOverduePulse='1';document.head.appendChild(s)}
 })();
