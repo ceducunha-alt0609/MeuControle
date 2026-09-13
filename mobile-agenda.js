@@ -40,6 +40,21 @@
       #calendarPage .item.done .status-dot{visibility:hidden!important;animation:none!important}
       #calendarPage .item .meta{color:inherit}
       #calendarPage .item.late .meta .mobile-agenda-date{color:#b53d3d!important}
+
+      /* Agenda dark mobile: apenas contraste, sem alterar geometria/comportamento. */
+      body.mc-dark #calendarPage .mobile-agenda-head h2{color:#eef3f6!important}
+      body.mc-dark #calendarPage .mobile-agenda-current{color:#c6d4db!important}
+      body.mc-dark #calendarPage .mobile-month-wheel{background:#182229!important;border-color:#34434c!important;box-shadow:0 5px 16px rgba(0,0,0,.12)!important}
+      body.mc-dark #calendarPage .mobile-month-slot.prev,body.mc-dark #calendarPage .mobile-month-slot.next{background:#182229!important;color:#b6c2c9!important}
+      body.mc-dark #calendarPage .mobile-month-slot.current{background:#fff!important;color:var(--primary)!important;border-left-color:#dce7ee!important;border-right-color:#dce7ee!important}
+      body.mc-dark #calendarPage .mobile-month-slot.current::after{background:var(--primary)!important}
+      body.mc-dark #calendarPage .calendar-search{background:#121b21!important;color:#eef3f6!important;border-color:#566872!important}
+      body.mc-dark #calendarPage .calendar-search::placeholder{color:#98a8b0!important;opacity:1!important}
+      body.mc-dark #calendarPage .calendar-events-scroll .item:not(.late):not(.done) .meta{color:#aebbc3!important}
+      body.mc-dark #calendarPage .item.late:not(.done) .meta,body.mc-dark #calendarPage .item.late:not(.done) .mobile-agenda-date{color:#ef6a6a!important}
+      body.mc-dark #calendarPage .mobile-done-header,body.mc-dark #calendarPage .agenda-completed-header-v119,body.mc-dark #calendarPage [data-agenda-completed-header]{background:linear-gradient(90deg,#202b31,#1c272d)!important;border-color:#3a4952!important;color:#b9c5cb!important}
+      body.mc-dark #calendarPage .mobile-done-header strong,body.mc-dark #calendarPage .agenda-completed-header-v119 strong,body.mc-dark #calendarPage [data-agenda-completed-header] strong{color:#c5d0d6!important}
+      body.mc-dark #calendarPage .mobile-done-header span,body.mc-dark #calendarPage .agenda-completed-header-v119 span,body.mc-dark #calendarPage [data-agenda-completed-header] span{color:#9eabb3!important}
     }
   `;
   document.head.appendChild(style);
@@ -54,7 +69,6 @@
     });
   }
 
-  /* Agenda */
   const page=document.getElementById('calendarPage'),shell=page?.querySelector('.calendar-shell'),months=document.getElementById('calendarMonths'),eventsPanel=page?.querySelector('.calendar-events-panel'),title=document.getElementById('calendarMonthTitle'),summary=document.getElementById('calendarMonthSummary');
   if(page&&shell&&months&&eventsPanel&&title){
     const head=document.createElement('div');head.className='mobile-agenda-head';head.innerHTML='<h2>Agenda</h2><div class="mobile-agenda-current"></div>';shell.insertBefore(head,shell.firstChild);
@@ -71,7 +85,6 @@
     document.querySelectorAll('.nav-btn[data-page="calendar"]').forEach(b=>b.addEventListener('click',()=>requestAnimationFrame(sync)));mq.addEventListener?.('change',sync);sync();
   }
 
-  /* Visão geral */
   const dashboard=document.getElementById('dashboardPage'),toolbar=dashboard?.querySelector('.dashboard-toolbar'),dashLabel=document.getElementById('dashMonthLabel'),dashPrev=document.getElementById('dashPrevMonth'),dashNext=document.getElementById('dashNextMonth');
   if(dashboard&&toolbar&&dashLabel&&dashPrev&&dashNext){
     const wheel=document.createElement('div');wheel.className='mobile-dashboard-month-wheel';wheel.innerHTML='<button type="button" class="mobile-dashboard-month-slot prev" aria-label="Mês anterior"></button><button type="button" class="mobile-dashboard-month-slot current" aria-label="Mês selecionado"></button><button type="button" class="mobile-dashboard-month-slot next" aria-label="Próximo mês"></button>';toolbar.after(wheel);
