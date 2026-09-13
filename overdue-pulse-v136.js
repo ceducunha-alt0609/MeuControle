@@ -1,4 +1,4 @@
-/* MeuControle — V1.36: pulso suave nos cards vencidos pendentes */
+/* MeuControle — V1.36.1: pulso suave nos cards vencidos pendentes */
 (function(){
  if(window.__mcOverduePulseV136)return;window.__mcOverduePulseV136=true;
  const st=document.createElement('style');st.id='mcOverduePulseV136Style';st.textContent=`
@@ -11,6 +11,9 @@
   }
   body.mc-dark .item.late:not(.done){
     animation-name:mc-overdue-pulse-v136!important;
+  }
+  body.mc-dark .item.late:not(.done) .meta{
+    color:#e36a6a!important;
   }
   @media(prefers-reduced-motion:reduce){
     .item.late:not(.done){animation:none!important;box-shadow:0 0 0 1px rgba(190,55,55,.58)!important}
