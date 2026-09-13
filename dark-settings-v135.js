@@ -1,4 +1,4 @@
-/* MeuControle — V1.35.2: acabamento dark de Configuracoes — Dados, Perfis e Aparencia */
+/* MeuControle — V1.35.3: acabamento dark de Configuracoes — Dados, Perfis, Aparencia e Aplicativo */
 (function(){
  if(window.__mcDarkSettingsV135)return;window.__mcDarkSettingsV135=true;
  const st=document.createElement('style');st.id='mcDarkSettingsV135Style';st.textContent=`
@@ -42,6 +42,13 @@
   body.mc-dark #settingsPage .settings-card [class*="notify"] small,body.mc-dark #settingsPage .settings-card [class*="notification"] small{color:#b4c0c7!important}
   body.mc-dark #settingsPage .settings-card [class*="notify"] strong,body.mc-dark #settingsPage .settings-card [class*="notification"] strong{color:#edf3f6!important}
   body.mc-dark #settingsPage #notifyBtn,body.mc-dark #settingsPage #notifyTestBtn,body.mc-dark #settingsPage #testTodayOverdueBtn{background:#26343c!important;color:#e2ebef!important;border-color:#40515b!important}
+
+  /* Aplicativo — pincel fino: somente recuperar os textos secundarios. */
+  body.mc-dark #settingsPage .install-card p,body.mc-dark #settingsPage .install-card small,body.mc-dark #settingsPage [class*="install-"] p,body.mc-dark #settingsPage [class*="install-"] small{color:#aebbc3!important}
+  body.mc-dark #settingsPage .install-card strong,body.mc-dark #settingsPage [class*="install-"] strong{color:#edf3f6!important}
+  body.mc-dark #settingsPage .app-install-box p,body.mc-dark #settingsPage .app-install-box small{color:#aebbc3!important}
+  body.mc-dark #settingsPage .app-install-box strong{color:#edf3f6!important}
+  body.mc-dark #settingsPage .settings-card .app-about,body.mc-dark #settingsPage .settings-card [class*="about"]{color:#aebbc3!important}
  }
  `;document.head.appendChild(st);
 })();
