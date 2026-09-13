@@ -1,4 +1,4 @@
-/* MeuControle — V1.30.5: modo Claro / Escuro / Automático, isolado da lógica do app */
+/* MeuControle — V1.30.6: modo Claro / Escuro / Automático, isolado da lógica do app */
 (function(){
  if(window.__mcAppearanceModeV130)return;window.__mcAppearanceModeV130=true;
  const KEY='meu_controle_color_mode_v1',mq=matchMedia('(prefers-color-scheme: dark)');
@@ -71,6 +71,35 @@
   body.mc-dark .central-mobile-card-v041 .late,body.mc-dark .central-mobile-card-v041 [data-kind="late"],body.mc-dark .central-mobile-card-v041 [data-status="late"]{background:#3b2528!important;color:#ffb8b1!important}
   body.mc-dark .central-mobile-card-v041 .today,body.mc-dark .central-mobile-card-v041 [data-kind="today"],body.mc-dark .central-mobile-card-v041 [data-status="today"]{background:#203747!important;color:#c7e5f7!important}
   body.mc-dark .central-mobile-card-v041 .important,body.mc-dark .central-mobile-card-v041 [data-kind="important"],body.mc-dark .central-mobile-card-v041 [data-status="important"]{background:#40391f!important;color:#f2d878!important}
+
+  /* Lançamentos mobile — acabamento dark sem alterar geometria ou comportamento. */
+  body.mc-dark #launchesPage .mobile-launch-subtitle{color:#aebbc3!important}
+  body.mc-dark #launchesPage .mobile-launch-card{background:#182229!important;color:#e7edf1!important;border-color:#34434c!important;box-shadow:0 7px 20px rgba(0,0,0,.16)!important}
+  body.mc-dark #launchesPage .mobile-launch-card strong{color:#eef3f6!important}
+  body.mc-dark #launchesPage .mobile-launch-card small{color:#aebbc3!important}
+  body.mc-dark #launchesPage .mobile-launch-arrow{color:#8fa1aa!important}
+  body.mc-dark #launchesPage .mobile-launch-icon{background:#203747!important;color:#62b8e6!important}
+  body.mc-dark #launchesPage .mobile-launch-back{color:#72b9df!important}
+  body.mc-dark #launchesPage .panel-head p,body.mc-dark #launchesPage .list-top p{color:#aebbc3!important}
+  body.mc-dark #launchesPage #entryForm label,body.mc-dark #launchesPage #entryForm label>span{color:#c2ced4!important}
+  body.mc-dark #launchesPage #entryForm .important-toggle{background:#202c33!important;color:#e7edf1!important;border-color:#3a4952!important}
+  body.mc-dark #launchesPage #entryForm .important-toggle span,body.mc-dark #launchesPage #entryForm .important-toggle span::after{color:#dce6eb!important}
+  body.mc-dark #launchesPage #entryForm .businessday-toggle{color:#b9c5cb!important}
+  body.mc-dark #launchesPage #entryForm input::placeholder,body.mc-dark #launchesPage #entryForm textarea::placeholder{color:#8e9ca4!important;opacity:1!important}
+  body.mc-dark #launchesPage #entryForm input,body.mc-dark #launchesPage #entryForm select,body.mc-dark #launchesPage #entryForm textarea{color:#eef3f6!important}
+  body.mc-dark #launchesPage.mobile-launch-list .search-wrap input{color:#eef3f6!important}
+  body.mc-dark #launchesPage.mobile-launch-list .search-wrap input::placeholder{color:#94a3ab!important;opacity:1!important}
+  body.mc-dark #launchesPage.mobile-launch-list .tabs .tab:not(.active){background:#26343c!important;color:#c5d0d6!important;border-color:#314049!important}
+  body.mc-dark #launchesPage.mobile-launch-list .mobile-month-header,body.mc-dark #launchesPage.mobile-launch-list .mobile-month-header.tone-1,body.mc-dark #launchesPage.mobile-launch-list .mobile-month-header.tone-2{background:linear-gradient(90deg,#26343c,#202b32)!important;border-color:#3a4952!important}
+  body.mc-dark #launchesPage.mobile-launch-list .mobile-month-header strong{color:#d9e7ef!important}
+  body.mc-dark #launchesPage.mobile-launch-list .mobile-month-header span{color:#aebbc3!important}
+  body.mc-dark #launchesPage.mobile-launch-list .mobile-month-header.tone-1{border-left-color:rgba(var(--primary-rgb),.58)!important}
+  body.mc-dark #launchesPage.mobile-launch-list .mobile-month-header.tone-2{border-left-color:rgba(209,168,0,.78)!important}
+  body.mc-dark #launchesPage.mobile-launch-list .mobile-done-header{background:linear-gradient(90deg,#202b31,#1c272d)!important;border-top-color:#3a4952!important;border-bottom-color:#314049!important;color:#aeb9bf!important}
+  body.mc-dark #launchesPage.mobile-launch-list .mobile-done-header strong{color:#bdc9cf!important}
+  body.mc-dark #launchesPage.mobile-launch-list .mobile-done-header span{color:#9eabb3!important}
+  body.mc-dark #launchesPage.mobile-launch-list .item:not(.late) .meta{color:#aebbc3!important}
+  body.mc-dark #launchesPage.mobile-launch-list .item.late:not(.done) .meta{color:#ef6a6a!important}
  }
  `;document.head.appendChild(css);
  function mode(){return localStorage.getItem(KEY)||'auto'}
