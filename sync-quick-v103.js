@@ -1,0 +1,18 @@
+/* MeuControle — Sync rápido V1.03: topbar v139 + sincronizador único do workspace */
+(function(){
+  if(window.__meuControleSyncQuickV103)return;window.__meuControleSyncQuickV103=true;
+  let busy=false;
+  function style(){if(document.getElementById('syncQuickV103Style'))return;const s=document.createElement('style');s.id='syncQuickV103Style';s.textContent=`
+    .sync-quick-v103{height:42px;min-width:86px;padding:0 12px;border:1px solid rgba(255,255,255,.28);border-radius:13px;background:rgba(255,255,255,.12)!important;color:#fff!important;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:none!important;font:800 12px system-ui,sans-serif;white-space:nowrap}
+    .sync-quick-v103.busy .sync-quick-icon-v103{display:inline-block;animation:syncV103Spin .8s linear infinite}@keyframes syncV103Spin{to{transform:rotate(360deg)}}
+    .sync-quick-v103.ok{color:#bfffdc!important}.sync-quick-v103.warn{color:#ffd59b!important}
+    @media(min-width:701px){.desktop-top-tools-v139 .sync-quick-v103{width:42px!important;min-width:42px!important;height:42px!important;padding:0!important;font-size:0!important;flex:0 0 42px}.desktop-top-tools-v139 .sync-quick-icon-v103{font-size:18px!important}}
+    @media(max-width:700px){.topbar .brand{position:relative;padding-right:104px!important}.topbar .brand .sync-quick-v103{position:absolute;right:0;top:50%;transform:translateY(-50%);height:40px;min-width:40px;width:40px;padding:0;font-size:0;border-radius:12px;margin:0!important}.sync-quick-icon-v103{font-size:19px}.topbar .brand .sync-new-bell{position:absolute;right:52px;top:50%;transform:translateY(-50%);margin:0!important}}
+  `;document.head.appendChild(s)}
+  function setState(kind,label){document.querySelectorAll('.sync-quick-v103').forEach(b=>{b.classList.remove('busy','ok','warn');if(kind)b.classList.add(kind);b.disabled=kind==='busy';b.innerHTML=`<span class="sync-quick-icon-v103">${kind==='ok'?'✓':kind==='warn'?'!':'↻'}</span><span>${label}</span>`})}
+  async function run(){if(busy)return;busy=true;setState('busy','Sync');try{const sync=window.MeuControleCloudSync?.syncNow;if(typeof sync!=='function')throw new Error('Sincronizador ainda não carregou.');await sync();setState('ok','Sync OK');setTimeout(()=>setState('','Sync'),1800)}catch(e){console.warn('[MeuControle Sync]',e);setState('warn','Atenção')}finally{busy=false;document.querySelectorAll('.sync-quick-v103').forEach(b=>b.disabled=false)}}
+  function make(){const b=document.createElement('button');b.type='button';b.className='sync-quick-v103';b.innerHTML='<span class="sync-quick-icon-v103">↻</span><span>Sync</span>';b.title='Sincronizar agora';b.setAttribute('aria-label','Sincronizar agora');b.onclick=run;return b}
+  function install(){style();document.querySelectorAll('.sync-quick-v100,.sync-quick-v017,.sync-quick-v103').forEach(x=>x.remove());const desktop=matchMedia('(min-width:701px)').matches;if(desktop){const tools=document.querySelector('.desktop-top-tools-v139');if(!tools){setTimeout(install,250);return}const profile=tools.querySelector('.desktop-profile-btn-v139');tools.insertBefore(make(),profile||null)}else{const brand=document.querySelector('.topbar .brand');if(!brand)return;brand.appendChild(make())}}
+  window.addEventListener('load',()=>{setTimeout(install,500);setTimeout(install,1800)});window.addEventListener('meucontrole:user-session-changed',()=>setTimeout(install,350));window.addEventListener('meucontrole:auth-changed',()=>setTimeout(install,500));matchMedia('(min-width:701px)').addEventListener?.('change',()=>setTimeout(install,80));setTimeout(install,180);
+  window.MeuControleSyncQuickV103={version:'1.03',sync:run,refresh:install};
+})();
