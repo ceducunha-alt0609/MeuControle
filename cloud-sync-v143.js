@@ -1,7 +1,7 @@
-/* MeuControle — V1.43: sincronização individual Firestore, local-first */
+/* MeuControle — V1.43.1: sincronização Firestore sem reload/eco */
 (()=>{
   if(window.__mcCloudSyncV143)return;window.__mcCloudSyncV143=true;
-  const VERSION='1.43';
+  const VERSION='1.43.1';
   const META_PREFIX='meu_controle_cloud_sync_meta_v1:';
   let uid=null,unsub=null,pollTimer=null,pushTimer=null,applyingRemote=false,lastHash='',status='idle',lastError='';
 
@@ -32,12 +32,23 @@
   function errorMessage(e){const code=e?.code||'';if(code.includes('permission-denied'))return 'O Firestore recusou o acesso. É preciso permitir que cada usuário autenticado leia e grave somente em users/{uid}/workspace/{doc}. Seus dados locais continuam preservados.';if(code.includes('unavailable')||!navigator.onLine)return 'Firestore indisponível no momento. Seus dados locais continuam funcionando e a sincronização tentará novamente.';return `Falha na sincronização${code?` (${code})`:''}. Os dados locais foram preservados.`}
 
   async function upload(reason='alteração local'){
-    if(!uid||applyingRemote||!cloud())return;const w=currentWorkspace();if(!w)return;const h=workspaceHash(w);setStatus('uploading',`Salvando ${reason}…`);try{const clientUpdatedAt=new Date().toISOString();await cloud().set(uid,{schema:1,clientUpdatedAt,workspace:clone(w)});lastHash=h;writeMeta(uid,{lastCloudHash:h,lastUploadAt:clientUpdatedAt,lastLocalChangeAt:clientUpdatedAt});setStatus('synced')}catch(e){setStatus(navigator.onLine?'error':'offline','',errorMessage(e))}}
-  function scheduleUpload(reason='alteração local'){clearTimeout(pushTimer);pushTimer=setTimeout(()=>upload(reason),700)}
+    if(!uid||applyingRemote||!cloud())return;const w=currentWorkspace();if(!w)return;const h=workspaceHash(w);lastHash=h;setStatus('uploading',`Salvando ${reason}…`);try{const clientUpdatedAt=new Date().toISOString();await cloud().set(uid,{schema:1,clientUpdatedAt,workspace:clone(w)});writeMeta(uid,{lastCloudHash:h,lastUploadAt:clientUpdatedAt,lastLocalChangeAt:clientUpdatedAt});setStatus('synced')}catch(e){setStatus(navigator.onLine?'error':'offline','',errorMessage(e))}}
+  function scheduleUpload(reason='alteração local'){clearTimeout(pushTimer);pushTimer=setTimeout(()=>upload(reason),900)}
 
   async function applyRemote(remote){
-    if(!uid||!remote?.workspace)return;const w=remote.workspace,h=workspaceHash(w),local=currentWorkspace();if(h===workspaceHash(local)){lastHash=h;writeMeta(uid,{lastCloudHash:h});setStatus('synced');return}
-    applyingRemote=true;setStatus('downloading','Atualizando este dispositivo com os dados da sua conta…');writeMeta(uid,{lastCloudHash:h,lastRemoteAt:remote.clientUpdatedAt||new Date().toISOString()});try{scope()?.importCurrent?.(w,{reload:true})}catch(e){applyingRemote=false;setStatus('error','',errorMessage(e))}
+    if(!uid||!remote?.workspace||applyingRemote)return;
+    const w=remote.workspace,h=workspaceHash(w),local=currentWorkspace(),lh=workspaceHash(local);
+    if(h===lh){lastHash=h;writeMeta(uid,{lastCloudHash:h});setStatus('synced');return}
+    applyingRemote=true;clearTimeout(pushTimer);setStatus('downloading','Atualizando este dispositivo com os dados da sua conta…');
+    writeMeta(uid,{lastCloudHash:h,lastRemoteAt:remote.clientUpdatedAt||new Date().toISOString()});
+    try{
+      const ok=scope()?.importCurrent?.(w,{reload:false});
+      if(ok===false)throw new Error('workspace-not-active');
+      lastHash=h;
+      writeMeta(uid,{lastCloudHash:h,lastLocalChangeAt:remote.clientUpdatedAt||new Date().toISOString()});
+      setStatus('synced');
+    }catch(e){setStatus('error','',errorMessage(e))}
+    finally{setTimeout(()=>{applyingRemote=false;lastHash=workspaceHash(currentWorkspace())},0)}
   }
 
   async function bootstrap(){
@@ -47,9 +58,9 @@
       const local=currentWorkspace(),remote=await cloud().get(uid);if(!remote){await upload('primeira cópia desta conta')}else{
         const lh=workspaceHash(local),rh=workspaceHash(remote.workspace||{}),meta=readMeta(uid);
         if(lh===rh){lastHash=lh;writeMeta(uid,{lastCloudHash:rh});setStatus('synced')}
-        else if(isEmpty(local)&&!isEmpty(remote.workspace)){await applyRemote(remote);return}
+        else if(isEmpty(local)&&!isEmpty(remote.workspace)){await applyRemote(remote)}
         else if(!isEmpty(local)&&isEmpty(remote.workspace)){await upload('dados locais desta conta')}
-        else if(meta.lastCloudHash===lh){await applyRemote(remote);return}
+        else if(meta.lastCloudHash===lh){await applyRemote(remote)}
         else if(meta.lastCloudHash===rh){await upload('alterações locais pendentes')}
         else{
           const remoteTime=Date.parse(remote.clientUpdatedAt||0)||0,localTime=Date.parse(meta.lastLocalChangeAt||0)||0;
@@ -57,17 +68,24 @@
         }
       }
       if(!uid)return;
-      unsub=cloud().watch(uid,remote=>{if(!remote?.workspace||applyingRemote)return;const rh=workspaceHash(remote.workspace),lh=workspaceHash(currentWorkspace());if(rh===lh){lastHash=rh;setStatus('synced');return}const meta=readMeta(uid),remoteTime=Date.parse(remote.clientUpdatedAt||0)||0,localTime=Date.parse(meta.lastLocalChangeAt||0)||0;if(remoteTime>=localTime)applyRemote(remote);else scheduleUpload('alteração local mais recente')},e=>setStatus(navigator.onLine?'error':'offline','',errorMessage(e)));
+      unsub=cloud().watch(uid,remote=>{
+        if(!remote?.workspace||applyingRemote)return;
+        const rh=workspaceHash(remote.workspace),lh=workspaceHash(currentWorkspace());
+        if(rh===lh){lastHash=rh;writeMeta(uid,{lastCloudHash:rh});setStatus('synced');return}
+        const meta=readMeta(uid),remoteTime=Date.parse(remote.clientUpdatedAt||0)||0,localTime=Date.parse(meta.lastLocalChangeAt||0)||0;
+        if(remoteTime>localTime)applyRemote(remote);else if(rh!==lastHash)scheduleUpload('alteração local mais recente');
+      },e=>setStatus(navigator.onLine?'error':'offline','',errorMessage(e)));
       startPolling();
     }catch(e){setStatus(navigator.onLine?'error':'offline','',errorMessage(e));startPolling()}
   }
 
-  function startPolling(){clearInterval(pollTimer);lastHash=workspaceHash(currentWorkspace());pollTimer=setInterval(()=>{if(!uid||applyingRemote)return;const h=workspaceHash(currentWorkspace());if(h!==lastHash){lastHash=h;const now=new Date().toISOString();writeMeta(uid,{lastLocalChangeAt:now});scope()?.saveCurrent?.();scheduleUpload()}},1200)}
+  function startPolling(){clearInterval(pollTimer);lastHash=workspaceHash(currentWorkspace());pollTimer=setInterval(()=>{if(!uid||applyingRemote)return;const h=workspaceHash(currentWorkspace());if(h!==lastHash){lastHash=h;const now=new Date().toISOString();writeMeta(uid,{lastLocalChangeAt:now});scope()?.saveCurrent?.();scheduleUpload()}},1400)}
   function stop(){if(unsub){try{unsub()}catch{}unsub=null}clearInterval(pollTimer);pollTimer=null;clearTimeout(pushTimer);pushTimer=null;uid=null;applyingRemote=false}
   async function manualSync(){if(!navigator.onLine){setStatus('offline');return}stop();await bootstrap()}
 
   window.addEventListener('meucontrole:user-session-changed',()=>setTimeout(bootstrap,200));
   window.addEventListener('meucontrole:user-data-ready',()=>setTimeout(bootstrap,100));
+  window.addEventListener('meucontrole:user-workspace-imported',e=>{if(e.detail?.uid===uid){lastHash=workspaceHash(currentWorkspace());applyingRemote=false;setStatus('synced')}});
   window.addEventListener('online',()=>setTimeout(bootstrap,100));
   window.addEventListener('offline',()=>setStatus('offline'));
   window.addEventListener('pagehide',()=>{if(uid)scope()?.saveCurrent?.()});
