@@ -1,2 +1,2 @@
-/* Meu Controle - Service Worker bootstrap V3.58: shell atual antes do primeiro paint */
-importScripts('./sw-core-v318.js?v=358');
+/* Meu Controle - Service Worker bootstrap V3.59: multiusuário ciclo 1 */
+importScripts('./sw-core-v319.js?v=359');
