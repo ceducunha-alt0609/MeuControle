@@ -1,2 +1,2 @@
-/* Meu Controle - Service Worker bootstrap V3.74: bootstrap silencioso sem falso alerta */
-importScripts('./sw-core-v324.js?v=374');
+/* Meu Controle - Service Worker bootstrap V3.75: prepaint estável em Lançamentos mobile */
+importScripts('./sw-core-v325.js?v=375');
