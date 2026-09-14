@@ -1,9 +1,10 @@
-/* MeuControle — V1.43.1: sincronização Firestore sem reload/eco */
+/* MeuControle — V1.43.2: sincronização Firestore sem reload/eco e status visual idempotente */
 (()=>{
   if(window.__mcCloudSyncV143)return;window.__mcCloudSyncV143=true;
-  const VERSION='1.43.1';
+  const VERSION='1.43.2';
   const META_PREFIX='meu_controle_cloud_sync_meta_v1:';
   let uid=null,unsub=null,pollTimer=null,pushTimer=null,applyingRemote=false,lastHash='',status='idle',lastError='';
+  let renderedKey='',renderedBox=null;
 
   const clone=v=>JSON.parse(JSON.stringify(v));
   const stable=v=>JSON.stringify({entries:v?.entries||[],profiles:v?.profiles||[],profileFilter:v?.profileFilter||'all'});
@@ -24,10 +25,24 @@
     @media(max-width:700px){.mc-cloud-sync-row-v143{align-items:flex-start}.mc-cloud-sync-actions-v143{display:grid;grid-template-columns:1fr}.mc-cloud-sync-actions-v143 button{width:100%}}
   `;document.head.appendChild(st)}
 
-  function ensureUI(){installStyle();const host=document.querySelector('.mc-user-session-v141');if(!host)return null;let box=host.querySelector('.mc-cloud-sync-v143');if(box)return box;box=document.createElement('section');box.className='mc-cloud-sync-v143';box.innerHTML='<div class="mc-cloud-sync-row-v143"><div class="mc-cloud-sync-copy-v143"><strong>Sincronização na nuvem</strong><span>Preparando Firestore…</span></div><span class="mc-cloud-sync-badge-v143">Aguardando</span></div><div class="mc-cloud-sync-actions-v143"><button type="button" class="secondary-action mc-cloud-sync-now-v143">Sincronizar agora</button></div><div class="mc-cloud-sync-detail-v143"></div>';host.appendChild(box);box.querySelector('.mc-cloud-sync-now-v143').onclick=()=>manualSync();return box}
+  function ensureUI(){installStyle();const host=document.querySelector('.mc-user-session-v141');if(!host)return null;let box=host.querySelector('.mc-cloud-sync-v143');if(box)return box;box=document.createElement('section');box.className='mc-cloud-sync-v143';box.innerHTML='<div class="mc-cloud-sync-row-v143"><div class="mc-cloud-sync-copy-v143"><strong>Sincronização na nuvem</strong><span>Preparando Firestore…</span></div><span class="mc-cloud-sync-badge-v143">Aguardando</span></div><div class="mc-cloud-sync-actions-v143"><button type="button" class="secondary-action mc-cloud-sync-now-v143">Sincronizar agora</button></div><div class="mc-cloud-sync-detail-v143"></div>';host.appendChild(box);box.querySelector('.mc-cloud-sync-now-v143').onclick=()=>manualSync();renderedKey='';renderedBox=null;return box}
   function setStatus(next,text='',detail=''){
-    status=next;lastError=detail||'';const box=ensureUI();if(!box)return;const badge=box.querySelector('.mc-cloud-sync-badge-v143'),copy=box.querySelector('.mc-cloud-sync-copy-v143 span'),d=box.querySelector('.mc-cloud-sync-detail-v143');badge.className='mc-cloud-sync-badge-v143';
-    const map={idle:['Aguardando',''],loading:['Conectando','busy'],uploading:['Enviando…','busy'],downloading:['Recebendo…','busy'],synced:['Sincronizado ✓','ok'],offline:['Offline',''],error:['Atenção','error']};const [label,cls]=map[next]||map.idle;badge.textContent=label;if(cls)badge.classList.add(cls);copy.textContent=text||({synced:'Seus dados desta conta estão sincronizados.',offline:'Sem internet; o app continua funcionando localmente.',error:'A sincronização precisa de atenção.'}[next]||'Preparando sincronização…');d.textContent=detail||'';d.classList.toggle('show',!!detail)
+    status=next;lastError=detail||'';
+    const map={idle:['Aguardando',''],loading:['Conectando','busy'],uploading:['Enviando…','busy'],downloading:['Recebendo…','busy'],synced:['Sincronizado ✓','ok'],offline:['Offline',''],error:['Atenção','error']};
+    const [label,cls]=map[next]||map.idle;
+    const copyText=text||({synced:'Seus dados desta conta estão sincronizados.',offline:'Sem internet; o app continua funcionando localmente.',error:'A sincronização precisa de atenção.'}[next]||'Preparando sincronização…');
+    const detailText=detail||'';
+    const box=ensureUI();if(!box)return;
+    const key=[next,label,cls,copyText,detailText].join('|');
+    if(renderedBox===box&&renderedKey===key)return;
+    renderedBox=box;renderedKey=key;
+    const badge=box.querySelector('.mc-cloud-sync-badge-v143'),copy=box.querySelector('.mc-cloud-sync-copy-v143 span'),d=box.querySelector('.mc-cloud-sync-detail-v143');
+    const wantedClass='mc-cloud-sync-badge-v143'+(cls?' '+cls:'');
+    if(badge.className!==wantedClass)badge.className=wantedClass;
+    if(badge.textContent!==label)badge.textContent=label;
+    if(copy.textContent!==copyText)copy.textContent=copyText;
+    if(d.textContent!==detailText)d.textContent=detailText;
+    d.classList.toggle('show',!!detailText);
   }
   function errorMessage(e){const code=e?.code||'';if(code.includes('permission-denied'))return 'O Firestore recusou o acesso. É preciso permitir que cada usuário autenticado leia e grave somente em users/{uid}/workspace/{doc}. Seus dados locais continuam preservados.';if(code.includes('unavailable')||!navigator.onLine)return 'Firestore indisponível no momento. Seus dados locais continuam funcionando e a sincronização tentará novamente.';return `Falha na sincronização${code?` (${code})`:''}. Os dados locais foram preservados.`}
 
@@ -38,7 +53,7 @@
   async function applyRemote(remote){
     if(!uid||!remote?.workspace||applyingRemote)return;
     const w=remote.workspace,h=workspaceHash(w),local=currentWorkspace(),lh=workspaceHash(local);
-    if(h===lh){lastHash=h;writeMeta(uid,{lastCloudHash:h});setStatus('synced');return}
+    if(h===lh){lastHash=h;writeMeta(uid,{lastCloudHash:h});if(status!=='synced')setStatus('synced');return}
     applyingRemote=true;clearTimeout(pushTimer);setStatus('downloading','Atualizando este dispositivo com os dados da sua conta…');
     writeMeta(uid,{lastCloudHash:h,lastRemoteAt:remote.clientUpdatedAt||new Date().toISOString()});
     try{
@@ -71,7 +86,7 @@
       unsub=cloud().watch(uid,remote=>{
         if(!remote?.workspace||applyingRemote)return;
         const rh=workspaceHash(remote.workspace),lh=workspaceHash(currentWorkspace());
-        if(rh===lh){lastHash=rh;writeMeta(uid,{lastCloudHash:rh});setStatus('synced');return}
+        if(rh===lh){lastHash=rh;writeMeta(uid,{lastCloudHash:rh});if(status!=='synced')setStatus('synced');return}
         const meta=readMeta(uid),remoteTime=Date.parse(remote.clientUpdatedAt||0)||0,localTime=Date.parse(meta.lastLocalChangeAt||0)||0;
         if(remoteTime>localTime)applyRemote(remote);else if(rh!==lastHash)scheduleUpload('alteração local mais recente');
       },e=>setStatus(navigator.onLine?'error':'offline','',errorMessage(e)));
