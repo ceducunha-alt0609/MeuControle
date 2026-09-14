@@ -1,9 +1,9 @@
-/* MeuControle — ponte do indicador remoto V1.03 -> V1.07 */
+/* MeuControle — ponte do indicador remoto V1.03 -> V1.08 */
 (()=>{
-  if(window.__mcChangeIndicatorV107)return;
-  if(document.querySelector('script[data-mc-change-indicator-v107]'))return;
+  if(window.__mcChangeIndicatorV108)return;
+  if(document.querySelector('script[data-mc-change-indicator-v108]'))return;
   const s=document.createElement('script');
-  s.src='./change-indicator-v107.js?v=107';
-  s.dataset.mcChangeIndicatorV107='1';
+  s.src='./change-indicator-v108.js?v=108';
+  s.dataset.mcChangeIndicatorV108='1';
   document.head.appendChild(s);
 })();
