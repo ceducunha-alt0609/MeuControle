@@ -1,4 +1,4 @@
-/* MeuControle — ponte Firebase V1.41: autenticação e identidade, sem sincronização de dados */
+/* MeuControle — ponte Firebase V1.43: autenticação + helpers Firestore por usuário */
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js';
 import {
   getAuth,
@@ -9,7 +9,14 @@ import {
   setPersistence,
   browserLocalPersistence
 } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js';
-import { getFirestore } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js';
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc,
+  onSnapshot,
+  serverTimestamp
+} from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js';
 
 const firebaseConfig={
   apiKey:'AIzaSyANa-pk5bj3phYlAm2X1jPulpVw3U4eMOI',
@@ -33,6 +40,12 @@ const switchAccount=async()=>{
   if(auth.currentUser)await signOut(auth);
   return signInWithPopup(auth,provider);
 };
+const workspaceRef=uid=>doc(db,'users',uid,'workspace','current');
+const cloudWorkspace={
+  async get(uid){const snap=await getDoc(workspaceRef(uid));return snap.exists()?snap.data():null},
+  async set(uid,data){return setDoc(workspaceRef(uid),{...data,uid,serverUpdatedAt:serverTimestamp()},{merge:false})},
+  watch(uid,onNext,onError){return onSnapshot(workspaceRef(uid),snap=>onNext(snap.exists()?snap.data():null),onError)}
+};
 
 window.MeuControleCloud={
   app,
@@ -42,6 +55,7 @@ window.MeuControleCloud={
   signIn,
   signOut:()=>signOut(auth),
   switchAccount,
+  workspace:cloudWorkspace,
   ready:true
 };
 window.dispatchEvent(new CustomEvent('meucontrole:firebase-ready'));
@@ -84,7 +98,7 @@ function ensureUI(){
   box.className='firebase-sync-box';
   box.innerHTML=`
     <div class="firebase-sync-head">
-      <div><h4>Conta Google</h4><p>Identidade do usuário preparada. Os lançamentos ainda permanecem locais neste ciclo.</p></div>
+      <div><h4>Conta Google</h4><p>Identidade conectada. A sincronização individual é controlada logo acima nesta etapa.</p></div>
       <span class="firebase-sync-badge">Verificando</span>
     </div>
     <div class="firebase-sync-user">Verificando conta...</div>
