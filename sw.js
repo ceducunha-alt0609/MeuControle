@@ -1,2 +1,2 @@
-/* Meu Controle - Service Worker bootstrap V3.68: contador remoto seguro + Sync topbar v139 */
-importScripts('./sw-core-v323.js?v=368');
+/* Meu Controle - Service Worker bootstrap V3.69: sino remoto deduplicado e reposicionado */
+importScripts('./sw-core-v324.js?v=369');
