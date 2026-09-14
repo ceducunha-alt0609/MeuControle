@@ -1,2 +1,2 @@
-/* Meu Controle - Service Worker bootstrap V3.61: estado vazio compatível com tema escuro */
-importScripts('./sw-core-v320.js?v=361');
+/* Meu Controle - Service Worker bootstrap V3.62: Ciclo 3 sincronizacao individual Firestore */
+importScripts('./sw-core-v321.js?v=362');
