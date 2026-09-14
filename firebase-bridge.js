@@ -1,4 +1,4 @@
-/* MeuControle — ponte inicial com Firebase (sem sincronização de dados ainda) */
+/* MeuControle — ponte Firebase V1.41: autenticação e identidade, sem sincronização de dados */
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js';
 import {
   getAuth,
@@ -28,12 +28,20 @@ provider.setCustomParameters({prompt:'select_account'});
 
 try{await setPersistence(auth,browserLocalPersistence)}catch{}
 
+const signIn=()=>signInWithPopup(auth,provider);
+const switchAccount=async()=>{
+  if(auth.currentUser)await signOut(auth);
+  return signInWithPopup(auth,provider);
+};
+
 window.MeuControleCloud={
   app,
   auth,
   db,
   currentUser:()=>auth.currentUser,
+  signIn,
   signOut:()=>signOut(auth),
+  switchAccount,
   ready:true
 };
 window.dispatchEvent(new CustomEvent('meucontrole:firebase-ready'));
@@ -61,6 +69,9 @@ function ensureUI(){
     .firebase-sync-actions button{min-height:42px}
     .firebase-sync-message{display:none;margin-top:9px;padding:9px 10px;border-radius:10px;background:#fff5e8;color:#875d22;font-size:11px;line-height:1.4}
     .firebase-sync-message.show{display:block}
+    body.mc-dark .firebase-sync-box{border-top-color:#314049}
+    body.mc-dark .firebase-sync-head p{color:#9eabb3!important}
+    body.mc-dark .firebase-sync-user{background:#1b262d;color:#b9c5cb}
     @media(max-width:700px){
       .firebase-sync-head{display:grid;grid-template-columns:1fr auto}
       .firebase-sync-actions{display:grid;grid-template-columns:1fr}
@@ -73,10 +84,10 @@ function ensureUI(){
   box.className='firebase-sync-box';
   box.innerHTML=`
     <div class="firebase-sync-head">
-      <div><h4>Sincronização</h4><p>Firebase preparado. Nesta etapa, apenas autenticamos e testamos a conexão; seus lançamentos continuam somente locais.</p></div>
-      <span class="firebase-sync-badge">Preparado</span>
+      <div><h4>Conta Google</h4><p>Identidade do usuário preparada. Os lançamentos ainda permanecem locais neste ciclo.</p></div>
+      <span class="firebase-sync-badge">Verificando</span>
     </div>
-    <div class="firebase-sync-user">Nenhuma conta conectada.</div>
+    <div class="firebase-sync-user">Verificando conta...</div>
     <div class="firebase-sync-actions"><button type="button" class="firebase-login-btn">Entrar com Google</button></div>
     <div class="firebase-sync-message"></div>`;
   card.appendChild(box);
@@ -84,15 +95,11 @@ function ensureUI(){
   box.querySelector('.firebase-login-btn').addEventListener('click',async()=>{
     const btn=box.querySelector('.firebase-login-btn');
     clearMessage(box);
-    if(auth.currentUser){
-      btn.disabled=true;
-      try{await signOut(auth)}catch(e){showMessage(box,errorText(e))}
-      finally{btn.disabled=false}
-      return;
-    }
-    btn.disabled=true;btn.textContent='Abrindo Google...';
-    try{await signInWithPopup(auth,provider)}
-    catch(e){showMessage(box,errorText(e))}
+    btn.disabled=true;
+    try{
+      if(auth.currentUser)await signOut(auth);
+      else await signIn();
+    }catch(e){showMessage(box,errorText(e))}
     finally{btn.disabled=false;if(!auth.currentUser)btn.textContent='Entrar com Google'}
   });
   return box;
@@ -122,11 +129,11 @@ function renderAuth(user){
   clearMessage(box);
   if(user){
     badge.textContent='Conectado ✓';badge.classList.add('connected');
-    info.textContent=`Conta conectada: ${user.email||user.displayName||'Google'}. Firestore inicializado; sincronização de lançamentos ainda não foi ativada.`;
+    info.textContent=`${user.displayName||'Usuário'}${user.email?` • ${user.email}`:''}`;
     btn.textContent='Sair da conta';
   }else{
-    badge.textContent='Preparado';badge.classList.remove('connected');
-    info.textContent='Nenhuma conta conectada.';
+    badge.textContent='Modo local';badge.classList.remove('connected');
+    info.textContent='Nenhuma conta conectada. O MeuControle continua funcionando localmente.';
     btn.textContent='Entrar com Google';
   }
 }
@@ -134,5 +141,11 @@ function renderAuth(user){
 ensureUI();
 onAuthStateChanged(auth,user=>{
   renderAuth(user);
-  window.dispatchEvent(new CustomEvent('meucontrole:auth-changed',{detail:{signedIn:!!user,uid:user?.uid||null,email:user?.email||null}}));
+  window.dispatchEvent(new CustomEvent('meucontrole:auth-changed',{detail:{
+    signedIn:!!user,
+    uid:user?.uid||null,
+    email:user?.email||null,
+    displayName:user?.displayName||null,
+    photoURL:user?.photoURL||null
+  }}));
 });
