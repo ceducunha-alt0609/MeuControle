@@ -1,4 +1,4 @@
-/* MeuControle — ponte Firebase V1.43: autenticação + helpers Firestore por usuário */
+/* MeuControle — ponte Firebase V1.44: autenticação + workspace com origem do dispositivo */
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js';
 import {
   getAuth,
@@ -40,10 +40,12 @@ const switchAccount=async()=>{
   if(auth.currentUser)await signOut(auth);
   return signInWithPopup(auth,provider);
 };
+const DEVICE_KEY='meu_controle_device_id_v1';
+function deviceId(){let id=localStorage.getItem(DEVICE_KEY);if(!id){id=crypto.randomUUID();localStorage.setItem(DEVICE_KEY,id)}return id}
 const workspaceRef=uid=>doc(db,'users',uid,'workspace','current');
 const cloudWorkspace={
   async get(uid){const snap=await getDoc(workspaceRef(uid));return snap.exists()?snap.data():null},
-  async set(uid,data){return setDoc(workspaceRef(uid),{...data,uid,serverUpdatedAt:serverTimestamp()},{merge:false})},
+  async set(uid,data){return setDoc(workspaceRef(uid),{...data,uid,sourceDeviceId:deviceId(),sourcePlatform:matchMedia('(max-width:700px)').matches?'mobile':'desktop',serverUpdatedAt:serverTimestamp()},{merge:false})},
   watch(uid,onNext,onError){return onSnapshot(workspaceRef(uid),snap=>onNext(snap.exists()?snap.data():null),onError)}
 };
 
@@ -56,6 +58,7 @@ window.MeuControleCloud={
   signOut:()=>signOut(auth),
   switchAccount,
   workspace:cloudWorkspace,
+  deviceId,
   ready:true
 };
 window.dispatchEvent(new CustomEvent('meucontrole:firebase-ready'));
