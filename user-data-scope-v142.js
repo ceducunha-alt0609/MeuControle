@@ -1,7 +1,7 @@
-/* MeuControle — V1.42: propriedade local dos dados por usuário, sem Firestore */
+/* MeuControle — V1.42.1: propriedade local por usuário + API segura de workspace */
 (()=>{
   if(window.__mcUserDataScopeV142)return;window.__mcUserDataScopeV142=true;
-  const VERSION='1.42';
+  const VERSION='1.42.1';
   const ACTIVE_UID_KEY='meu_controle_active_data_uid_v1';
   const MIGRATION_OWNER_KEY='meu_controle_legacy_data_owner_uid_v1';
   const USER_PREFIX='meu_controle_user_workspace_v1:';
@@ -13,6 +13,7 @@
   let switching=false;
 
   const parse=(raw,fallback)=>{try{return raw?JSON.parse(raw):fallback}catch{return fallback}};
+  const clone=v=>JSON.parse(JSON.stringify(v));
   function readWorkspace(){
     return {
       schema:1,savedAt:new Date().toISOString(),
@@ -78,9 +79,26 @@
     if(!s.signedIn){if(active)saveUser(active);localStorage.removeItem(ACTIVE_UID_KEY);return}
     switchTo(s.uid);
   }
+  function importWorkspace(uid,data,{reload=true}={}){
+    if(!uid||uid!==localStorage.getItem(ACTIVE_UID_KEY))return false;
+    writeWorkspace(clone(data||emptyWorkspace()));saveUser(uid);
+    window.dispatchEvent(new CustomEvent('meucontrole:user-workspace-imported',{detail:{uid}}));
+    if(reload)location.reload();
+    return true;
+  }
 
   window.addEventListener('meucontrole:user-session-changed',e=>handleSession(e.detail||{}));
   window.addEventListener('pagehide',()=>{const uid=localStorage.getItem(ACTIVE_UID_KEY);if(uid)saveUser(uid)});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{style();renderStatus();setTimeout(()=>handleSession(currentSession()),100)},{once:true});else{style();renderStatus();setTimeout(()=>handleSession(currentSession()),100)}
-  window.MeuControleUserDataScope={version:VERSION,activeUid:()=>localStorage.getItem(ACTIVE_UID_KEY),ownerUid:()=>localStorage.getItem(MIGRATION_OWNER_KEY),saveCurrent:()=>saveUser(localStorage.getItem(ACTIVE_UID_KEY)),hasWorkspace:uid=>!!loadUser(uid)};
+  window.MeuControleUserDataScope={
+    version:VERSION,
+    activeUid:()=>localStorage.getItem(ACTIVE_UID_KEY),
+    ownerUid:()=>localStorage.getItem(MIGRATION_OWNER_KEY),
+    saveCurrent:()=>saveUser(localStorage.getItem(ACTIVE_UID_KEY)),
+    hasWorkspace:uid=>!!loadUser(uid),
+    exportCurrent:()=>clone(readWorkspace()),
+    exportUser:uid=>clone(loadUser(uid)||emptyWorkspace()),
+    importCurrent:(data,options)=>importWorkspace(localStorage.getItem(ACTIVE_UID_KEY),data,options),
+    importUser:(uid,data,options)=>importWorkspace(uid,data,options)
+  };
 })();
