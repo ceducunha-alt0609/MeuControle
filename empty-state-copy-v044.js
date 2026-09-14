@@ -1,8 +1,8 @@
-/* MeuControle — V0.44.1: microtextos e próximos passos nos estados vazios */
+/* MeuControle — V0.44.2: microtextos e próximos passos nos estados vazios */
 (function(){
   if(window.__meuControleEmptyStateCopyV044Loaded)return;
   window.__meuControleEmptyStateCopyV044Loaded=true;
-  const VERSION='0.44.1';
+  const VERSION='0.44.2';
   const isMobile=()=>matchMedia('(max-width:700px)').matches;
   const $=s=>document.querySelector(s);
 
@@ -68,24 +68,28 @@
 
   function syncCalendarEmpty(){
     const empty=$('#calendarEmpty'),btn=ensureCalendarAction();if(!empty||!btn)return;
-    const shown=!empty.classList.contains('hidden');btn.classList.toggle('show',shown);if(!shown)return;
+    const shown=!empty.classList.contains('hidden');if(!shown){btn.classList.remove('show');return}
     const q=String(document.getElementById('calendarSearch')?.value||'').trim();
     const selectedDay=isMobile()?window.MeuControleMobileCalendarGridV110?.selected?.()||'':'';
     if(selectedDay){
       empty.textContent=q?'Nenhum lançamento encontrado neste dia.':'Nenhum lançamento neste dia.';
       if(q){
-        btn.textContent='Limpar pesquisa';btn.onclick=()=>{const input=document.getElementById('calendarSearch');if(input){input.value='';input.dispatchEvent(new Event('input',{bubbles:true}))}};
+        btn.classList.add('show');btn.textContent='Limpar pesquisa';btn.onclick=()=>{const input=document.getElementById('calendarSearch');if(input){input.value='';input.dispatchEvent(new Event('input',{bubbles:true}))}};
       }else{
-        btn.textContent='+ Criar lançamento';btn.onclick=openNewEntry;
+        btn.classList.remove('show');
       }
       return;
     }
     if(q){
       empty.textContent='Nenhum lançamento encontrado neste mês com essa pesquisa.';
-      btn.textContent='Limpar pesquisa';btn.onclick=()=>{const input=document.getElementById('calendarSearch');if(input){input.value='';input.dispatchEvent(new Event('input',{bubbles:true}))}};
+      btn.classList.add('show');btn.textContent='Limpar pesquisa';btn.onclick=()=>{const input=document.getElementById('calendarSearch');if(input){input.value='';input.dispatchEvent(new Event('input',{bubbles:true}))}};
     }else{
       empty.textContent='Nenhum lançamento neste mês. Quando você cadastrar um, ele aparecerá aqui automaticamente.';
-      btn.textContent='+ Criar lançamento';btn.onclick=openNewEntry;
+      if(isMobile()){
+        btn.classList.remove('show');
+      }else{
+        btn.classList.add('show');btn.textContent='+ Criar lançamento';btn.onclick=openNewEntry;
+      }
     }
   }
 
