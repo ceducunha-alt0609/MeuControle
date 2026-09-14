@@ -1,7 +1,7 @@
-/* MeuControle — V1.42.1: propriedade local por usuário + API segura de workspace */
+/* MeuControle — V1.42.2: propriedade local por usuário + aplicação de workspace sem reload */
 (()=>{
   if(window.__mcUserDataScopeV142)return;window.__mcUserDataScopeV142=true;
-  const VERSION='1.42.1';
+  const VERSION='1.42.2';
   const ACTIVE_UID_KEY='meu_controle_active_data_uid_v1';
   const MIGRATION_OWNER_KEY='meu_controle_legacy_data_owner_uid_v1';
   const USER_PREFIX='meu_controle_user_workspace_v1:';
@@ -31,6 +31,18 @@
     localStorage.setItem(KEYS.profileFilter,d.profileFilter||'all');
     localStorage.setItem(KEYS.autoBackups,JSON.stringify(Array.isArray(d.autoBackups)?d.autoBackups:[]));
     if(d.lastBackup)localStorage.setItem(KEYS.lastBackup,d.lastBackup);else localStorage.removeItem(KEYS.lastBackup);
+  }
+  function applyWorkspaceToRuntime(data){
+    const d=data||emptyWorkspace();
+    try{entries=clone(Array.isArray(d.entries)?d.entries:[])}catch{}
+    try{profiles=clone(Array.isArray(d.profiles)&&d.profiles.length?d.profiles:DEFAULT_PROFILES)}catch{}
+    try{activeProfile=d.profileFilter||'all'}catch{}
+    try{if(typeof renderProfileSelectors==='function')renderProfileSelectors()}catch{}
+    try{if(typeof renderProfilesList==='function')renderProfilesList()}catch{}
+    try{if(typeof updateAutoBackupLabel==='function')updateAutoBackupLabel()}catch{}
+    try{if(typeof renderAll==='function')renderAll()}catch{}
+    try{window.MeuControleFirstUseDashboardV043?.refresh?.()}catch{}
+    try{window.MeuControleCentralHojeV041?.refresh?.()}catch{}
   }
   function emptyWorkspace(){return{schema:1,savedAt:new Date().toISOString(),entries:[],profiles:DEFAULT_PROFILES,profileFilter:'all',autoBackups:[],lastBackup:null}}
   function userKey(uid){return USER_PREFIX+uid}
@@ -79,9 +91,11 @@
     if(!s.signedIn){if(active)saveUser(active);localStorage.removeItem(ACTIVE_UID_KEY);return}
     switchTo(s.uid);
   }
-  function importWorkspace(uid,data,{reload=true}={}){
+  function importWorkspace(uid,data,{reload=false}={}){
     if(!uid||uid!==localStorage.getItem(ACTIVE_UID_KEY))return false;
-    writeWorkspace(clone(data||emptyWorkspace()));saveUser(uid);
+    const safe=clone(data||emptyWorkspace());
+    writeWorkspace(safe);saveUser(uid);
+    if(!reload)applyWorkspaceToRuntime(safe);
     window.dispatchEvent(new CustomEvent('meucontrole:user-workspace-imported',{detail:{uid}}));
     if(reload)location.reload();
     return true;
