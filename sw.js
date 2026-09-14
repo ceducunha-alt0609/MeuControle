@@ -1,2 +1,2 @@
-/* Meu Controle - Service Worker bootstrap V3.75: prepaint estável em Lançamentos mobile */
-importScripts('./sw-core-v325.js?v=375');
+/* Meu Controle - Service Worker bootstrap V3.76: calendário mobile persistente sem flash */
+importScripts('./sw-core-v326.js?v=376');
