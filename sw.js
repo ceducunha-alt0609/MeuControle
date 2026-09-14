@@ -1,2 +1,2 @@
-/* Meu Controle - Service Worker bootstrap V3.76: calendário mobile persistente sem flash */
-importScripts('./sw-core-v326.js?v=376');
+/* Meu Controle - Service Worker bootstrap V3.77: estado vazio diário sem duplicação */
+importScripts('./sw-core-v326.js?v=377');
