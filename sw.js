@@ -1,2 +1,2 @@
-/* Meu Controle - Service Worker bootstrap V3.59: multiusuário ciclo 1 */
-importScripts('./sw-core-v319.js?v=359');
+/* Meu Controle - Service Worker bootstrap V3.60: Ciclo 2 multiusuario local */
+importScripts('./sw-core-v320.js?v=360');
