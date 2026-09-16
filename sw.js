@@ -1,2 +1,2 @@
-/* Meu Controle - Service Worker bootstrap V4.10: pesquisa da topbar em modal dedicado desktop */
-importScripts('./sw-core-v326.js?v=410');
+/* Meu Controle - Service Worker bootstrap V4.11: observações nativas no painel da Agenda mobile */
+importScripts('./sw-core-v326.js?v=411');
