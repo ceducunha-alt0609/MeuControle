@@ -1,2 +1,2 @@
-/* Meu Controle - Service Worker bootstrap V3.94: bloqueia paint do card bruto antes do acabamento */
-importScripts('./sw-core-v326.js?v=394');
+/* Meu Controle - Service Worker bootstrap V3.95: estabiliza Agenda mobile antes do paint */
+importScripts('./sw-core-v326.js?v=395');
