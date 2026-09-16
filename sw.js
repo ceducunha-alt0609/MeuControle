@@ -1,2 +1,2 @@
-/* Meu Controle - Service Worker bootstrap V3.86: cards em grid e action sheet real */
-importScripts('./sw-core-v326.js?v=386');
+/* Meu Controle - Service Worker bootstrap V3.87: confirmação de exclusão no padrão do app */
+importScripts('./sw-core-v326.js?v=387');
