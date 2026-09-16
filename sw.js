@@ -1,2 +1,2 @@
-/* Meu Controle - Service Worker bootstrap V3.98: estabiliza lista e concluídos da Agenda mobile */
-importScripts('./sw-core-v326.js?v=398');
+/* Meu Controle - Service Worker bootstrap V3.99: protege somente lista inferior durante montagem da Agenda */
+importScripts('./sw-core-v326.js?v=399');
