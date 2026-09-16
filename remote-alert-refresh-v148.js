@@ -1,6 +1,9 @@
 /* MeuControle — V1.48: atualiza lembretes/push ao receber workspace remoto */
 (()=>{
   if(window.__mcRemoteAlertRefreshV148)return;window.__mcRemoteAlertRefreshV148=true;
+  if(!document.querySelector('script[data-mc-recurrence-end-guard]')){
+    const s=document.createElement('script');s.src='./recurrence-end-guard-v149.js';s.dataset.mcRecurrenceEndGuard='1';document.head.appendChild(s);
+  }
   const refresh=()=>{
     try{window.MeuControleSystemReminders?.schedule?.()}catch{}
     try{window.MeuControlePush?.sync?.()}catch{}
