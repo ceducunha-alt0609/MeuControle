@@ -1,6 +1,17 @@
-/* MeuControle — ponte V1.05: pesquisa em lote com valores nativos no card */
+/* MeuControle — ponte V1.06: pesquisa em lote + proteção de prepaint dos cards */
 (()=>{
-  if(window.__mcBulkDeleteV105)return;window.__mcBulkDeleteV105=true;
+  if(window.__mcBulkDeleteV106)return;window.__mcBulkDeleteV106=true;
+
+  /* O app.js monta primeiro o card-base. Enquanto o módulo de categorias ainda
+     não inseriu o ícone que identifica o card já decorado, não permitimos que
+     o navegador pinte essa versão bruta (badge, perfil, categoria e valor). */
+  if(!document.getElementById('mcCardPrepaintV160')){
+    const st=document.createElement('style');
+    st.id='mcCardPrepaintV160';
+    st.textContent='.item:not(:has(.mc-card-icon-v112)){visibility:hidden!important}';
+    document.head.appendChild(st);
+  }
+
   const cleanup=()=>{
     document.body?.classList.remove('mc-bulk-active-mobile');
     document.querySelectorAll('.mc-bulk-toolbar,.mc-bulk-start,.mc-bulk-check-wrap,.mc-bulk-check').forEach(el=>el.remove());
