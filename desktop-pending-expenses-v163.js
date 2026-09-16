@@ -1,4 +1,4 @@
-/* Meu Controle — Despesas pendentes Desktop V1.1 */
+/* Meu Controle — Despesas pendentes Desktop V1.2 */
 (()=>{
   if(window.__mcDesktopPendingExpensesV163)return;
   window.__mcDesktopPendingExpensesV163=true;
@@ -15,8 +15,6 @@
 
   function correctSummary(){
     if(!desktop())return;
-    /* A faixa superior acompanha a competência exibida no Painel.
-       Não soma meses futuros como se já fossem pendência do mês. */
     const total=monthEntries().reduce((sum,e)=>sum+validValue(e),0);
     const el=document.getElementById('sumPending');
     if(el)el.textContent=money(total);
@@ -38,18 +36,33 @@
     if(lateSub)lateSub.textContent=money(lateTotal);
   }
 
+  function refresh(){correctSummary();correctDashboard()}
+
+  /* app.js chama renderDashboard() ao usar as setas. Mantemos a correção
+     dentro da mesma renderização para a faixa superior acompanhar o mês. */
+  const originalDashboard=typeof renderDashboard==='function'?renderDashboard:null;
+  if(originalDashboard){
+    renderDashboard=function(){const out=originalDashboard.apply(this,arguments);refresh();return out};
+  }
   const originalSummary=typeof renderSummary==='function'?renderSummary:null;
   if(originalSummary){
     renderSummary=function(){const out=originalSummary.apply(this,arguments);correctSummary();return out};
   }
-  const originalDashboard=typeof renderDashboard==='function'?renderDashboard:null;
-  if(originalDashboard){
-    renderDashboard=function(){const out=originalDashboard.apply(this,arguments);correctDashboard();correctSummary();return out};
+
+  /* Defesa para camadas desktop que possam ter capturado a renderização
+     original antes deste módulo: as próprias setas atualizam após o clique. */
+  function bindMonthNavigation(){
+    ['dashPrevMonth','dashNextMonth'].forEach(id=>{
+      const btn=document.getElementById(id);
+      if(!btn||btn.dataset.mcPendingMonthV163==='1')return;
+      btn.dataset.mcPendingMonthV163='1';
+      btn.addEventListener('click',()=>requestAnimationFrame(refresh));
+    });
   }
 
-  function refresh(){correctSummary();correctDashboard()}
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',refresh,{once:true});else refresh();
+  function boot(){bindMonthNavigation();refresh()}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
   window.addEventListener('meucontrole:sync-manual-v012-complete',refresh);
-  matchMedia('(min-width:701px)').addEventListener?.('change',refresh);
-  window.MeuControleDesktopPendingExpensesV163={version:'1.1',refresh};
+  matchMedia('(min-width:701px)').addEventListener?.('change',()=>requestAnimationFrame(boot));
+  window.MeuControleDesktopPendingExpensesV163={version:'1.2',refresh};
 })();
