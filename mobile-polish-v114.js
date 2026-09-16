@@ -1,4 +1,4 @@
-/* MeuControle — V1.16: valor lateral maior e centralizado + painel de ações arrastável */
+/* MeuControle — V1.17: valor lateral + painel arrastável + swipe voltar na Pesquisa */
 (()=>{
   if(window.__mcMobilePolishV114)return;window.__mcMobilePolishV114=true;
   const mobile=()=>matchMedia('(max-width:700px)').matches;
@@ -8,46 +8,15 @@
     if(document.getElementById('mcMobilePolishV114Style'))return;
     const st=document.createElement('style');st.id='mcMobilePolishV114Style';st.textContent=`
       @media(max-width:700px){
-        /* Cards mobile: duas linhas fixas. O valor financeiro ocupa a lateral direita sem alterar a altura. */
-        #launchesPage.mobile-launch-list .item.mc-mobile-compact-v102,
-        #calendarPage .calendar-events-scroll .item.mc-agenda-compact-v105{
-          position:relative!important;display:block!important;box-sizing:border-box!important;
-          height:82px!important;min-height:82px!important;max-height:82px!important;
-          padding:12px 13px!important;overflow:hidden!important;
-        }
-        #launchesPage.mobile-launch-list .item.mc-mobile-compact-v102 .item-main,
-        #calendarPage .calendar-events-scroll .item.mc-agenda-compact-v105 .item-main{width:100%!important;min-width:0!important}
-        #launchesPage.mobile-launch-list .item.mc-mobile-compact-v102 .item-title-row,
-        #calendarPage .calendar-events-scroll .item.mc-agenda-compact-v105 .item-title-row{
-          display:flex!important;grid-template-columns:none!important;align-items:center!important;justify-content:flex-start!important;
-          gap:7px!important;width:100%!important;min-width:0!important;padding-right:122px!important;box-sizing:border-box!important;text-align:left!important;
-        }
-        #launchesPage.mobile-launch-list .item.mc-mobile-compact-v102 .item-title,
-        #calendarPage .calendar-events-scroll .item.mc-agenda-compact-v105 .item-title{
-          margin:0!important;font-size:16px!important;line-height:1.2!important;text-align:left!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;
-        }
-        #launchesPage.mobile-launch-list .item.mc-mobile-compact-v102 .meta,
-        #calendarPage .calendar-events-scroll .item.mc-agenda-compact-v105 .meta{
-          margin-top:6px!important;font-size:11.5px!important;line-height:1.35!important;text-align:left!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;
-        }
-        #launchesPage.mobile-launch-list .item.mc-mobile-compact-v102 .mc-card-value-v113,
-        #calendarPage .calendar-events-scroll .item.mc-agenda-compact-v105 .mc-card-value-v113{
-          position:absolute!important;right:13px!important;top:12px!important;height:44px!important;z-index:2!important;
-          display:flex!important;align-items:center!important;justify-content:flex-end!important;margin:0!important;max-width:118px!important;
-          font-size:18px!important;line-height:1.1!important;font-weight:800!important;
-          white-space:nowrap!important;text-align:right!important;
-        }
+        #launchesPage.mobile-launch-list .item.mc-mobile-compact-v102,#calendarPage .calendar-events-scroll .item.mc-agenda-compact-v105{position:relative!important;display:block!important;box-sizing:border-box!important;height:82px!important;min-height:82px!important;max-height:82px!important;padding:12px 13px!important;overflow:hidden!important}
+        #launchesPage.mobile-launch-list .item.mc-mobile-compact-v102 .item-main,#calendarPage .calendar-events-scroll .item.mc-agenda-compact-v105 .item-main{width:100%!important;min-width:0!important}
+        #launchesPage.mobile-launch-list .item.mc-mobile-compact-v102 .item-title-row,#calendarPage .calendar-events-scroll .item.mc-agenda-compact-v105 .item-title-row{display:flex!important;grid-template-columns:none!important;align-items:center!important;justify-content:flex-start!important;gap:7px!important;width:100%!important;min-width:0!important;padding-right:122px!important;box-sizing:border-box!important;text-align:left!important}
+        #launchesPage.mobile-launch-list .item.mc-mobile-compact-v102 .item-title,#calendarPage .calendar-events-scroll .item.mc-agenda-compact-v105 .item-title{margin:0!important;font-size:16px!important;line-height:1.2!important;text-align:left!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+        #launchesPage.mobile-launch-list .item.mc-mobile-compact-v102 .meta,#calendarPage .calendar-events-scroll .item.mc-agenda-compact-v105 .meta{margin-top:6px!important;font-size:11.5px!important;line-height:1.35!important;text-align:left!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+        #launchesPage.mobile-launch-list .item.mc-mobile-compact-v102 .mc-card-value-v113,#calendarPage .calendar-events-scroll .item.mc-agenda-compact-v105 .mc-card-value-v113{position:absolute!important;right:13px!important;top:12px!important;height:44px!important;z-index:2!important;display:flex!important;align-items:center!important;justify-content:flex-end!important;margin:0!important;max-width:118px!important;font-size:18px!important;line-height:1.1!important;font-weight:800!important;white-space:nowrap!important;text-align:right!important}
         #calendarPage .calendar-events-scroll .item.mc-agenda-compact-v105 .status-dot{display:none!important;visibility:hidden!important}
-        #launchesPage.mobile-launch-list .item.mc-mobile-compact-v102 .item-side,
-        #calendarPage .calendar-events-scroll .item.mc-agenda-compact-v105 .item-side{display:none!important}
-
-        /* Lançamentos: recupera a mesma alça/arraste vertical já usada na Agenda. */
-        .mc-card-actions-backdrop-v102{display:block!important;padding:12px!important;overflow:hidden!important;touch-action:none!important}
-        .mc-card-actions-backdrop-v102[hidden]{display:none!important}
-        .mc-card-actions-sheet-v102{position:absolute!important;left:12px!important;right:12px!important;bottom:12px!important;width:auto!important;padding:9px 17px 17px!important;will-change:transform}
-        .mc-card-drag-handle-v114{height:20px;margin:-2px 0 5px;display:flex;align-items:center;justify-content:center;cursor:grab;touch-action:none}
-        .mc-card-drag-handle-v114::before{content:"";width:46px;height:5px;border-radius:999px;background:#c8d2cc}
-        .mc-card-actions-sheet-v102.mc-dragging-v114 .mc-card-drag-handle-v114{cursor:grabbing}
+        #launchesPage.mobile-launch-list .item.mc-mobile-compact-v102 .item-side,#calendarPage .calendar-events-scroll .item.mc-agenda-compact-v105 .item-side{display:none!important}
+        .mc-card-actions-backdrop-v102{display:block!important;padding:12px!important;overflow:hidden!important;touch-action:none!important}.mc-card-actions-backdrop-v102[hidden]{display:none!important}.mc-card-actions-sheet-v102{position:absolute!important;left:12px!important;right:12px!important;bottom:12px!important;width:auto!important;padding:9px 17px 17px!important;will-change:transform}.mc-card-drag-handle-v114{height:20px;margin:-2px 0 5px;display:flex;align-items:center;justify-content:center;cursor:grab;touch-action:none}.mc-card-drag-handle-v114::before{content:"";width:46px;height:5px;border-radius:999px;background:#c8d2cc}.mc-card-actions-sheet-v102.mc-dragging-v114 .mc-card-drag-handle-v114{cursor:grabbing}
       }
     `;document.head.appendChild(st);
   }
@@ -65,8 +34,17 @@
     if(window.PointerEvent){handle.addEventListener('pointerdown',start);handle.addEventListener('pointermove',move);handle.addEventListener('pointerup',end);handle.addEventListener('pointercancel',end)}else{handle.addEventListener('touchstart',start,{passive:false});window.addEventListener('touchmove',move,{passive:false});window.addEventListener('touchend',end,{passive:true})}
     const obs=new MutationObserver(()=>{if(!bd.hidden&&bd.dataset.mcWasHidden==='1')reset(sheet);bd.dataset.mcWasHidden=bd.hidden?'1':'0'});obs.observe(bd,{attributes:true,attributeFilter:['hidden']});bd.dataset.mcWasHidden=bd.hidden?'1':'0';
   }
-  function boot(){installStyle();bind();setTimeout(bind,250)}
+
+  function bindSearchSwipe(){
+    if(!mobile()||window.__mcSearchSwipeBackV117)return;window.__mcSearchSwipeBackV117=true;
+    let sx=0,sy=0,tracking=false;
+    document.addEventListener('touchstart',e=>{const overlay=document.querySelector('.mc-search-results:not([hidden])');if(!overlay||e.touches.length!==1)return;const t=e.target;if(t.closest('.mc-search-actions,.mc-confirm-layer'))return;const p=e.touches[0];sx=p.clientX;sy=p.clientY;tracking=sx>innerWidth*.55},{passive:true});
+    document.addEventListener('touchend',e=>{if(!tracking)return;tracking=false;const p=e.changedTouches?.[0];if(!p)return;const dx=p.clientX-sx,dy=p.clientY-sy;if(dx<-85&&Math.abs(dx)>Math.abs(dy)*1.35){window.MeuControleSearchBatch?.close?.()}},{passive:true});
+    document.addEventListener('touchcancel',()=>{tracking=false},{passive:true});
+  }
+
+  function boot(){installStyle();bind();bindSearchSwipe();setTimeout(bind,250)}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,100),{once:true});else setTimeout(boot,100);
   window.addEventListener('load',()=>setTimeout(boot,500));
-  window.MeuControleMobilePolishV114={version:'1.16',refresh:boot};
+  window.MeuControleMobilePolishV114={version:'1.17',refresh:boot};
 })();
