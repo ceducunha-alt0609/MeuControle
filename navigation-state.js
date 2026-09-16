@@ -11,7 +11,20 @@
     const next={...readState(),...patch,updatedAt:new Date().toISOString()};
     try{localStorage.setItem(KEY,JSON.stringify(next))}catch{}
   }
-  function reveal(){document.documentElement.classList.remove('nav-restore-pending')}
+  function reveal(){
+    document.documentElement.classList.remove('nav-restore-pending','mc-calendar-mobile-boot','mc-mobile-launches-boot','mc-dashboard-shell-boot');
+  }
+  function revealWhenReady(page){
+    if(page==='calendar'&&matchMedia('(max-width:700px)').matches){
+      try{window.MeuControleMobileAgendaActionsV105?.refresh?.()}catch{}
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{
+        try{window.MeuControleMobileAgendaActionsV105?.refresh?.()}catch{}
+        reveal();
+      }));
+      return;
+    }
+    reveal();
+  }
   function visiblePage(){
     for(const p of validPages){
       const el=document.getElementById(p+'Page');
@@ -150,7 +163,7 @@
     restoreMonths(state);
     restoreDetails(state,page);
     restoreScroll(state,page);
-    reveal();
+    revealWhenReady(page);
   }
 
   window.addEventListener('load',()=>{
@@ -163,7 +176,7 @@
     }));
   },{once:true});
   /* Segurança: nunca deixa a interface escondida se algo externo falhar. */
-  setTimeout(reveal,1400);
+  setTimeout(reveal,1800);
   window.addEventListener('pagehide',()=>saveContext());
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')saveContext()});
 })();
