@@ -1,2 +1,2 @@
-/* Meu Controle - Service Worker bootstrap V4.09: pesquisa global dedicada no desktop */
-importScripts('./sw-core-v326.js?v=409');
+/* Meu Controle - Service Worker bootstrap V4.10: pesquisa da topbar em modal dedicado desktop */
+importScripts('./sw-core-v326.js?v=410');
