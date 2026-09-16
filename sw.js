@@ -1,2 +1,2 @@
-/* Meu Controle - Service Worker bootstrap V4.19: corrige seletor do Calendário na competência única */
-importScripts('./sw-core-v326.js?v=419');
+/* Meu Controle - Service Worker bootstrap V4.20: seletor do Calendário integrado nativamente à competência */
+importScripts('./sw-core-v326.js?v=420');
