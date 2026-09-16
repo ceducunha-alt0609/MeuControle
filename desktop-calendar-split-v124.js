@@ -1,4 +1,4 @@
-/* Meu Controle — V1.25: calendário compacto + competência única */
+/* Meu Controle — V1.26: calendário compacto + hierarquia visual da competência */
 (function(){
  if(window.__mcDesktopCalendarSplitV124)return;window.__mcDesktopCalendarSplitV124=true;
  const mq=matchMedia('(min-width:701px)');
@@ -11,9 +11,9 @@
   #calendarPage .calendar-head{margin-bottom:12px}#calendarPage .calendar-months,#calendarPage .calendar-year-nav{display:none!important}
   #calendarPage .calendar-layout{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:18px;align-items:start}
   #calendarPage .mc-cal-board-v124{border:1px solid #dbe4df;border-radius:17px;background:#fff;box-shadow:0 5px 18px rgba(22,79,120,.05);overflow:hidden;position:sticky;top:12px}
-  #calendarPage .mc-cal-nav-v124{display:grid;grid-template-columns:38px 1fr 38px;align-items:center;gap:10px;padding:18px 18px 14px;background:linear-gradient(180deg,#fff,#fbfcfb);border-bottom:1px solid #e5ebe8}
-  #calendarPage .mc-cal-nav-v124 button{width:38px;height:38px;padding:0;border:0;border-radius:10px;background:#edf3f0;color:#315244;font-size:21px;box-shadow:none}#calendarPage .mc-cal-nav-v124 button:hover{background:#e3ede8;transform:none}
-  #calendarPage .mc-cal-nav-v124 strong{display:block;text-align:center;font-size:19px;color:#173f5a}#calendarPage .mc-cal-year-v124{display:block;text-align:center;font-size:12px;color:#7a8881;margin-top:3px}
+  #calendarPage .mc-cal-nav-v124{display:grid;grid-template-columns:38px 1fr 38px;align-items:center;gap:10px;padding:18px 18px 14px;background:linear-gradient(180deg,#edf6fb,#e6f1f7);border-bottom:1px solid #cbdde7}
+  #calendarPage .mc-cal-nav-v124 button{width:38px;height:38px;padding:0;border:0;border-radius:10px;background:#dcebf3;color:#164f78;font-size:21px;box-shadow:none}#calendarPage .mc-cal-nav-v124 button:hover{background:#cfe2ed;transform:none}
+  #calendarPage .mc-cal-nav-v124 strong{display:block;text-align:center;font-size:19px;color:#173f5a}#calendarPage .mc-cal-year-v124{display:block;text-align:center;font-size:12px;color:#607b8a;margin-top:3px}
   #calendarPage .mc-cal-week-v124,#calendarPage .mc-cal-grid-v124{display:grid;grid-template-columns:repeat(7,1fr)}
   #calendarPage .mc-cal-week-v124{background:#f7faf8;border-bottom:1px solid #e5ebe8}#calendarPage .mc-cal-week-v124 span{min-height:34px;display:grid;place-items:center;font:800 10px/1 system-ui,sans-serif;letter-spacing:.05em;color:#627168;border-right:1px solid #edf1ef}#calendarPage .mc-cal-week-v124 span:last-child{border-right:0}
   #calendarPage .mc-cal-day-v124{position:relative;min-height:59px;padding:8px 4px;border:0;border-right:1px solid #edf1ef;border-bottom:1px solid #edf1ef;border-radius:0;background:#fff;color:#30433a;box-shadow:none;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:6px;transform:none!important}
@@ -25,13 +25,16 @@
   #calendarPage .mc-cal-day-v124.today .mc-cal-dot-v124{box-shadow:0 0 0 1px rgba(255,255,255,.45)}
   #calendarPage .mc-cal-clear-v124{display:none;width:calc(100% - 24px);margin:12px;padding:9px;border:0;border-radius:9px;background:#edf3f0;color:#315244;font-size:12px;font-weight:700;box-shadow:none}.mc-cal-clear-v124.show{display:block!important}
   #calendarPage .calendar-events-panel{border:1px solid #e1e8e4!important;border-radius:17px!important;padding:15px!important;background:#fff;min-height:360px;max-height:465px;display:flex!important;flex-direction:column!important;overflow:hidden!important}
-  #calendarPage .calendar-events-head{margin:0 0 10px!important;flex:0 0 auto}.calendar-search{display:none!important}
+  #calendarPage .calendar-events-head{position:relative;margin:0 0 10px!important;padding:1px 1px 11px!important;flex:0 0 auto}.calendar-search{display:none!important}
+  #calendarPage .calendar-events-head:after{content:'';position:absolute;left:0;right:0;bottom:0;height:2px;border-radius:999px;background:linear-gradient(90deg,#d1a800,#e2c34c 72%,rgba(209,168,0,.35));box-shadow:0 1px 0 rgba(209,168,0,.08)}
+  #calendarPage #calendarMonthTitle{color:#173f5a!important}#calendarPage #calendarMonthSummary{color:#526b79!important}
   #calendarPage .calendar-events-scroll{overflow-y:auto!important;overflow-x:hidden!important;padding-right:6px!important;scrollbar-gutter:stable;min-height:0;flex:1 1 auto}
   #calendarPage #calendarEventsList{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important;align-items:start}#calendarPage #calendarEventsList .item{min-height:72px!important;padding:11px 12px!important;gap:7px 9px!important}#calendarPage #calendarEventsList .item-title{font-size:16px!important}#calendarPage #calendarEventsList .meta{font-size:12px!important}
   #calendarPage .mc-cal-pending-title-v124{grid-column:1/-1;font:800 10px/1 system-ui,sans-serif;letter-spacing:.055em;text-transform:uppercase;color:#637168;padding:2px 2px 0}
   #calendarPage .mc-cal-done-heading-v124{grid-column:1/-1;display:flex;align-items:center;gap:10px;margin-top:2px;padding:8px 10px;border-top:1px solid #dfe6e1;border-bottom:1px solid #edf1ee;background:linear-gradient(90deg,rgba(98,112,104,.07),rgba(255,255,255,.3));color:#69766f;cursor:pointer;user-select:none}
   #calendarPage .mc-cal-done-heading-v124 strong{font-size:11px;letter-spacing:.055em;text-transform:uppercase;color:#637168}#calendarPage .mc-cal-done-count-v124{margin-left:auto;font-size:10px;font-weight:700;color:#8a958f}.mc-cal-done-toggle-v124{width:25px;height:25px;display:inline-flex;align-items:center;justify-content:center;border:1px solid rgba(var(--primary-rgb),.18);border-radius:8px;background:#fff;color:var(--primary);font:800 16px/1 system-ui;transition:transform .16s ease}.mc-cal-done-heading-v124.collapsed .mc-cal-done-toggle-v124{transform:rotate(-90deg)}
   #calendarPage .mc-cal-done-item-v124.mc-hidden-v124{display:none!important}#calendarPage .mc-cal-no-pending-v124{grid-column:1/-1;padding:14px;border:1px dashed #dce5e0;border-radius:12px;text-align:center;color:#7b8881;font-size:13px}
+  body.mc-dark #calendarPage .mc-cal-nav-v124{background:linear-gradient(180deg,#183342,#142c39);border-bottom-color:#31505f}body.mc-dark #calendarPage .mc-cal-nav-v124 button{background:#203b49;color:#e8f3f8}body.mc-dark #calendarPage .mc-cal-nav-v124 button:hover{background:#294958}body.mc-dark #calendarPage .mc-cal-nav-v124 strong{color:#f2f7f9}body.mc-dark #calendarPage .mc-cal-year-v124{color:#b4c7d1}body.mc-dark #calendarPage #calendarMonthTitle{color:#f1f6f8!important}body.mc-dark #calendarPage #calendarMonthSummary{color:#c0d0d8!important}
  }
  @media(min-width:701px) and (max-width:1050px){#calendarPage #calendarEventsList{grid-template-columns:1fr!important}#calendarPage .mc-cal-day-v124{min-height:52px}#calendarPage .calendar-events-panel{max-height:430px}}
  `;document.head.appendChild(s)}
@@ -52,5 +55,5 @@
  function install(){if(!mq.matches)return;css();document.getElementById('calendarMonths')?.style.setProperty('display','none','important');buildCalendar();refreshRight()}
  function redrawBase(){if(previousRender)previousRender();requestAnimationFrame(()=>setTimeout(install,0))}
  if(previousRender){renderCalendar=function(){const out=previousRender();if(mq.matches)requestAnimationFrame(()=>setTimeout(install,0));return out}}
- window.addEventListener('load',()=>setTimeout(install,800));mq.addEventListener?.('change',()=>setTimeout(()=>{if(mq.matches)install()},100));setTimeout(install,350);window.MeuControleDesktopCalendarSplitV124={version:'1.25',refresh:install};
+ window.addEventListener('load',()=>setTimeout(install,800));mq.addEventListener?.('change',()=>setTimeout(()=>{if(mq.matches)install()},100));setTimeout(install,350);window.MeuControleDesktopCalendarSplitV124={version:'1.26',refresh:install};
 })();
