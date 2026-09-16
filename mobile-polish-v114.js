@@ -1,4 +1,4 @@
-/* MeuControle — V1.15: cards mobile uniformes com valor lateral + painel de ações arrastável */
+/* MeuControle — V1.16: valor lateral maior e centralizado + painel de ações arrastável */
 (()=>{
   if(window.__mcMobilePolishV114)return;window.__mcMobilePolishV114=true;
   const mobile=()=>matchMedia('(max-width:700px)').matches;
@@ -20,7 +20,7 @@
         #launchesPage.mobile-launch-list .item.mc-mobile-compact-v102 .item-title-row,
         #calendarPage .calendar-events-scroll .item.mc-agenda-compact-v105 .item-title-row{
           display:flex!important;grid-template-columns:none!important;align-items:center!important;justify-content:flex-start!important;
-          gap:7px!important;width:100%!important;min-width:0!important;padding-right:104px!important;box-sizing:border-box!important;text-align:left!important;
+          gap:7px!important;width:100%!important;min-width:0!important;padding-right:122px!important;box-sizing:border-box!important;text-align:left!important;
         }
         #launchesPage.mobile-launch-list .item.mc-mobile-compact-v102 .item-title,
         #calendarPage .calendar-events-scroll .item.mc-agenda-compact-v105 .item-title{
@@ -32,9 +32,9 @@
         }
         #launchesPage.mobile-launch-list .item.mc-mobile-compact-v102 .mc-card-value-v113,
         #calendarPage .calendar-events-scroll .item.mc-agenda-compact-v105 .mc-card-value-v113{
-          position:absolute!important;right:13px!important;top:14px!important;z-index:2!important;
-          display:block!important;margin:0!important;max-width:100px!important;
-          font-size:13px!important;line-height:1.2!important;font-weight:800!important;
+          position:absolute!important;right:13px!important;top:12px!important;height:44px!important;z-index:2!important;
+          display:flex!important;align-items:center!important;justify-content:flex-end!important;margin:0!important;max-width:118px!important;
+          font-size:18px!important;line-height:1.1!important;font-weight:800!important;
           white-space:nowrap!important;text-align:right!important;
         }
         #calendarPage .calendar-events-scroll .item.mc-agenda-compact-v105 .status-dot{display:none!important;visibility:hidden!important}
@@ -68,5 +68,5 @@
   function boot(){installStyle();bind();setTimeout(bind,250)}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,100),{once:true});else setTimeout(boot,100);
   window.addEventListener('load',()=>setTimeout(boot,500));
-  window.MeuControleMobilePolishV114={version:'1.15',refresh:boot};
+  window.MeuControleMobilePolishV114={version:'1.16',refresh:boot};
 })();
