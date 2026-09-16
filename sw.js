@@ -1,2 +1,2 @@
-/* Meu Controle - Service Worker bootstrap V4.25: Pesquisa Global compacta e confirmação premium */
-importScripts('./sw-core-v326.js?v=425');
+/* Meu Controle - Service Worker bootstrap V4.26: resumo mensal adaptativo e fechamento da impressão */
+importScripts('./sw-core-v326.js?v=426');
