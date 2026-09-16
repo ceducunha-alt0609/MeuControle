@@ -1,33 +1,31 @@
-/* MeuControle — V1.50: seleção em lote discreta; long press abre action sheet */
+/* MeuControle — V1.51: action sheet limpa + foco simples da pesquisa */
 (()=>{
- if(window.__mcBatchSelectionV150)return;window.__mcBatchSelectionV150=true;
+ if(window.__mcBatchSelectionV151)return;window.__mcBatchSelectionV151=true;
  const page=document.getElementById('launchesPage'),list=document.getElementById('list');if(!page||!list)return;
+ /* Limpa qualquer vestígio visual da versão antiga de seleção. */
+ page.classList.remove('mc-batch-mode');
+ document.querySelectorAll('.mc-batch-bar,.mc-batch-start,.mc-batch-check').forEach(el=>el.remove());
+ list.querySelectorAll('.mc-batch-selected').forEach(el=>el.classList.remove('mc-batch-selected'));
  let longTimer=null,longTarget=null,suppressClick=false;
  const st=document.createElement('style');st.textContent=`
+ #launchesPage .search-wrap:focus-within{outline:none!important;box-shadow:none!important;border-color:var(--primary)!important}
+ #launchesPage .search-wrap input:focus,#launchesPage .search-wrap input:focus-visible{outline:none!important;box-shadow:none!important}
+ .mc-batch-bar,.mc-batch-start,.mc-batch-check{display:none!important}
+ #launchesPage.mc-batch-mode #list .item{padding-left:initial!important}
  .mc-batch-sheet-backdrop{position:fixed;inset:0;z-index:2400;background:rgba(18,30,25,.38);display:flex;align-items:flex-end;justify-content:center;padding:18px}
- .mc-batch-sheet-backdrop[hidden]{display:none!important}
- .mc-batch-sheet{width:min(100%,620px);background:#fff;border-radius:26px;padding:12px 18px 20px;box-shadow:0 -12px 38px rgba(0,0,0,.18)}
- .mc-batch-handle{width:74px;height:8px;border-radius:999px;background:#cbd6d0;margin:0 auto 18px}
- .mc-batch-sheet-head{display:flex;gap:12px;align-items:flex-start;margin-bottom:18px}.mc-batch-sheet-copy{min-width:0;flex:1}.mc-batch-sheet-copy h3{margin:0;font-size:22px;line-height:1.2;color:#26362e}.mc-batch-sheet-copy p{margin:5px 0 0;color:#738078;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
- .mc-batch-close{width:52px;height:52px;border:0;border-radius:16px;background:#eef3f0!important;color:#607068!important;font-size:24px!important;padding:0!important}
- .mc-batch-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px}.mc-batch-actions button{min-height:58px;border-radius:15px;font-size:16px;font-weight:800}.mc-batch-one{background:var(--primary)!important;color:#fff!important}.mc-batch-results{background:#e5f0ea!important;color:#31503e!important}.mc-batch-delete{grid-column:1/-1;background:#b53d3d!important;color:#fff!important;border-color:#b53d3d!important}
+ .mc-batch-sheet-backdrop[hidden]{display:none!important}.mc-batch-sheet{width:min(100%,620px);background:#fff;border-radius:26px;padding:12px 18px 20px;box-shadow:0 -12px 38px rgba(0,0,0,.18)}
+ .mc-batch-handle{width:74px;height:8px;border-radius:999px;background:#cbd6d0;margin:0 auto 18px}.mc-batch-sheet-head{display:flex;gap:12px;align-items:flex-start;margin-bottom:18px}.mc-batch-sheet-copy{min-width:0;flex:1}.mc-batch-sheet-copy h3{margin:0;font-size:22px;line-height:1.2;color:#26362e}.mc-batch-sheet-copy p{margin:5px 0 0;color:#738078;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ .mc-batch-close{width:52px;height:52px;border:0;border-radius:16px;background:#eef3f0!important;color:#607068!important;font-size:24px!important;padding:0!important}.mc-batch-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px}.mc-batch-actions button{min-height:58px;border-radius:15px;font-size:16px;font-weight:800}.mc-batch-one{background:var(--primary)!important;color:#fff!important}.mc-batch-results{background:#e5f0ea!important;color:#31503e!important}.mc-batch-delete{grid-column:1/-1;background:#b53d3d!important;color:#fff!important;border-color:#b53d3d!important}
  body.mc-dark .mc-batch-sheet{background:#1b272e;border:1px solid #40505a}body.mc-dark .mc-batch-sheet-copy h3{color:#edf3f6}body.mc-dark .mc-batch-sheet-copy p{color:#aebbc3}body.mc-dark .mc-batch-handle{background:#596971}body.mc-dark .mc-batch-close{background:#26343c!important;color:#dce6eb!important}body.mc-dark .mc-batch-results{background:#263d35!important;color:#dce9e2!important}
  @media(min-width:701px){.mc-batch-sheet-backdrop{align-items:center}.mc-batch-sheet{border-radius:20px}}
  `;document.head.appendChild(st);
  const back=document.createElement('div');back.className='mc-batch-sheet-backdrop';back.hidden=true;back.innerHTML=`<section class="mc-batch-sheet" role="dialog" aria-modal="true" aria-labelledby="mcBatchTitle"><div class="mc-batch-handle"></div><div class="mc-batch-sheet-head"><div class="mc-batch-sheet-copy"><h3 id="mcBatchTitle">Selecionar lançamentos</h3><p class="mc-batch-subtitle"></p></div><button type="button" class="mc-batch-close" aria-label="Fechar">×</button></div><div class="mc-batch-actions"><button type="button" class="mc-batch-one">Excluir somente este</button><button type="button" class="mc-batch-results">Excluir resultados da pesquisa</button><button type="button" class="mc-batch-delete">Escolher vários lançamentos</button></div></section>`;document.body.appendChild(back);
- let seedCard=null;
- const subtitle=back.querySelector('.mc-batch-subtitle'),resultsBtn=back.querySelector('.mc-batch-results');
- function cards(){return [...list.querySelectorAll('.item')]}
- function titleOf(card){return card?.querySelector('.item-title')?.textContent?.trim()||'Lançamento selecionado'}
- function close(){back.hidden=true;seedCard=null}
- function open(card){seedCard=card;subtitle.textContent=titleOf(card);const q=(document.getElementById('globalSearch')?.value||'').trim();resultsBtn.textContent=q?`Excluir ${cards().length} resultado${cards().length===1?'':'s'} da pesquisa`:`Excluir ${cards().length} resultado${cards().length===1?'':'s'} exibido${cards().length===1?'':'s'}`;back.hidden=false;navigator.vibrate?.(25)}
- function deleteCards(chosen,label){const valid=chosen.filter(Boolean);if(!valid.length)return;const n=valid.length;if(!confirm(`Excluir ${n} lançamento${n===1?'':'s'} ${label}?\n\nO MeuControle mantém backups automáticos.`))return;const buttons=valid.map(c=>c.querySelector('.deleteBtn')).filter(Boolean);const original=window.confirm;try{window.confirm=()=>true;buttons.forEach(b=>b.click())}finally{window.confirm=original}close()}
- back.querySelector('.mc-batch-close').onclick=close;back.addEventListener('click',e=>{if(e.target===back)close()});
- back.querySelector('.mc-batch-one').onclick=()=>deleteCards([seedCard],'selecionado');
- resultsBtn.onclick=()=>deleteCards(cards(),'exibidos');
- back.querySelector('.mc-batch-delete').onclick=()=>{close();alert('Para escolher lançamentos diferentes, pesquise ou filtre primeiro e mantenha pressionado um deles. Assim, “resultados exibidos” vira exatamente o lote que será excluído.')};
+ let seedCard=null;const subtitle=back.querySelector('.mc-batch-subtitle'),resultsBtn=back.querySelector('.mc-batch-results');
+ function cards(){return [...list.querySelectorAll('.item')]}function titleOf(card){return card?.querySelector('.item-title')?.textContent?.trim()||'Lançamento selecionado'}function close(){back.hidden=true;seedCard=null}
+ function open(card){seedCard=card;subtitle.textContent=titleOf(card);const q=(document.getElementById('globalSearch')?.value||'').trim(),n=cards().length;resultsBtn.textContent=q?`Excluir ${n} resultado${n===1?'':'s'} da pesquisa`:`Excluir ${n} resultado${n===1?'':'s'} exibido${n===1?'':'s'}`;back.hidden=false;navigator.vibrate?.(25)}
+ function deleteCards(chosen,label){const valid=chosen.filter(Boolean);if(!valid.length)return;const n=valid.length;if(!confirm(`Excluir ${n} lançamento${n===1?'':'s'} ${label}?\n\nO MeuControle mantém backups automáticos.`))return;const buttons=valid.map(c=>c.querySelector('.deleteBtn')).filter(Boolean),original=window.confirm;try{window.confirm=()=>true;buttons.forEach(b=>b.click())}finally{window.confirm=original}close()}
+ back.querySelector('.mc-batch-close').onclick=close;back.addEventListener('click',e=>{if(e.target===back)close()});back.querySelector('.mc-batch-one').onclick=()=>deleteCards([seedCard],'selecionado');resultsBtn.onclick=()=>deleteCards(cards(),'exibidos');back.querySelector('.mc-batch-delete').onclick=()=>{close();alert('Para escolher um lote específico, use a pesquisa ou os filtros e mantenha pressionado um dos resultados.')};
  list.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse')return;const card=e.target.closest('.item');if(!card)return;longTarget=card;longTimer=setTimeout(()=>{longTimer=null;suppressClick=true;open(longTarget);setTimeout(()=>suppressClick=false,450)},560)},{passive:true});
- const cancelLong=()=>{if(longTimer){clearTimeout(longTimer);longTimer=null}longTarget=null};list.addEventListener('pointerup',cancelLong,{passive:true});list.addEventListener('pointercancel',cancelLong,{passive:true});list.addEventListener('pointermove',e=>{if(longTimer&&longTarget){const r=longTarget.getBoundingClientRect();if(e.clientX<r.left-12||e.clientX>r.right+12||e.clientY<r.top-12||e.clientY>r.bottom+12)cancelLong()}},{passive:true});
- list.addEventListener('click',e=>{if(!suppressClick)return;e.preventDefault();e.stopImmediatePropagation()},true);
- window.MeuControleBatchSelection={version:'1.50',open,close};
+ const cancelLong=()=>{if(longTimer){clearTimeout(longTimer);longTimer=null}longTarget=null};list.addEventListener('pointerup',cancelLong,{passive:true});list.addEventListener('pointercancel',cancelLong,{passive:true});list.addEventListener('pointermove',e=>{if(longTimer&&longTarget){const r=longTarget.getBoundingClientRect();if(e.clientX<r.left-12||e.clientX>r.right+12||e.clientY<r.top-12||e.clientY>r.bottom+12)cancelLong()}},{passive:true});list.addEventListener('click',e=>{if(!suppressClick)return;e.preventDefault();e.stopImmediatePropagation()},true);
+ window.MeuControleBatchSelection={version:'1.51',open,close};
 })();
