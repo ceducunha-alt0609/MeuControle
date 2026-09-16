@@ -1,2 +1,2 @@
-/* Meu Controle - Service Worker bootstrap V3.84: pesquisa com tela dedicada de resultados */
-importScripts('./sw-core-v326.js?v=384');
+/* Meu Controle - Service Worker bootstrap V3.85: resultados compactos e action sheet móvel */
+importScripts('./sw-core-v326.js?v=385');
