@@ -1,4 +1,4 @@
-/* MeuControle — V1.19: valor lateral + painel arrastável + voltar nativo Android em Pesquisa e Novo lançamento */
+/* MeuControle — V1.20: valor lateral + painel arrastável + voltar nativo Android em Pesquisa e subtelas de Lançamentos */
 (()=>{
   if(window.__mcMobilePolishV114)return;window.__mcMobilePolishV114=true;
   const mobile=()=>matchMedia('(max-width:700px)').matches;
@@ -46,21 +46,27 @@
     arm();
   }
 
-  function bindLaunchFormNativeBack(){
-    if(!mobile()||window.__mcLaunchFormNativeBackV119)return;window.__mcLaunchFormNativeBackV119=true;
-    const page=document.getElementById('launchesPage'),form=document.getElementById('formPanel');if(!page||!form)return;
-    const back=form.querySelector('.mobile-launch-back');if(!back)return;
+  function bindLaunchModeNativeBack(mode,flag){
+    if(!mobile()||window[flag])return;window[flag]=true;
+    const page=document.getElementById('launchesPage');if(!page)return;
+    const panel=mode==='form'?document.getElementById('formPanel'):page.querySelector('.list-panel');
+    const back=panel?.querySelector('.mobile-launch-back');if(!panel||!back)return;
     let armed=false,closingFromHistory=false;
-    const isOpen=()=>page.classList.contains('mobile-launch-form')&&!page.classList.contains('hidden');
-    const arm=()=>{if(!isOpen()||armed)return;history.pushState({...history.state,mcLaunchForm:true},'',location.href);armed=true};
+    const className=mode==='form'?'mobile-launch-form':'mobile-launch-list';
+    const stateKey=mode==='form'?'mcLaunchForm':'mcLaunchList';
+    const isOpen=()=>page.classList.contains(className)&&!page.classList.contains('hidden');
+    const arm=()=>{if(!isOpen()||armed)return;history.pushState({...history.state,[stateKey]:true},'',location.href);armed=true};
     const obs=new MutationObserver(()=>{if(isOpen())arm();else if(!closingFromHistory)armed=false});obs.observe(page,{attributes:true,attributeFilter:['class']});
     back.addEventListener('click',e=>{if(!armed||closingFromHistory)return;e.preventDefault();e.stopImmediatePropagation();history.back()},{capture:true});
     window.addEventListener('popstate',()=>{if(!armed||!isOpen())return;armed=false;closingFromHistory=true;try{back.onclick?.call(back,new MouseEvent('click'))}finally{closingFromHistory=false}});
     arm();
   }
 
-  function boot(){installStyle();bind();bindSearchNativeBack();bindLaunchFormNativeBack();setTimeout(()=>{bind();bindSearchNativeBack();bindLaunchFormNativeBack()},250)}
+  function bindLaunchFormNativeBack(){bindLaunchModeNativeBack('form','__mcLaunchFormNativeBackV119')}
+  function bindLaunchListNativeBack(){bindLaunchModeNativeBack('list','__mcLaunchListNativeBackV120')}
+
+  function boot(){installStyle();bind();bindSearchNativeBack();bindLaunchFormNativeBack();bindLaunchListNativeBack();setTimeout(()=>{bind();bindSearchNativeBack();bindLaunchFormNativeBack();bindLaunchListNativeBack()},250)}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,100),{once:true});else setTimeout(boot,100);
   window.addEventListener('load',()=>setTimeout(boot,500));
-  window.MeuControleMobilePolishV114={version:'1.19',refresh:boot};
+  window.MeuControleMobilePolishV114={version:'1.20',refresh:boot};
 })();
