@@ -1,2 +1,2 @@
-/* Meu Controle - Service Worker bootstrap V4.04: pesquisa dedicada mobile com resultados ao digitar */
-importScripts('./sw-core-v326.js?v=404');
+/* Meu Controle - Service Worker bootstrap V4.05: swipe direita para esquerda volta da Pesquisa mobile */
+importScripts('./sw-core-v326.js?v=405');
