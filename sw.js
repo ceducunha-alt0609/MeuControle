@@ -1,2 +1,2 @@
-/* Meu Controle - Service Worker bootstrap V4.15: atualiza pendentes ao navegar entre meses */
-importScripts('./sw-core-v326.js?v=415');
+/* Meu Controle - Service Worker bootstrap V4.16: pendentes acompanham o mês visível do Calendário */
+importScripts('./sw-core-v326.js?v=416');
