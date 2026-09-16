@@ -1,4 +1,4 @@
-/* Meu Controle — V1.20: Agenda mobile com pendentes acima e concluídos em acordeão */
+/* Meu Controle — V1.21: Agenda mobile com pendentes acima e concluídos em acordeão estável */
 (function(){
  if(window.__mcAgendaCompletedAccordionV119)return;window.__mcAgendaCompletedAccordionV119=true;
  const mq=matchMedia('(max-width:700px)'),list=document.getElementById('calendarEventsList'),title=document.getElementById('calendarMonthTitle');if(!list||!title)return;
@@ -18,8 +18,8 @@
  }
  `;document.head.appendChild(s)}
  function monthKey(){return (title.textContent||'agenda').trim()}
- function schedule(){if(scheduled||organizing)return;scheduled=true;requestAnimationFrame(organize)}
- function organize(){scheduled=false;if(!mq.matches)return;organizing=true;try{
+ function schedule(){if(scheduled||organizing)return;scheduled=true;queueMicrotask(()=>{scheduled=false;organize()})}
+ function organize(){if(!mq.matches||organizing)return;organizing=true;try{
   const oldHeader=list.querySelector(':scope > .mobile-agenda-done-header-v119');
   const items=[...list.children].filter(el=>el.classList?.contains('item'));
   if(!items.length){oldHeader?.remove();return}
@@ -27,10 +27,15 @@
   if(!done.length){oldHeader?.remove();items.forEach(el=>el.classList.remove('mc-agenda-done-hidden-v119'));return}
   const key=monthKey();if(!state.has(key))state.set(key,false);const open=state.get(key);
   const header=oldHeader||document.createElement('div');header.className='mobile-agenda-done-header-v119'+(open?'':' collapsed');header.setAttribute('role','button');header.setAttribute('tabindex','0');header.setAttribute('aria-expanded',String(open));header.innerHTML=`<strong>✓ Concluídos</strong><span class="mc-agenda-done-count-v119">${done.length} ${done.length===1?'item':'itens'}</span><span class="mobile-agenda-done-toggle-v119" aria-hidden="true">⌄</span>`;
-  if(!header.__mcAgendaDoneBoundV119){header.__mcAgendaDoneBoundV119=true;const toggle=e=>{e?.preventDefault();e?.stopPropagation();state.set(monthKey(),!state.get(monthKey()));schedule()};header.addEventListener('click',toggle);header.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' ')toggle(e)})}
+  if(!header.__mcAgendaDoneBoundV119){header.__mcAgendaDoneBoundV119=true;const toggle=e=>{e?.preventDefault();e?.stopPropagation();state.set(monthKey(),!state.get(monthKey()));organize()};header.addEventListener('click',toggle);header.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' ')toggle(e)})}
   done.forEach(el=>el.classList.toggle('mc-agenda-done-hidden-v119',!open));pending.forEach(el=>el.classList.remove('mc-agenda-done-hidden-v119'));
   const desired=[...pending,header,...done],current=[...list.children];if(current.length!==desired.length||desired.some((el,i)=>current[i]!==el))list.replaceChildren(...desired);
  }finally{organizing=false}}
- installStyles();new MutationObserver(schedule).observe(list,{childList:true});new MutationObserver(schedule).observe(title,{childList:true,subtree:true,characterData:true});mq.addEventListener?.('change',schedule);document.querySelectorAll('.nav-btn[data-page="calendar"]').forEach(b=>b.addEventListener('click',()=>setTimeout(schedule,40)));window.addEventListener('load',()=>setTimeout(schedule,700));setTimeout(schedule,250);
- window.MeuControleAgendaCompletedAccordionV119={version:'1.20',refresh:schedule};
+ installStyles();
+ new MutationObserver(schedule).observe(list,{childList:true});
+ new MutationObserver(schedule).observe(title,{childList:true,subtree:true,characterData:true});
+ mq.addEventListener?.('change',schedule);
+ document.querySelectorAll('.nav-btn[data-page="calendar"]').forEach(b=>b.addEventListener('click',schedule));
+ schedule();
+ window.MeuControleAgendaCompletedAccordionV119={version:'1.21',refresh:organize};
 })();
