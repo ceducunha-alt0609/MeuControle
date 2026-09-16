@@ -1,6 +1,6 @@
-/* MeuControle — ponte V1.06: pesquisa em lote + proteção de prepaint dos cards */
+/* MeuControle — ponte V1.07: pesquisa em lote + pesquisa dedicada desktop + proteção de prepaint */
 (()=>{
-  if(window.__mcBulkDeleteV106)return;window.__mcBulkDeleteV106=true;
+  if(window.__mcBulkDeleteV107)return;window.__mcBulkDeleteV107=true;
 
   /* O app.js monta primeiro o card-base. Enquanto o módulo de categorias ainda
      não inseriu o ícone que identifica o card já decorado, não permitimos que
@@ -22,10 +22,14 @@
     if(window.__mcBatchConfirmPremiumV157||document.querySelector('script[data-mc-batch-premium]'))return;
     const p=document.createElement('script');p.src='./batch-confirm-premium-v157.js?rev=20260916a';p.dataset.mcBatchPremium='1';document.head.appendChild(p);
   };
+  const loadDesktop=()=>{
+    if(window.__mcDesktopSearchV162||document.querySelector('script[data-mc-desktop-search]'))return;
+    const d=document.createElement('script');d.src='./desktop-search-v162.js?rev=20260916a';d.dataset.mcDesktopSearch='1';document.head.appendChild(d);
+  };
   const load=()=>{
     cleanup();
-    if(window.__mcBatchSelectionV159||document.querySelector('script[data-mc-batch-current]')){loadPremium();return}
-    const s=document.createElement('script');s.src='./batch-selection-v149.js?rev=20260916d';s.dataset.mcBatchCurrent='1';s.onload=()=>{cleanup();loadPremium()};document.head.appendChild(s);
+    if(window.__mcBatchSelectionV159||document.querySelector('script[data-mc-batch-current]')){loadPremium();loadDesktop();return}
+    const s=document.createElement('script');s.src='./batch-selection-v149.js?rev=20260916d';s.dataset.mcBatchCurrent='1';s.onload=()=>{cleanup();loadPremium();loadDesktop()};document.head.appendChild(s);
   };
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',load,{once:true});else load();
 })();
