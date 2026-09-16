@@ -1,2 +1,2 @@
-/* Meu Controle - Service Worker bootstrap V3.87: confirmação de exclusão no padrão do app */
-importScripts('./sw-core-v326.js?v=387');
+/* Meu Controle - Service Worker bootstrap V3.88: confirmação única na exclusão em lote */
+importScripts('./sw-core-v326.js?v=388');
