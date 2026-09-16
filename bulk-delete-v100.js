@@ -1,6 +1,6 @@
-/* MeuControle — ponte V1.05: pesquisa em lote com valores nativos no card */
+/* MeuControle — ponte V1.06: pesquisa em lote sem flash da tela de fundo */
 (()=>{
-  if(window.__mcBulkDeleteV105)return;window.__mcBulkDeleteV105=true;
+  if(window.__mcBulkDeleteV106)return;window.__mcBulkDeleteV106=true;
   const cleanup=()=>{
     document.body?.classList.remove('mc-bulk-active-mobile');
     document.querySelectorAll('.mc-bulk-toolbar,.mc-bulk-start,.mc-bulk-check-wrap,.mc-bulk-check').forEach(el=>el.remove());
@@ -13,8 +13,8 @@
   };
   const load=()=>{
     cleanup();
-    if(window.__mcBatchSelectionV159||document.querySelector('script[data-mc-batch-current]')){loadPremium();return}
-    const s=document.createElement('script');s.src='./batch-selection-v149.js?rev=20260916d';s.dataset.mcBatchCurrent='1';s.onload=()=>{cleanup();loadPremium()};document.head.appendChild(s);
+    if(window.__mcBatchSelectionV160||document.querySelector('script[data-mc-batch-current]')){loadPremium();return}
+    const s=document.createElement('script');s.src='./batch-selection-v149.js?rev=20260916e';s.dataset.mcBatchCurrent='1';s.onload=()=>{cleanup();loadPremium()};document.head.appendChild(s);
   };
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',load,{once:true});else load();
 })();
