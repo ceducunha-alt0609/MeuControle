@@ -1,4 +1,4 @@
-/* MeuControle — V1.14: ajuste cirúrgico mobile — cards da Agenda + painel de ações arrastável em Lançamentos */
+/* MeuControle — V1.15: cards mobile uniformes com valor lateral + painel de ações arrastável */
 (()=>{
   if(window.__mcMobilePolishV114)return;window.__mcMobilePolishV114=true;
   const mobile=()=>matchMedia('(max-width:700px)').matches;
@@ -8,23 +8,38 @@
     if(document.getElementById('mcMobilePolishV114Style'))return;
     const st=document.createElement('style');st.id='mcMobilePolishV114Style';st.textContent=`
       @media(max-width:700px){
-        /* Agenda: mesma leitura visual de Lançamentos — conteúdo ancorado à esquerda. */
+        /* Cards mobile: duas linhas fixas. O valor financeiro ocupa a lateral direita sem alterar a altura. */
+        #launchesPage.mobile-launch-list .item.mc-mobile-compact-v102,
         #calendarPage .calendar-events-scroll .item.mc-agenda-compact-v105{
-          display:block!important;
+          position:relative!important;display:block!important;box-sizing:border-box!important;
           height:82px!important;min-height:82px!important;max-height:82px!important;
-          padding:12px 13px!important;
+          padding:12px 13px!important;overflow:hidden!important;
         }
+        #launchesPage.mobile-launch-list .item.mc-mobile-compact-v102 .item-main,
         #calendarPage .calendar-events-scroll .item.mc-agenda-compact-v105 .item-main{width:100%!important;min-width:0!important}
+        #launchesPage.mobile-launch-list .item.mc-mobile-compact-v102 .item-title-row,
         #calendarPage .calendar-events-scroll .item.mc-agenda-compact-v105 .item-title-row{
-          display:flex!important;grid-template-columns:none!important;align-items:center!important;justify-content:flex-start!important;gap:7px!important;width:100%!important;text-align:left!important;
+          display:flex!important;grid-template-columns:none!important;align-items:center!important;justify-content:flex-start!important;
+          gap:7px!important;width:100%!important;min-width:0!important;padding-right:104px!important;box-sizing:border-box!important;text-align:left!important;
         }
+        #launchesPage.mobile-launch-list .item.mc-mobile-compact-v102 .item-title,
         #calendarPage .calendar-events-scroll .item.mc-agenda-compact-v105 .item-title{
           margin:0!important;font-size:16px!important;line-height:1.2!important;text-align:left!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;
         }
+        #launchesPage.mobile-launch-list .item.mc-mobile-compact-v102 .meta,
         #calendarPage .calendar-events-scroll .item.mc-agenda-compact-v105 .meta{
-          margin-top:6px!important;font-size:11.5px!important;line-height:1.35!important;text-align:left!important;
+          margin-top:6px!important;font-size:11.5px!important;line-height:1.35!important;text-align:left!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;
+        }
+        #launchesPage.mobile-launch-list .item.mc-mobile-compact-v102 .mc-card-value-v113,
+        #calendarPage .calendar-events-scroll .item.mc-agenda-compact-v105 .mc-card-value-v113{
+          position:absolute!important;right:13px!important;top:14px!important;z-index:2!important;
+          display:block!important;margin:0!important;max-width:100px!important;
+          font-size:13px!important;line-height:1.2!important;font-weight:800!important;
+          white-space:nowrap!important;text-align:right!important;
         }
         #calendarPage .calendar-events-scroll .item.mc-agenda-compact-v105 .status-dot{display:none!important;visibility:hidden!important}
+        #launchesPage.mobile-launch-list .item.mc-mobile-compact-v102 .item-side,
+        #calendarPage .calendar-events-scroll .item.mc-agenda-compact-v105 .item-side{display:none!important}
 
         /* Lançamentos: recupera a mesma alça/arraste vertical já usada na Agenda. */
         .mc-card-actions-backdrop-v102{display:block!important;padding:12px!important;overflow:hidden!important;touch-action:none!important}
@@ -53,5 +68,5 @@
   function boot(){installStyle();bind();setTimeout(bind,250)}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,100),{once:true});else setTimeout(boot,100);
   window.addEventListener('load',()=>setTimeout(boot,500));
-  window.MeuControleMobilePolishV114={version:'1.14',refresh:boot};
+  window.MeuControleMobilePolishV114={version:'1.15',refresh:boot};
 })();
