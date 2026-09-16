@@ -1,2 +1,2 @@
-/* Meu Controle - Service Worker bootstrap V4.18: Painel é a referência da competência única */
-importScripts('./sw-core-v326.js?v=418');
+/* Meu Controle - Service Worker bootstrap V4.19: corrige seletor do Calendário na competência única */
+importScripts('./sw-core-v326.js?v=419');
