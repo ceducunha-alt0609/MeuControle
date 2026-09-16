@@ -1,2 +1,2 @@
-/* Meu Controle - Service Worker bootstrap V4.26: resumo mensal adaptativo e fechamento da impressão */
-importScripts('./sw-core-v326.js?v=426');
+/* Meu Controle - Service Worker bootstrap V4.27: observações nas ações e card mensal único na impressão */
+importScripts('./sw-core-v326.js?v=427');
