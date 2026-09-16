@@ -1,2 +1,2 @@
-/* Meu Controle - Service Worker bootstrap V3.79: protege data final das recorrências */
-importScripts('./sw-core-v326.js?v=379');
+/* Meu Controle - Service Worker bootstrap V3.80: seleção e exclusão em lote */
+importScripts('./sw-core-v326.js?v=380');
