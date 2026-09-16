@@ -1,36 +1,33 @@
-/* MeuControle — V1.49: seleção e exclusão em lote na consulta */
+/* MeuControle — V1.50: seleção em lote discreta; long press abre action sheet */
 (()=>{
- if(window.__mcBatchSelectionV149)return;window.__mcBatchSelectionV149=true;
+ if(window.__mcBatchSelectionV150)return;window.__mcBatchSelectionV150=true;
  const page=document.getElementById('launchesPage'),list=document.getElementById('list');if(!page||!list)return;
- const selected=new Set();let mode=false,longTimer=null,longTarget=null;
+ let longTimer=null,longTarget=null,suppressClick=false;
  const st=document.createElement('style');st.textContent=`
- .mc-batch-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 10px;padding:9px 10px;border:1px solid #dfe6e1;border-radius:11px;background:#f7faf8}
- .mc-batch-bar button{min-height:36px;padding:7px 10px;font-size:12px}.mc-batch-count{margin-right:auto;font-size:12px;font-weight:800;color:#526159}.mc-batch-delete{background:#b53d3d!important;color:#fff!important;border-color:#b53d3d!important}.mc-batch-delete:disabled{opacity:.45}
- #launchesPage.mc-batch-mode #list .item{position:relative;padding-left:48px!important;cursor:pointer!important;user-select:none;-webkit-user-select:none}
- .mc-batch-check{display:none;position:absolute;left:14px;top:50%;transform:translateY(-50%);width:24px;height:24px;border:2px solid #aebbb4;border-radius:7px;background:#fff;align-items:center;justify-content:center;font-family:system-ui,sans-serif;font-size:15px;font-weight:900;color:#fff;z-index:3}
- #launchesPage.mc-batch-mode .mc-batch-check{display:flex}.item.mc-batch-selected{outline:2px solid var(--primary)!important;outline-offset:-2px!important;background:rgba(var(--primary-rgb),.065)!important}.item.mc-batch-selected .mc-batch-check{background:var(--primary);border-color:var(--primary)}.item.mc-batch-selected .mc-batch-check::after{content:'✓'}
- #launchesPage.mc-batch-mode .item-actions{pointer-events:none;opacity:.35}
- .mc-batch-start{margin-left:auto!important}
- body.mc-dark .mc-batch-bar{background:#1b272e;border-color:#40505a}.mc-dark .mc-batch-count{color:#dce6eb}.mc-dark .mc-batch-check{background:#1b272e;border-color:#70818a}.mc-dark .item.mc-batch-selected{background:rgba(76,151,194,.12)!important}
- @media(max-width:700px){.mc-batch-bar{position:sticky;top:76px;z-index:30;margin-bottom:9px}.mc-batch-start{display:none!important}#launchesPage.mc-batch-mode #list .item{padding-left:43px!important}}
+ .mc-batch-sheet-backdrop{position:fixed;inset:0;z-index:2400;background:rgba(18,30,25,.38);display:flex;align-items:flex-end;justify-content:center;padding:18px}
+ .mc-batch-sheet-backdrop[hidden]{display:none!important}
+ .mc-batch-sheet{width:min(100%,620px);background:#fff;border-radius:26px;padding:12px 18px 20px;box-shadow:0 -12px 38px rgba(0,0,0,.18)}
+ .mc-batch-handle{width:74px;height:8px;border-radius:999px;background:#cbd6d0;margin:0 auto 18px}
+ .mc-batch-sheet-head{display:flex;gap:12px;align-items:flex-start;margin-bottom:18px}.mc-batch-sheet-copy{min-width:0;flex:1}.mc-batch-sheet-copy h3{margin:0;font-size:22px;line-height:1.2;color:#26362e}.mc-batch-sheet-copy p{margin:5px 0 0;color:#738078;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ .mc-batch-close{width:52px;height:52px;border:0;border-radius:16px;background:#eef3f0!important;color:#607068!important;font-size:24px!important;padding:0!important}
+ .mc-batch-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px}.mc-batch-actions button{min-height:58px;border-radius:15px;font-size:16px;font-weight:800}.mc-batch-one{background:var(--primary)!important;color:#fff!important}.mc-batch-results{background:#e5f0ea!important;color:#31503e!important}.mc-batch-delete{grid-column:1/-1;background:#b53d3d!important;color:#fff!important;border-color:#b53d3d!important}
+ body.mc-dark .mc-batch-sheet{background:#1b272e;border:1px solid #40505a}body.mc-dark .mc-batch-sheet-copy h3{color:#edf3f6}body.mc-dark .mc-batch-sheet-copy p{color:#aebbc3}body.mc-dark .mc-batch-handle{background:#596971}body.mc-dark .mc-batch-close{background:#26343c!important;color:#dce6eb!important}body.mc-dark .mc-batch-results{background:#263d35!important;color:#dce9e2!important}
+ @media(min-width:701px){.mc-batch-sheet-backdrop{align-items:center}.mc-batch-sheet{border-radius:20px}}
  `;document.head.appendChild(st);
- const tabs=page.querySelector('.tabs');
- const start=document.createElement('button');start.type='button';start.className='tab mc-batch-start';start.textContent='Selecionar';tabs?.appendChild(start);
- const bar=document.createElement('div');bar.className='mc-batch-bar';bar.hidden=true;bar.innerHTML='<strong class="mc-batch-count">0 selecionados</strong><button type="button" class="ghost mc-batch-all">Selecionar todos os resultados</button><button type="button" class="ghost mc-batch-cancel">Cancelar</button><button type="button" class="danger mc-batch-delete" disabled>Excluir</button>';
- tabs?.after(bar);
- const count=bar.querySelector('.mc-batch-count'),del=bar.querySelector('.mc-batch-delete');
+ const back=document.createElement('div');back.className='mc-batch-sheet-backdrop';back.hidden=true;back.innerHTML=`<section class="mc-batch-sheet" role="dialog" aria-modal="true" aria-labelledby="mcBatchTitle"><div class="mc-batch-handle"></div><div class="mc-batch-sheet-head"><div class="mc-batch-sheet-copy"><h3 id="mcBatchTitle">Selecionar lançamentos</h3><p class="mc-batch-subtitle"></p></div><button type="button" class="mc-batch-close" aria-label="Fechar">×</button></div><div class="mc-batch-actions"><button type="button" class="mc-batch-one">Excluir somente este</button><button type="button" class="mc-batch-results">Excluir resultados da pesquisa</button><button type="button" class="mc-batch-delete">Escolher vários lançamentos</button></div></section>`;document.body.appendChild(back);
+ let seedCard=null;
+ const subtitle=back.querySelector('.mc-batch-subtitle'),resultsBtn=back.querySelector('.mc-batch-results');
  function cards(){return [...list.querySelectorAll('.item')]}
- function ensureChecks(){cards().forEach(card=>{if(!card.querySelector('.mc-batch-check')){const c=document.createElement('span');c.className='mc-batch-check';card.prepend(c)}})}
- function sync(){ensureChecks();cards().forEach(c=>c.classList.toggle('mc-batch-selected',selected.has(c)));const n=selected.size;count.textContent=`${n} selecionado${n===1?'':'s'}`;del.disabled=!n;del.textContent=n?`Excluir ${n}`:'Excluir'}
- function enter(seed){mode=true;page.classList.add('mc-batch-mode');bar.hidden=false;selected.clear();ensureChecks();if(seed)selected.add(seed);sync()}
- function exit(){mode=false;selected.clear();page.classList.remove('mc-batch-mode');bar.hidden=true;cards().forEach(c=>c.classList.remove('mc-batch-selected'));sync()}
- function toggle(card){if(!mode)enter(card);else{selected.has(card)?selected.delete(card):selected.add(card);sync()}}
- start.onclick=()=>enter();bar.querySelector('.mc-batch-cancel').onclick=exit;
- bar.querySelector('.mc-batch-all').onclick=()=>{if(!mode)enter();cards().forEach(c=>selected.add(c));sync()};
- del.onclick=()=>{const chosen=[...selected];if(!chosen.length)return;const n=chosen.length;if(!confirm(`Excluir ${n} lançamento${n===1?'':'s'} selecionado${n===1?'':'s'}?\n\nEsta ação não pode ser desfeita, mas o MeuControle mantém backups automáticos.`))return;const buttons=chosen.map(c=>c.querySelector('.deleteBtn')).filter(Boolean);const original=window.confirm;try{window.confirm=()=>true;buttons.forEach(b=>b.click())}finally{window.confirm=original}exit()};
- list.addEventListener('click',e=>{if(!mode)return;const card=e.target.closest('.item');if(!card)return;e.preventDefault();e.stopPropagation();toggle(card)},true);
- list.addEventListener('pointerdown',e=>{if(mode||e.pointerType==='mouse')return;const card=e.target.closest('.item');if(!card)return;longTarget=card;longTimer=setTimeout(()=>{longTimer=null;enter(longTarget);navigator.vibrate?.(25)},560)},{passive:true});
+ function titleOf(card){return card?.querySelector('.item-title')?.textContent?.trim()||'Lançamento selecionado'}
+ function close(){back.hidden=true;seedCard=null}
+ function open(card){seedCard=card;subtitle.textContent=titleOf(card);const q=(document.getElementById('globalSearch')?.value||'').trim();resultsBtn.textContent=q?`Excluir ${cards().length} resultado${cards().length===1?'':'s'} da pesquisa`:`Excluir ${cards().length} resultado${cards().length===1?'':'s'} exibido${cards().length===1?'':'s'}`;back.hidden=false;navigator.vibrate?.(25)}
+ function deleteCards(chosen,label){const valid=chosen.filter(Boolean);if(!valid.length)return;const n=valid.length;if(!confirm(`Excluir ${n} lançamento${n===1?'':'s'} ${label}?\n\nO MeuControle mantém backups automáticos.`))return;const buttons=valid.map(c=>c.querySelector('.deleteBtn')).filter(Boolean);const original=window.confirm;try{window.confirm=()=>true;buttons.forEach(b=>b.click())}finally{window.confirm=original}close()}
+ back.querySelector('.mc-batch-close').onclick=close;back.addEventListener('click',e=>{if(e.target===back)close()});
+ back.querySelector('.mc-batch-one').onclick=()=>deleteCards([seedCard],'selecionado');
+ resultsBtn.onclick=()=>deleteCards(cards(),'exibidos');
+ back.querySelector('.mc-batch-delete').onclick=()=>{close();alert('Para escolher lançamentos diferentes, pesquise ou filtre primeiro e mantenha pressionado um deles. Assim, “resultados exibidos” vira exatamente o lote que será excluído.')};
+ list.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse')return;const card=e.target.closest('.item');if(!card)return;longTarget=card;longTimer=setTimeout(()=>{longTimer=null;suppressClick=true;open(longTarget);setTimeout(()=>suppressClick=false,450)},560)},{passive:true});
  const cancelLong=()=>{if(longTimer){clearTimeout(longTimer);longTimer=null}longTarget=null};list.addEventListener('pointerup',cancelLong,{passive:true});list.addEventListener('pointercancel',cancelLong,{passive:true});list.addEventListener('pointermove',e=>{if(longTimer&&longTarget){const r=longTarget.getBoundingClientRect();if(e.clientX<r.left-12||e.clientX>r.right+12||e.clientY<r.top-12||e.clientY>r.bottom+12)cancelLong()}},{passive:true});
- new MutationObserver(()=>{if(mode){selected.clear();sync()}}).observe(list,{childList:true});
- window.MeuControleBatchSelection={version:'1.49',enter,exit};
+ list.addEventListener('click',e=>{if(!suppressClick)return;e.preventDefault();e.stopImmediatePropagation()},true);
+ window.MeuControleBatchSelection={version:'1.50',open,close};
 })();
