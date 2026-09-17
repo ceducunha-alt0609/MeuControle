@@ -1,9 +1,9 @@
-/* MeuControle — V0.42: atalho mobile + observações compactas */
+/* MeuControle — V0.43: atalho mobile + observações ainda mais compactas */
 (function(){
   if(window.__meuControleQuickEntryV040Loaded)return;
   window.__meuControleQuickEntryV040Loaded=true;
 
-  const VERSION='0.42';
+  const VERSION='0.43';
   const mq=matchMedia('(max-width:700px)');
 
   function installStyles(){
@@ -13,7 +13,7 @@
     style.textContent=`
       .mc-quick-entry-v040{display:none}
       @media(max-width:700px){
-        #launchesPage.mobile-launch-form #notes{height:72px!important;min-height:72px!important;max-height:72px!important;resize:none!important}
+        #launchesPage.mobile-launch-form #notes{height:48px!important;min-height:48px!important;max-height:48px!important;resize:none!important}
         .mc-quick-entry-v040{
           position:fixed;right:16px;bottom:calc(82px + env(safe-area-inset-bottom,0px));z-index:2400;
           width:54px;height:54px;padding:0!important;border:1px solid rgba(255,255,255,.35)!important;
