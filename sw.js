@@ -1,2 +1,2 @@
-/* Meu Controle - Service Worker bootstrap V4.30: Painel mobile mais compacto */
-importScripts('./sw-core-v326.js?v=430');
+/* Meu Controle - Service Worker bootstrap V4.31: ajuste final de altura do Meu dia no mobile */
+importScripts('./sw-core-v326.js?v=431');
