@@ -1,2 +1,2 @@
-/* Meu Controle - Service Worker bootstrap V4.40: observações ainda mais compactas no novo lançamento mobile */
-importScripts('./sw-core-v326.js?v=440');
+/* Meu Controle - Service Worker bootstrap V4.41: seis cards e receitas no Painel desktop */
+importScripts('./sw-core-v326.js?v=441');
