@@ -1,2 +1,2 @@
-/* Meu Controle - Service Worker bootstrap V4.43: trava ordem visual dos seis cards no Painel desktop */
-importScripts('./sw-core-v326.js?v=443');
+/* Meu Controle - Service Worker bootstrap V4.44: cards do Painel desktop obedecem à competência selecionada */
+importScripts('./sw-core-v326.js?v=444');
