@@ -1,2 +1,2 @@
-/* Meu Controle - Service Worker bootstrap V4.51: destaque azul nas opções selecionadas do tema escuro */
-importScripts('./sw-core-v326.js?v=451');
+/* Meu Controle - Service Worker bootstrap V4.52: modal de saída compatível com tema escuro */
+importScripts('./sw-core-v326.js?v=452');
