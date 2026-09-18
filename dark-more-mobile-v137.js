@@ -1,4 +1,4 @@
-/* MeuControle — V1.37.3: acabamento final dark do Mais no mobile */
+/* MeuControle — V1.37.4: selecionados azuis e mais visíveis no tema escuro */
 (function(){
  if(window.__mcDarkMoreMobileV137)return;window.__mcDarkMoreMobileV137=true;
  const st=document.createElement('style');st.id='mcDarkMoreMobileV137Style';st.textContent=`
@@ -46,7 +46,10 @@
   body.mc-dark #settingsPage .theme-choice strong{color:#edf3f6!important}
   body.mc-dark #settingsPage .theme-choice small{color:#b3c0c7!important}
   body.mc-dark #settingsPage .appearance-group button:not(.active),body.mc-dark #settingsPage .mobile-appearance-card button:not(.active){background:#26343c!important;color:#dce6eb!important;border-color:#40515b!important}
-  body.mc-dark #settingsPage .appearance-group button.active,body.mc-dark #settingsPage .mobile-appearance-card button.active{color:#eef7fc!important}
+  body.mc-dark #settingsPage .appearance-group button.active:not(.theme-choice),body.mc-dark #settingsPage .mobile-appearance-card button.active:not(.theme-choice){background:#1f5f93!important;color:#fff!important;border-color:#3f8fbd!important;box-shadow:0 0 0 2px rgba(78,159,210,.18)!important}
+  body.mc-dark #settingsPage .theme-choice.active{background:#203f53!important;border-color:#3f8fbd!important;box-shadow:0 0 0 2px rgba(78,159,210,.16)!important}
+  body.mc-dark #settingsPage .theme-choice.active strong{color:#f4fbff!important}
+  body.mc-dark #settingsPage .theme-choice.active small{color:#c6deeb!important}
   body.mc-dark #settingsPage .mc-help-card-v037 summary{color:#dce6eb!important}
   body.mc-dark #settingsPage .mc-help-card-v037 details p{color:#b7c3c9!important}
   body.mc-dark #settingsPage .mc-help-card-v037 details{border-color:#40505a!important}
