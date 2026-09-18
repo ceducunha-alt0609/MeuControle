@@ -1,2 +1,2 @@
-/* Meu Controle - Service Worker bootstrap V4.49: action sheets mobile compatíveis com tema escuro */
-importScripts('./sw-core-v326.js?v=449');
+/* Meu Controle - Service Worker bootstrap V4.50: modo automático acompanha o sistema sem flash */
+importScripts('./sw-core-v326.js?v=450');
