@@ -1,4 +1,4 @@
-/* MeuControle — V1.02.1: cards compactos estáveis + ações acessíveis no mobile */
+/* MeuControle — V1.02.2: cards compactos + ações com tema escuro consistente */
 (()=>{
   if(window.__mcMobileCardActionsV102)return;window.__mcMobileCardActionsV102=true;
   const mobile=()=>matchMedia('(max-width:700px)').matches;
@@ -35,6 +35,14 @@
         .mc-card-actions-close-v102{width:38px;height:38px;min-height:38px!important;padding:0!important;border-radius:11px!important;background:#eef3f0!important;color:#526158!important;box-shadow:none!important}
         .mc-card-actions-grid-v102{display:grid;grid-template-columns:1fr 1fr;gap:9px}.mc-card-actions-grid-v102 button{min-height:46px!important;border-radius:12px!important;font-size:13px!important}
         .mc-card-action-delete-v102{background:#a53b3b!important;border-color:#a53b3b!important;color:#fff!important}
+        body.mc-dark .mc-card-actions-backdrop-v102{background:rgba(5,12,16,.66)!important}
+        body.mc-dark .mc-card-actions-sheet-v102{background:#182229!important;color:#e3ebef!important;border:1px solid #34434c!important;box-shadow:0 -18px 48px rgba(0,0,0,.48)!important}
+        body.mc-dark .mc-card-actions-copy-v102 strong{color:#eef4f7!important}
+        body.mc-dark .mc-card-actions-copy-v102 span{color:#aebcc3!important}
+        body.mc-dark .mc-card-actions-close-v102{background:#26343d!important;color:#dce7ec!important;border:1px solid #34434c!important}
+        body.mc-dark .mc-card-actions-grid-v102 .secondary-action{background:#26343d!important;color:#eef4f7!important;border-color:#34434c!important}
+        body.mc-dark .mc-card-actions-grid-v102 [data-card-action="done"]{background:#1f5f93!important;color:#fff!important;border-color:#1f5f93!important}
+        body.mc-dark .mc-card-action-delete-v102{background:#a53b3b!important;border-color:#b94a4a!important;color:#fff!important}
         body.mc-bulk-active-mobile #mcQuickEntryV040{opacity:0!important;transform:translateY(8px) scale(.92)!important;pointer-events:none!important}
       }
       @media(max-width:700px) and (prefers-reduced-motion:reduce){.mc-card-actions-sheet-v102{scroll-behavior:auto!important}}
@@ -104,5 +112,5 @@
   function boot(){installStyle();ensureSheet();wrap();redecorate()}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
   window.addEventListener('resize',redecorate);
-  window.MeuControleMobileCardActionsV102={version:'1.02.1',refresh:redecorate,close:closeSheet};
+  window.MeuControleMobileCardActionsV102={version:'1.02.2',refresh:redecorate,close:closeSheet};
 })();
