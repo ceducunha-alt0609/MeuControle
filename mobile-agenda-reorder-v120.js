@@ -1,7 +1,7 @@
 /* MeuControle — V1.20: reordenação manual da Agenda mobile por dia selecionado */
 (()=>{
   if(window.__mcMobileAgendaReorderV120)return;window.__mcMobileAgendaReorderV120=true;
-  const VERSION='1.20';
+  const VERSION='1.20.1';
   const mobile=()=>matchMedia('(max-width:700px)').matches;
   let active=false,drag=null,observer=null,refreshQueued=false;
 
@@ -153,8 +153,12 @@
     if(root&&!observer){observer=new MutationObserver(queueRefresh);observer.observe(root,{childList:true,subtree:true})}
     root?.addEventListener('click',e=>{if(active&&e.target.closest('.item[data-entry-id]')){e.preventDefault();e.stopImmediatePropagation()}},true);
     document.getElementById('calendarSearch')?.addEventListener('input',()=>{if(active)finish(false);queueRefresh()});
-    document.querySelectorAll('.nav-btn[data-page="calendar"]').forEach(b=>b.addEventListener('click',queueRefresh));
+    document.querySelectorAll('.nav-btn[data-page="calendar"]').forEach(b=>b.addEventListener('click',()=>{queueRefresh();setTimeout(queueRefresh,120)}));
+    document.getElementById('mobileCalendarGridV109')?.addEventListener('click',e=>{
+      if(e.target.closest('button[data-date]')){queueRefresh();setTimeout(queueRefresh,60);setTimeout(queueRefresh,180)}
+    });
     window.addEventListener('meucontrole:user-workspace-imported',()=>{if(active)finish(false);queueRefresh()});
+    let tries=0;const wait=setInterval(()=>{tries++;queueRefresh();if(window.MeuControleMobileCalendarGridV110||tries>30)clearInterval(wait)},120);
   }
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
