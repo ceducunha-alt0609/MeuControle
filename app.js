@@ -199,6 +199,7 @@ function renderProfilesList(){
 
 function createItemNode(e,context='list'){
   const node=$('itemTemplate').content.cloneNode(true),article=node.querySelector('.item');
+  article.dataset.entryId=e.id;
   article.classList.add(statusClass(e));if(e.important)article.classList.add('important-item');
   node.querySelector('.item-title').textContent=e.description;
   node.querySelector('.badge').textContent=typeLabel(e.type);
