@@ -1,8 +1,8 @@
-/* MeuControle — V0.46: fechar aplicativo sem encerrar Firebase */
+/* MeuControle — V0.46.1: fechar aplicativo com modal compatível com tema escuro */
 (function(){
   if(window.__meuControleSessionExitV045Loaded)return;
   window.__meuControleSessionExitV045Loaded=true;
-  const VERSION='0.46';
+  const VERSION='0.46.1';
   const isMobile=()=>matchMedia('(max-width:700px)').matches;
 
   function style(){
@@ -12,6 +12,12 @@
       .mc-exit-card-v045 strong{display:block;font-size:15px;color:#7f302c}.mc-exit-card-v045 small{display:block;margin-top:3px;font-size:10px;color:#9a6b67;font-weight:500}.mc-exit-card-v045 span:last-child{font:700 22px system-ui,sans-serif;color:#b38c88}
       .mc-exit-backdrop-v045{position:fixed;inset:0;z-index:100800;background:rgba(12,27,38,.48);backdrop-filter:blur(5px);display:flex;align-items:center;justify-content:center;padding:20px}
       .mc-exit-dialog-v045{width:min(430px,100%);background:#fff;border-radius:20px;padding:21px;box-shadow:0 26px 70px rgba(0,0,0,.28);color:#263a30}.mc-exit-dialog-v045 h3{margin:0;font-size:21px}.mc-exit-dialog-v045 p{margin:8px 0 0;font-size:12px;line-height:1.5;color:#6f7d75}.mc-exit-actions-v045{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:18px}.mc-exit-actions-v045 button{min-height:44px}.mc-exit-confirm-v045{background:#983d36!important;color:#fff!important}
+      body.mc-dark .mc-exit-backdrop-v045{background:rgba(5,12,16,.68)!important}
+      body.mc-dark .mc-exit-dialog-v045{background:#182229!important;color:#e7edf1!important;border:1px solid #34434c!important;box-shadow:0 28px 80px rgba(0,0,0,.5)!important}
+      body.mc-dark .mc-exit-dialog-v045 h3{color:#eef4f7!important}
+      body.mc-dark .mc-exit-dialog-v045 p{color:#b7c3c9!important}
+      body.mc-dark .mc-exit-cancel-v045{background:#26343c!important;color:#eef4f7!important;border:1px solid #40515b!important}
+      body.mc-dark .mc-exit-confirm-v045{background:#a53b3b!important;color:#fff!important;border-color:#b94a4a!important}
       @media(max-width:700px){.mc-exit-backdrop-v045{align-items:flex-end;padding:14px}.mc-exit-dialog-v045{border-radius:20px 20px 15px 15px}.mc-exit-card-v045{margin-top:10px;min-height:76px}}
     `;document.head.appendChild(st);
   }
