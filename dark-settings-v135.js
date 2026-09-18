@@ -1,4 +1,4 @@
-/* MeuControle — V1.35.5: acabamento dark completo de Configuracoes */
+/* MeuControle — V1.35.6: destaque azul para opções selecionadas no tema escuro */
 (function(){
  if(window.__mcDarkSettingsV135)return;window.__mcDarkSettingsV135=true;
  const st=document.createElement('style');st.id='mcDarkSettingsV135Style';st.textContent=`
@@ -27,10 +27,12 @@
   body.mc-dark #settingsPage .appearance-label{color:#aebbc3!important}
   body.mc-dark #settingsPage .appearance-group>small{color:#aebbc3!important;opacity:1!important}
   body.mc-dark #settingsPage .appearance-choice,body.mc-dark #settingsPage .theme-choice{background:#202c33!important;color:#e4ebef!important;border-color:#40515b!important}
-  body.mc-dark #settingsPage .appearance-choice.active{background:#263d4c!important;color:#eef7fc!important;border-color:#63849a!important;box-shadow:inset 0 0 0 1px rgba(120,174,207,.18)!important}
+  body.mc-dark #settingsPage .appearance-choice.active{background:#1f5f93!important;color:#fff!important;border-color:#3f8fbd!important;box-shadow:0 0 0 2px rgba(78,159,210,.18)!important}
   body.mc-dark #settingsPage .theme-choice strong{color:#edf3f6!important}
   body.mc-dark #settingsPage .theme-choice small{color:#b3c0c7!important}
-  body.mc-dark #settingsPage .theme-choice.active{border-color:#63849a!important;background:#233642!important}
+  body.mc-dark #settingsPage .theme-choice.active{border-color:#3f8fbd!important;background:#203f53!important;box-shadow:0 0 0 2px rgba(78,159,210,.16)!important}
+  body.mc-dark #settingsPage .theme-choice.active strong{color:#f4fbff!important}
+  body.mc-dark #settingsPage .theme-choice.active small{color:#c6deeb!important}
   body.mc-dark #settingsPage .settings-card hr{border-color:#40505a!important}
   body.mc-dark #settingsPage .settings-card h4{color:#edf3f6!important}
   body.mc-dark #settingsPage .settings-card [class*="notify"] p,body.mc-dark #settingsPage .settings-card [class*="notification"] p{color:#aebbc3!important}
