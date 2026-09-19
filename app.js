@@ -362,9 +362,26 @@ function nextRecurrenceDate(dateISO,recurrence,anchorDay){
   const add=recurrence==='monthly'?1:recurrence==='semiannual'?6:recurrence==='yearly'?12:0;if(!add)return null;
   const total=y*12+(m-1)+add,ny=Math.floor(total/12),nm=(total%12)+1,nd=Math.min(anchorDay,daysInMonth(ny,nm));return`${ny}-${String(nm).padStart(2,'0')}-${String(nd).padStart(2,'0')}`;
 }
+function effectiveEntryDate(dateISO,useBusinessDay){
+  if(!useBusinessDay||!dateISO)return dateISO;
+  return nextBusinessDay(dateISO).date;
+}
 function generateRecurringEntries(first,until,mode){
-  const arr=[first];if(!until||first.recurrence==='none')return arr;const anchor=Number(first.date.split('-')[2]);let cursor=first.date,guard=0;
-  while(guard++<1000){const next=nextRecurrenceDate(cursor,first.recurrence,anchor);if(!next||next>until)break;const f={...first,id:crypto.randomUUID(),date:next,done:false,doneAt:null};if(first.type==='despesa'&&mode==='variable'){f.value=0;f.valuePending=true}arr.push(f);cursor=next}
+  const nominalFirst=first.scheduledDate||first.date;
+  const firstActual=effectiveEntryDate(nominalFirst,first.useBusinessDay);
+  const base={...first,date:firstActual,scheduledDate:first.useBusinessDay?nominalFirst:null};
+  const arr=[base];
+  if(!until||first.recurrence==='none')return arr;
+  const anchor=Number(nominalFirst.split('-')[2]);let cursor=nominalFirst,guard=0;
+  while(guard++<1000){
+    const nextNominal=nextRecurrenceDate(cursor,first.recurrence,anchor);
+    if(!nextNominal)break;
+    const nextActual=effectiveEntryDate(nextNominal,first.useBusinessDay);
+    if(nextActual>until)break;
+    const f={...first,id:crypto.randomUUID(),date:nextActual,scheduledDate:first.useBusinessDay?nextNominal:null,done:false,doneAt:null};
+    if(first.type==='despesa'&&mode==='variable'){f.value=0;f.valuePending=true}
+    arr.push(f);cursor=nextNominal;
+  }
   return arr;
 }
 function resetForm(){
@@ -437,7 +454,7 @@ function applyRestore(){
 
 $('entryForm').addEventListener('submit',ev=>{
   ev.preventDefault();createAutoBackup(editingId?'Antes de editar lançamento':'Antes de novo lançamento');const data={profile:$('profile').value,type:$('type').value,category:$('category').value,value:Number($('value').value||0),description:$('description').value.trim(),date:$('date').value,time:$('time').value,useBusinessDay:$('useBusinessDay').checked,recurrence:$('recurrence').value,remind:Number($('remind').value),important:$('important').checked,notes:$('notes').value.trim(),valuePending:false};
-  if(editingId){const e=entries.find(x=>x.id===editingId);if(e){Object.assign(e,data);e.valuePending=false}}else{const first={id:crypto.randomUUID(),...data,done:false,doneAt:null,seriesId:data.recurrence!=='none'?crypto.randomUUID():null};entries.push(...generateRecurringEntries(first,$('repeatUntil').value,$('recurringValueMode').value))}
+  if(editingId){const e=entries.find(x=>x.id===editingId);if(e){const scheduled=data.date,actual=effectiveEntryDate(scheduled,data.useBusinessDay);Object.assign(e,data,{date:actual,scheduledDate:data.useBusinessDay?scheduled:null});e.valuePending=false}}else{const first={id:crypto.randomUUID(),...data,scheduledDate:data.useBusinessDay?data.date:null,done:false,doneAt:null,seriesId:data.recurrence!=='none'?crypto.randomUUID():null};entries.push(...generateRecurringEntries(first,$('repeatUntil').value,$('recurringValueMode').value))}
   save();resetForm();renderAll();checkNotifications();
 });
 $('clearBtn').onclick=resetForm;$('cancelEditBtn').onclick=resetForm;$('recurrence').onchange=updateRecurrenceUI;$('date').onchange=updateBusinessDayInfo;$('useBusinessDay').onchange=updateBusinessDayInfo;
