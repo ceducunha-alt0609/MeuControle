@@ -33,5 +33,3 @@
  function boot(){css();enhanceForm();patchSubmit();setTimeout(mobileReorderFix,0);setTimeout(mobileReorderFix,150);new MutationObserver(()=>decorate()).observe(document.body,{childList:true,subtree:true});decorate()}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
-/* v1.63: Android fecha o seletor nativo antes de abrir nosso sheet. Também permite tocar novamente em Semanal. */
-(function(){const r=document.getElementById('recurrence');if(!r)return;const open=()=>{if((r.value==='weekly'||r.value==='weekdays'||r.value==='custom')&&typeof openRecModal==='function')setTimeout(()=>openRecModal(r.value),180)};r.addEventListener('click',()=>{if(r.value==='weekly')open()});})();
