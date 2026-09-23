@@ -80,7 +80,7 @@
 
     groups.forEach((group,index)=>{
       const monthIndex=group.month-1,label=new Date(group.year,monthIndex,1).toLocaleDateString('pt-BR',{month:'long',year:'numeric'}).replace(/^./,c=>c.toUpperCase());
-      if(!monthState.has(group.key))monthState.set(group.key,group.key===nowKey||(index===0&&!groups.some(g=>g.key===nowKey)));
+      if(!monthState.has(group.key))monthState.set(group.key,currentFilter==='done'||group.key===nowKey||(index===0&&!groups.some(g=>g.key===nowKey)));else if(currentFilter==='done')monthState.set(group.key,true);
       let open=monthState.get(group.key);
       const monthHeading=document.createElement('div');
       monthHeading.className=`desktop-month-heading-v020 tone-${monthIndex%3}${open?'':' collapsed'}`;
