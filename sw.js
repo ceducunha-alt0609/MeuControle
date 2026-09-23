@@ -1,2 +1,2 @@
-/* Meu Controle - Service Worker bootstrap V4.68: limpa testes de layout do calendário desktop */
-importScripts('./sw-core-v331.js?v=468');
+/* Meu Controle - Service Worker bootstrap V4.69: limpa testes de layout do calendário desktop */
+importScripts('./sw-core-v332.js?v=469');
