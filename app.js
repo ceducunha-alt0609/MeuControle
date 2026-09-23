@@ -206,19 +206,6 @@ function createItemNode(e,context='list'){
   const meta=[fmtDate(e.date)];if(e.time)meta.push(e.time);meta.push(profileName(e.profile));if(e.category)meta.push(e.category);if(e.recurrence&&e.recurrence!=='none')meta.push(recurrenceLabel(e.recurrence));const bd=businessDayLabel(e);if(bd)meta.push(bd);
   node.querySelector('.meta').textContent=meta.join(' • ');
   node.querySelector('.notes').textContent=e.notes||'';
-  if(Array.isArray(e.steps)&&e.steps.length){
-    const main=node.querySelector('.item-main'),wrap=document.createElement('div');wrap.className='mc-card-steps';
-    const completed=e.steps.filter(s=>s.done).length;
-    wrap.innerHTML='<button type="button" class="mc-card-steps-toggle">☑ Etapas <span class="mc-card-progress">'+completed+'/'+e.steps.length+'</span> ▾</button><div class="mc-card-steps-list"></div>';
-    const list=wrap.querySelector('.mc-card-steps-list');
-    e.steps.forEach((step,i)=>{
-      const row=document.createElement('label');row.className='mc-card-step'+(step.done?' done':'');
-      row.innerHTML='<input type="checkbox" '+(step.done?'checked':'')+'><span></span>';row.querySelector('span').textContent=step.text;
-      row.querySelector('input').onchange=ev=>{step.done=ev.target.checked;row.classList.toggle('done',step.done);save();wrap.querySelector('.mc-card-progress').textContent=e.steps.filter(s=>s.done).length+'/'+e.steps.length};
-      list.appendChild(row);
-    });
-    wrap.querySelector('.mc-card-steps-toggle').onclick=()=>wrap.classList.toggle('open');main.appendChild(wrap);
-  }
   node.querySelector('.amount').textContent=e.type==='despesa'?(e.valuePending?'Valor a definir':fmtMoney(e.value)):'';
   node.querySelector('.editBtn').onclick=()=>{startEdit(e.id);showPage('launches')};
   const done=node.querySelector('.doneBtn');done.textContent=e.done?'Reabrir':'Concluir';done.onclick=()=>toggleDone(e.id);
