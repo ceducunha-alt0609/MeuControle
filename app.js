@@ -206,6 +206,19 @@ function createItemNode(e,context='list'){
   const meta=[fmtDate(e.date)];if(e.time)meta.push(e.time);meta.push(profileName(e.profile));if(e.category)meta.push(e.category);if(e.recurrence&&e.recurrence!=='none')meta.push(recurrenceLabel(e.recurrence));const bd=businessDayLabel(e);if(bd)meta.push(bd);
   node.querySelector('.meta').textContent=meta.join(' • ');
   node.querySelector('.notes').textContent=e.notes||'';
+  if(Array.isArray(e.steps)&&e.steps.length){
+    const main=node.querySelector('.item-main'),wrap=document.createElement('div');wrap.className='mc-card-steps';
+    const completed=e.steps.filter(s=>s.done).length;
+    wrap.innerHTML='<button type="button" class="mc-card-steps-toggle">☑ Etapas <span class="mc-card-progress">'+completed+'/'+e.steps.length+'</span> ▾</button><div class="mc-card-steps-list"></div>';
+    const list=wrap.querySelector('.mc-card-steps-list');
+    e.steps.forEach((step,i)=>{
+      const row=document.createElement('label');row.className='mc-card-step'+(step.done?' done':'');
+      row.innerHTML='<input type="checkbox" '+(step.done?'checked':'')+'><span></span>';row.querySelector('span').textContent=step.text;
+      row.querySelector('input').onchange=ev=>{step.done=ev.target.checked;row.classList.toggle('done',step.done);save();wrap.querySelector('.mc-card-progress').textContent=e.steps.filter(s=>s.done).length+'/'+e.steps.length};
+      list.appendChild(row);
+    });
+    wrap.querySelector('.mc-card-steps-toggle').onclick=()=>wrap.classList.toggle('open');main.appendChild(wrap);
+  }
   node.querySelector('.amount').textContent=e.type==='despesa'?(e.valuePending?'Valor a definir':fmtMoney(e.value)):'';
   node.querySelector('.editBtn').onclick=()=>{startEdit(e.id);showPage('launches')};
   const done=node.querySelector('.doneBtn');done.textContent=e.done?'Reabrir':'Concluir';done.onclick=()=>toggleDone(e.id);
@@ -385,11 +398,11 @@ function generateRecurringEntries(first,until,mode){
   return arr;
 }
 function resetForm(){
-  editingId=null;$('entryForm').reset();$('date').value=localDateISO();$('profile').value=activeProfile==='all'?'pessoal':activeProfile;$('saveBtn').textContent='Salvar lançamento';$('cancelEditBtn').classList.add('hidden');$('formPanel').classList.remove('editing');$('repeatUntil').value='';$('recurringValueMode').value='fixed';updateRecurrenceUI();updateBusinessDayInfo();
+  editingId=null;$('entryForm').reset();const sb=$('mcSteps');if(sb)sb.innerHTML='';const sc=$('mcStepCount');if(sc)sc.textContent='';$('date').value=localDateISO();$('profile').value=activeProfile==='all'?'pessoal':activeProfile;$('saveBtn').textContent='Salvar lançamento';$('cancelEditBtn').classList.add('hidden');$('formPanel').classList.remove('editing');$('repeatUntil').value='';$('recurringValueMode').value='fixed';updateRecurrenceUI();updateBusinessDayInfo();
 }
 function startEdit(id){
   const e=entries.find(x=>x.id===id);if(!e)return;editingId=id;
-  $('profile').value=e.profile||'pessoal';$('type').value=e.type;$('category').value=e.category||'';$('value').value=e.valuePending?'':(e.value||'');$('description').value=e.description;$('date').value=e.date;$('time').value=e.time||'';$('useBusinessDay').checked=!!e.useBusinessDay;$('recurrence').value=e.recurrence||'none';$('remind').value=String(e.remind??0);$('important').checked=!!e.important;$('notes').value=e.notes||'';updateRecurrenceUI();updateBusinessDayInfo();$('saveBtn').textContent='Salvar alterações';$('cancelEditBtn').classList.remove('hidden');$('formPanel').classList.add('editing');
+  $('profile').value=e.profile||'pessoal';$('type').value=e.type;$('category').value=e.category||'';$('value').value=e.valuePending?'':(e.value||'');$('description').value=e.description;$('date').value=e.date;$('time').value=e.time||'';$('useBusinessDay').checked=!!e.useBusinessDay;$('recurrence').value=e.recurrence||'none';$('remind').value=String(e.remind??0);$('important').checked=!!e.important;$('notes').value=e.notes||'';const sb=$('mcSteps');if(sb){sb.innerHTML='';(e.steps||[]).forEach(step=>{const row=document.createElement('div');row.className='mc-step-row';row.innerHTML='<input type="text" maxlength="120"><button type="button" aria-label="Remover etapa">×</button>';row.querySelector('input').value=step.text||'';row.dataset.done=step.done?'1':'0';row.querySelector('button').onclick=()=>row.remove();sb.appendChild(row)});const sc=$('mcStepCount');if(sc)sc.textContent=e.steps?.length?(e.steps.length+' etapa'+(e.steps.length>1?'s':'')):''}updateRecurrenceUI();updateBusinessDayInfo();$('saveBtn').textContent='Salvar alterações';$('cancelEditBtn').classList.remove('hidden');$('formPanel').classList.add('editing');
 }
 function toggleDone(id){const e=entries.find(x=>x.id===id);if(!e)return;createAutoBackup(e.done?'Antes de reabrir lançamento':'Antes de concluir lançamento');e.done=!e.done;e.doneAt=e.done?new Date().toISOString():null;save();renderAll()}
 function removeEntry(id){if(!confirm('Excluir este lançamento?'))return;createAutoBackup('Antes de excluir lançamento');entries=entries.filter(e=>e.id!==id);save();renderAll()}
@@ -453,7 +466,7 @@ function applyRestore(){
 }
 
 $('entryForm').addEventListener('submit',ev=>{
-  ev.preventDefault();createAutoBackup(editingId?'Antes de editar lançamento':'Antes de novo lançamento');const data={profile:$('profile').value,type:$('type').value,category:$('category').value,value:Number($('value').value||0),description:$('description').value.trim(),date:$('date').value,time:$('time').value,useBusinessDay:$('useBusinessDay').checked,recurrence:$('recurrence').value,remind:Number($('remind').value),important:$('important').checked,notes:$('notes').value.trim(),valuePending:false};
+  ev.preventDefault();createAutoBackup(editingId?'Antes de editar lançamento':'Antes de novo lançamento');const data={profile:$('profile').value,type:$('type').value,category:$('category').value,value:Number($('value').value||0),description:$('description').value.trim(),date:$('date').value,time:$('time').value,useBusinessDay:$('useBusinessDay').checked,recurrence:$('recurrence').value,remind:Number($('remind').value),important:$('important').checked,notes:$('notes').value.trim(),steps:[...document.querySelectorAll('#mcSteps .mc-step-row')].map(row=>({text:row.querySelector('input')?.value.trim()||'',done:row.dataset.done==='1'})).filter(s=>s.text),valuePending:false};
   if(editingId){const e=entries.find(x=>x.id===editingId);if(e){const scheduled=data.date,actual=effectiveEntryDate(scheduled,data.useBusinessDay);Object.assign(e,data,{date:actual,scheduledDate:data.useBusinessDay?scheduled:null});e.valuePending=false}}else{const first={id:crypto.randomUUID(),...data,scheduledDate:data.useBusinessDay?data.date:null,done:false,doneAt:null,seriesId:data.recurrence!=='none'?crypto.randomUUID():null};entries.push(...generateRecurringEntries(first,$('repeatUntil').value,$('recurringValueMode').value))}
   save();resetForm();renderAll();checkNotifications();
 });
