@@ -163,11 +163,11 @@
   const form=document.getElementById('entryForm');
   if(form){
     const labelOf=id=>document.getElementById(id)?.closest('label');
-    const profile=labelOf('profile'),type=labelOf('type'),category=labelOf('category'),value=labelOf('value'),description=labelOf('description'),date=labelOf('date'),time=labelOf('time'),business=labelOf('useBusinessDay'),businessInfo=document.getElementById('businessDayInfo'),recurrence=labelOf('recurrence'),remind=labelOf('remind'),recurrenceOptions=document.getElementById('recurrenceOptions'),important=labelOf('important'),notes=labelOf('notes'),actions=form.querySelector('.actions');
+    const profile=labelOf('profile'),type=labelOf('type'),category=labelOf('category'),value=labelOf('value'),description=labelOf('description'),date=labelOf('date'),time=labelOf('time'),business=labelOf('useBusinessDay'),businessInfo=document.getElementById('businessDayInfo'),recurrence=labelOf('recurrence'),remind=labelOf('remind'),recurrenceOptions=document.getElementById('recurrenceOptions'),important=labelOf('important'),notes=labelOf('notes'),steps=document.getElementById('mcStepsBox'),actions=form.querySelector('.actions');
     if(profile&&type&&category&&value&&description&&date&&time&&business&&recurrence&&remind&&important&&notes&&actions){
       profile.classList.add('mobile-profile');type.classList.add('mobile-type');category.classList.add('mobile-category');value.classList.add('mobile-value');description.classList.add('mobile-description');date.classList.add('mobile-date');time.classList.add('mobile-time');recurrence.classList.add('mobile-recurrence');remind.classList.add('mobile-remind');notes.classList.add('mobile-notes');actions.classList.add('mobile-actions');
       const profileImportant=document.createElement('div');profileImportant.className='mobile-profile-important';profile.before(profileImportant);profileImportant.append(profile,important);
-      [type,category,date,time,value,description,business,businessInfo,recurrence,remind,recurrenceOptions,notes,actions].forEach(el=>el&&form.appendChild(el));
+      [type,category,date,time,value,description,business,businessInfo,recurrence,remind,recurrenceOptions,notes,steps,actions].forEach(el=>el&&form.appendChild(el));
     }
   }
 
