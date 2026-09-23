@@ -168,6 +168,8 @@
       profile.classList.add('mobile-profile');type.classList.add('mobile-type');category.classList.add('mobile-category');value.classList.add('mobile-value');description.classList.add('mobile-description');date.classList.add('mobile-date');time.classList.add('mobile-time');recurrence.classList.add('mobile-recurrence');remind.classList.add('mobile-remind');notes.classList.add('mobile-notes');actions.classList.add('mobile-actions');
       const profileImportant=document.createElement('div');profileImportant.className='mobile-profile-important';profile.before(profileImportant);profileImportant.append(profile,important);
       [type,category,date,time,value,description,business,businessInfo,recurrence,remind,recurrenceOptions,notes,steps,actions].forEach(el=>el&&form.appendChild(el));
+      /* Etapas deve permanecer imediatamente após Observações, inclusive se outro módulo alterar o DOM. */
+      if(steps&&notes)notes.insertAdjacentElement('afterend',steps);
     }
   }
 
