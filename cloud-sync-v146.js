@@ -77,7 +77,7 @@
         }
         else if(isEmpty(local)&&!isEmpty(remote.workspace)){await applyRemote(remote,run,{notify:false})}
         else if(!isEmpty(local)&&isEmpty(remote.workspace)){localDirty=true;await upload('dados locais desta conta',run)}
-        else if(meta.lastCloudHash===lh){await applyRemote(remote,run,{notify:false})}
+        else if(meta.lastCloudHash===lh){const remoteTime=Date.parse(remote.clientUpdatedAt||0)||0,localTime=Date.parse(meta.lastLocalChangeAt||0)||0;if(localTime&&localTime>remoteTime){localDirty=true;await upload('alterações locais mais recentes',run)}else await applyRemote(remote,run,{notify:false})}
         else if(meta.lastCloudHash===rh){localDirty=true;await upload('alterações locais pendentes',run)}
         else{const remoteTime=Date.parse(remote.clientUpdatedAt||0)||0,localTime=Date.parse(meta.lastLocalChangeAt||0)||0;if(localTime&&localTime>=remoteTime){localDirty=true;await upload('versão local mais recente',run)}else await applyRemote(remote,run,{notify:false})}
       }
