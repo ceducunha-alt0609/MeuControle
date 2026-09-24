@@ -25,12 +25,12 @@ async function deviceState(uid,x){
 
 async function processUser(uid){
   const ref=db.collection('users').doc(uid).collection('pushReminders');
-  const snap=await ref.where('sent','==',false).limit(300).get();
+  const snap=await ref.where('sent','==',false).where('fireAt','<=',now).limit(100).get();
   for(const d of snap.docs){
     const x=d.data()||{},fireAt=Number(x.fireAt||0);
     if(!fireAt||fireAt>now)continue;
     checked++;
-    const diag=await deviceState(uid,x),base={reminder:d.id,entryId:String(x.entryId||''),phase:String(x.phase||'remind'),fireAt:new Date(fireAt).toISOString(),tokenHash:tokenHash(x.token),...diag};
+    const base={reminder:d.id,entryId:String(x.entryId||''),phase:String(x.phase||'remind'),fireAt:new Date(fireAt).toISOString(),tokenHash:tokenHash(x.token),deviceId:String(x.deviceId||'none')};
     if(fireAt<now-STALE){
       skipped++;
       console.log(JSON.stringify({push:'skipped-stale',...base}));
