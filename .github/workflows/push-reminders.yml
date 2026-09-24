@@ -2,10 +2,9 @@ name: MeuControle Push Reminders
 
 on:
   schedule:
-    # Dois relógios defasados aumentam a chance de execução pontual quando o
-    # scheduler do GitHub atrasa ou descarta uma das janelas de alta carga.
-    - cron: '2-59/5 * * * *'
-    - cron: '4-59/5 * * * *'
+    # Uma execução a cada 10 minutos reduz drasticamente leituras no Firestore
+    # sem comprometer os lembretes do MeuControle.
+    - cron: '*/10 * * * *'
   workflow_dispatch:
 
 permissions:
