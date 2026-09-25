@@ -17,6 +17,8 @@
         #launchesPage .mobile-launch-back{display:none!important}
         #launchesPage #list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:start}
         #launchesPage .item{display:grid;grid-template-columns:12px minmax(0,1fr);gap:10px 12px;align-items:start;min-height:118px;padding:16px;cursor:pointer;transition:.16s ease;background:#fff}
+        #launchesPage .item.recurring-item:not(.important-item){border-color:#86b99a!important;box-shadow:inset 3px 0 0 #2f8f5b!important}
+        #launchesPage .item.recurring-item:not(.important-item):hover{box-shadow:inset 3px 0 0 #2f8f5b,0 8px 18px rgba(0,0,0,.06)!important}
         #launchesPage .item:hover{transform:translateY(-1px);box-shadow:0 8px 18px rgba(0,0,0,.06)}
         #launchesPage .item:focus-visible,#launchesPage .desktop-month-heading-v020:focus-visible{outline:3px solid rgba(var(--primary-rgb),.28);outline-offset:2px}
         #launchesPage .item-main{min-width:0}
