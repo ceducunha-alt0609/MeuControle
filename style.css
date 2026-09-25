@@ -167,3 +167,10 @@ body.theme-graphite{--primary:#39444c;--primary-dark:#293238;--primary-soft:#f0f
   .topnav .nav-btn:nth-child(4)::after{content:"Mais"}
   .topnav .nav-btn.active{background:var(--primary-soft)!important;color:var(--primary)!important}
 }
+
+
+/* Recorrentes: borda verde; importantes mantêm prioridade visual âmbar */
+.item.recurring-item{
+  border-color:#86b99a;
+  box-shadow:inset 3px 0 0 #2f8f5b;
+}
