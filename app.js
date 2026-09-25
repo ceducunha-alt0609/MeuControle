@@ -200,7 +200,7 @@ function renderProfilesList(){
 function createItemNode(e,context='list'){
   const node=$('itemTemplate').content.cloneNode(true),article=node.querySelector('.item');
   article.dataset.entryId=e.id;
-  article.classList.add(statusClass(e));if(e.important)article.classList.add('important-item');
+  article.classList.add(statusClass(e));if(e.important)article.classList.add('important-item');else if(e.recurrence&&e.recurrence!=='none')article.classList.add('recurring-item');
   node.querySelector('.item-title').textContent=e.description;
   node.querySelector('.badge').textContent=typeLabel(e.type);
   const meta=[fmtDate(e.date)];if(e.time)meta.push(e.time);meta.push(profileName(e.profile));if(e.category)meta.push(e.category);if(e.recurrence&&e.recurrence!=='none')meta.push(recurrenceLabel(e.recurrence));const bd=businessDayLabel(e);if(bd)meta.push(bd);
