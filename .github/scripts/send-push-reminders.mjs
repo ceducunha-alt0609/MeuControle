@@ -25,7 +25,7 @@ async function deviceState(uid,x){
 
 async function processUser(uid){
   const ref=db.collection('users').doc(uid).collection('pushReminders');
-  const snap=await ref.where('sent','==',false).where('fireAt','<=',now).limit(100).get();
+  const snap=await ref.where('sent','==',false).limit(100).get();
   for(const d of snap.docs){
     const x=d.data()||{},fireAt=Number(x.fireAt||0);
     if(!fireAt||fireAt>now)continue;
