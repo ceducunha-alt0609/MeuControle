@@ -127,7 +127,7 @@ function profileName(id){return profiles.find(p=>p.id===(id||'pessoal'))?.name||
 function profileFiltered(list,profile=activeProfile){return profile==='all'?list:list.filter(e=>(e.profile||'pessoal')===profile)}
 function daysFromToday(s){return Math.round((dateOnly(s)-dateOnly(localDateISO()))/86400000)}
 function statusClass(e){if(e.done)return'done';const d=daysFromToday(e.date);if(d<0)return'late';if(d===0)return'today';return'future'}
-function typeLabel(t){return({despesa:'Despesa',compromisso:'Compromisso',consulta:'Consulta',lembrete:'Lembrete'})[t]||t}
+function typeLabel(t){return({despesa:'Despesa',recebimento:'A receber',receita:'A receber',compromisso:'Compromisso',consulta:'Consulta',lembrete:'Lembrete'})[t]||t}
 function recurrenceLabel(r){return({none:'Não repete',daily:'Diário',weekly:'Semanal',monthly:'Mensal',semiannual:'Semestral',yearly:'Anual'})[r]||r}
 function monthName(i){return new Date(2020,i,1).toLocaleDateString('pt-BR',{month:'long'}).replace(/^./,c=>c.toUpperCase())}
 
