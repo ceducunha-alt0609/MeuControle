@@ -34,6 +34,24 @@
       .mobile-more-copy strong{display:block;font-size:17px;line-height:1.2;color:#24352c}
       .mobile-more-copy small{display:block;margin-top:4px;color:#738078;font-size:11px;line-height:1.35;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
       .mobile-more-arrow{font-family:system-ui,sans-serif;font-size:24px;color:#9aa6a0;text-align:right}
+
+      /* Tema Branco — home Mais: cards claros e contraste coerente */
+      body.theme-white .mobile-more-card{
+        background:#fff!important;
+        color:#173f5b!important;
+        border-color:#d7e3e9!important;
+        box-shadow:0 6px 18px rgba(31,64,84,.055)!important;
+      }
+      body.theme-white .mobile-more-copy strong{color:#173f5b!important}
+      body.theme-white .mobile-more-copy small{color:#667b88!important}
+      body.theme-white .mobile-more-arrow{color:#8195a1!important}
+      body.theme-white .mobile-more-icon{
+        background:#eaf4fb!important;
+        color:#176aa3!important;
+        border:1px solid #d7e7f1!important;
+      }
+      body.theme-white .mobile-more-card:active{background:#f7fbfd!important}
+
       .mobile-settings-back{display:flex!important;align-items:center;width:max-content;margin:0 0 10px;padding:7px 4px;background:transparent!important;color:var(--primary)!important;font-size:13px}
       #settingsPage.mobile-settings-detail .settings-card.mobile-settings-active{padding:16px!important;border-radius:15px!important}
       #settingsPage.mobile-settings-detail .settings-card.mobile-settings-active>h3{font-size:22px!important;margin-bottom:5px!important}
@@ -84,6 +102,8 @@
       <button type="button" class="mobile-more-card" data-more="app"><span class="mobile-more-icon">▤</span><span class="mobile-more-copy"><strong>Aplicativo</strong><small id="mobileMoreApp">Instalação e notificações</small></span><span class="mobile-more-arrow">›</span></button>
       <button type="button" class="mobile-more-card" data-more="profiles"><span class="mobile-more-icon">♙</span><span class="mobile-more-copy"><strong>Perfis</strong><small id="mobileMoreProfiles">Perfis cadastrados</small></span><span class="mobile-more-arrow">›</span></button>
       <button type="button" class="mobile-more-card" data-more="appearance"><span class="mobile-more-icon">◐</span><span class="mobile-more-copy"><strong>Aparência</strong><small id="mobileMoreAppearance">Fonte e tema</small></span><span class="mobile-more-arrow">›</span></button>
+      <button type="button" class="mobile-more-card" data-more="help"><span class="mobile-more-icon">?</span><span class="mobile-more-copy"><strong>Ajuda</strong><small>Guia rápido e tour inicial</small></span><span class="mobile-more-arrow">›</span></button>
+      <button type="button" class="mobile-more-card" data-more="close"><span class="mobile-more-icon">↪</span><span class="mobile-more-copy"><strong>Fechar MeuControle</strong><small>Fechar sem desconectar a sincronização</small></span><span class="mobile-more-arrow">›</span></button>
     </div>`;
   title.after(home);
 
@@ -92,7 +112,7 @@
     if(kind==='profile')return grid.querySelector('.mobile-profile-card');
     return cards().find(c=>{
       const h=c.querySelector('h3')?.textContent.trim().toLowerCase()||'';
-      return kind==='data'?h.includes('dados e segurança'):kind==='app'?h==='aplicativo':kind==='profiles'?h==='perfis':kind==='appearance'?h==='aparência':false;
+      return kind==='data'?h.includes('dados e segurança'):kind==='app'?h==='aplicativo':kind==='profiles'?h==='perfis':kind==='appearance'?h==='aparência':kind==='help'?h==='ajuda':false;
     });
   };
   findCard('data')?.classList.add('mobile-data-card');
@@ -177,7 +197,16 @@
     syncProfileChoices();
   }
 
-  home.querySelectorAll('[data-more]').forEach(b=>b.onclick=()=>openDetail(b.dataset.more));
+  home.querySelectorAll('[data-more]').forEach(b=>b.onclick=()=>{
+    const kind=b.dataset.more;
+    if(kind==='close'){
+      const closeBtn=document.querySelector('[data-action="close-app"],#closeAppBtn,.close-app-btn');
+      if(closeBtn){closeBtn.click();return}
+      try{window.close()}catch{}
+      return;
+    }
+    openDetail(kind);
+  });
   document.querySelectorAll('.nav-btn[data-page="settings"]').forEach(btn=>btn.addEventListener('click',()=>{if(mq.matches)setTimeout(openHome,0)}));
   document.getElementById('mobileProfileFilter')?.addEventListener('change',syncSummaries);
   document.getElementById('profileFilter')?.addEventListener('change',syncSummaries);
