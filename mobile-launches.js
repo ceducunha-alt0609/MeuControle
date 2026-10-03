@@ -39,11 +39,11 @@
       .mobile-launch-card small{display:block;margin-top:6px;color:#738078;font-size:12px;line-height:1.4;font-weight:500}
       .mobile-launch-arrow{font-family:system-ui,sans-serif;font-size:25px;color:#9aa6a0;text-align:right}
       /* Tema Branco: cards iniciais de Lançamentos */
-      body[data-theme="white"] .mobile-launch-card{background:#fff!important;color:#17344a!important;border-color:#d5e2e9!important;box-shadow:0 6px 18px rgba(31,64,84,.07)!important}
-      body[data-theme="white"] .mobile-launch-card strong{color:#173f5b!important}
-      body[data-theme="white"] .mobile-launch-card small{color:#617888!important}
-      body[data-theme="white"] .mobile-launch-arrow{color:#607888!important}
-      body[data-theme="white"] .mobile-launch-icon{background:#eaf4fb!important;color:#176aa3!important}
+      body.theme-white .mobile-launch-card{background:#fff!important;color:#17344a!important;border-color:#d5e2e9!important;box-shadow:0 6px 18px rgba(31,64,84,.07)!important}
+      body.theme-white .mobile-launch-card strong{color:#173f5b!important}
+      body.theme-white .mobile-launch-card small{color:#617888!important}
+      body.theme-white .mobile-launch-arrow{color:#607888!important}
+      body.theme-white .mobile-launch-icon{background:#eaf4fb!important;color:#176aa3!important}
       .mobile-launch-back{display:flex!important;align-items:center;gap:7px;width:max-content;margin:0 0 10px;padding:7px 10px;background:transparent!important;color:var(--primary)!important;font-size:13px}
       #launchesPage .panel{border-radius:15px;padding:16px}
       .mobile-profile-card{display:block!important;order:-1}
