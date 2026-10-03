@@ -95,6 +95,42 @@ body.theme-white .top-stat,body.theme-white .nav-btn{color:#17211c;border:1px so
 body.theme-white .nav-btn.active{background:#17211c;color:#fff}
 body.theme-white .brand p,body.theme-white .profile-filter-wrap{color:#425148}
 body.theme-white button:not(.secondary):not(.ghost):not(.secondary-action):not(.danger):not(.top-stat):not(.nav-btn):not(.premium-card):not(.theme-choice):not(.appearance-choice):not(.calendar-month-btn){background:#17211c;color:#fff}
+body.theme-white{--primary:#175f98;--primary-dark:#0f466f;--primary-soft:#eaf4fb;--primary-rgb:23,95,152;--page-bg:#f5f8fa;--text:#152b3c}
+body.theme-white .topbar{background:#fff!important;color:#152b3c!important;border-bottom:1px solid #d8e2e8!important;box-shadow:0 2px 12px rgba(26,61,84,.055)}
+body.theme-white .brand p{color:#617888!important;opacity:1}
+body.theme-white .top-stat{background:#fff!important;color:#17344a!important;border:1px solid #dce5ea!important;box-shadow:0 4px 12px rgba(31,64,84,.06)}
+body.theme-white .top-stat span{color:#607888!important;opacity:1}
+body.theme-white .topbar-lower{background:#edf3f6!important;border-top:1px solid #e1e9ed}
+body.theme-white .nav-btn{background:#fff!important;color:#243e50!important;border:1px solid #d5e0e6!important;border-bottom:0!important}
+body.theme-white .nav-btn.active{background:#173f5b!important;color:#fff!important;border-color:#173f5b!important}
+body.theme-white .profile-filter-wrap{color:#425b6b!important}
+body.theme-white .panel,body.theme-white .calendar-shell,body.theme-white .settings-card,body.theme-white .calendar-events-panel{border:1px solid #e1e8ec}
+body.theme-white .premium-cards{border-color:#dce6eb;box-shadow:0 5px 16px rgba(31,64,84,.045)}
+body.theme-white .premium-card{border-color:#d7e1e6;box-shadow:0 5px 14px rgba(31,64,84,.045)}
+body.theme-white .premium-card .premium-label{color:#526b7b}
+body.theme-white .premium-card strong{color:#17344a}
+body.theme-white .premium-card small{color:#627887}
+body.theme-white label{color:#354f60}
+body.theme-white input,body.theme-white select,body.theme-white textarea,body.theme-white .search-wrap{border-color:#bccbd4;color:#183246;background:#fff}
+body.theme-white .tabs .tab{background:#e7eef2;color:#395568}
+body.theme-white .tabs .tab.active{background:#173f5b;color:#fff}
+body.theme-white .item{border-color:#d8e2e7;background:#fff}
+body.theme-white .meta,body.theme-white .notes{color:#5d7483}
+body.theme-white .calendar-months{background:#f8fafb;border-color:#d9e4e9}
+body.theme-white .calendar-month-btn{color:#3d596a}
+body.theme-white .calendar-month-btn:hover{background:#edf4f7}
+body.theme-white .appearance-choice{background:#e9eff2;color:#314d5e}
+body.theme-white .appearance-choice.active{background:#173f5b;color:#fff;border-color:#173f5b}
+body.theme-white .theme-choice{border-color:#d4dfe5;color:#213b4d;box-shadow:0 2px 7px rgba(31,64,84,.025)}
+body.theme-white .theme-choice.active{border-color:#175f98;box-shadow:0 0 0 2px rgba(23,95,152,.10)}
+body.theme-white .theme-choice small{color:#617786}
+body.theme-white .appearance-label{color:#425e70}
+@media(max-width:700px){
+ body.theme-white .topnav{background:#fff!important;border-top-color:#d5e0e6!important}
+ body.theme-white .topnav .nav-btn{background:transparent!important;border:0!important;color:#526b7b!important}
+ body.theme-white .topnav .nav-btn.active{background:#eaf4fb!important;color:#175f98!important}
+ body.theme-white .topbar-lower{background:#f5f8fa!important}
+}
 body.theme-black{--primary:#111513;--primary-dark:#050706;--primary-soft:#202622;--primary-rgb:200,210,204;--page-bg:#0d100f;--text:#edf2ef}
 body.theme-black .panel,body.theme-black .calendar-shell,body.theme-black .settings-card,body.theme-black .premium-cards,body.theme-black .premium-card,body.theme-black .calendar-events-panel,body.theme-black .calendar-months,body.theme-black .modal-card,body.theme-black .item,body.theme-black .dashboard-card,body.theme-black .dashboard-detail-row{background:#171b19;color:#edf2ef;border-color:#303833}
 body.theme-black input,body.theme-black select,body.theme-black textarea,body.theme-black .search-wrap,body.theme-black .theme-choice{background:#111513;color:#edf2ef;border-color:#39423d}
