@@ -88,7 +88,7 @@ function ensureUI(){
     .firebase-sync-message.show{display:block}
     body.mc-dark .firebase-sync-box{border-top-color:#314049}
     body.mc-dark .firebase-sync-head p{color:#9eabb3!important}
-    body.mc-dark .firebase-sync-user{background:#1b262d;color:#b9c5cb}
+    body.mc-dark .firebase-sync-user{background:#1b262d;color:#b9c5cb}body.theme-black .firebase-sync-box{border-top-color:#344a56!important}body.theme-black .firebase-sync-head h4{color:#edf5f9!important}body.theme-black .firebase-sync-head p{color:#a6bbc6!important}body.theme-black .firebase-sync-user{background:#142129!important;color:#b9cad2!important;border:1px solid #304550!important}
     @media(max-width:700px){
       .firebase-sync-head{display:grid;grid-template-columns:1fr auto}
       .firebase-sync-actions{display:grid;grid-template-columns:1fr}
