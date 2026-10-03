@@ -346,3 +346,23 @@ body.theme-black hr{border-color:#31444f!important}
   border-color:#86b99a;
   box-shadow:inset 3px 0 0 #2f8f5b;
 }
+
+
+/* Tema Branco mobile — Central Hoje */
+@media(max-width:700px){
+  body.theme-white #dashboardPage .central-hoje-v041{
+    background:#fff!important;
+    border:1px solid #d8e4ea!important;
+    box-shadow:0 6px 18px rgba(31,64,84,.06)!important;
+  }
+  body.theme-white #dashboardPage .central-hoje-head-v041{border-bottom-color:#e3ebef!important}
+  body.theme-white #dashboardPage .central-hoje-head-v041 h3{color:#173f5b!important}
+  body.theme-white #dashboardPage .central-hoje-head-v041 p{color:#617888!important}
+  body.theme-white #dashboardPage .central-hoje-date-v041{color:#175f98!important}
+  body.theme-white #dashboardPage .central-lane-title-v041 strong{color:#29485d!important}
+  body.theme-white #dashboardPage .central-lane-v041{border-right-color:#e4ebef!important}
+  body.theme-white #dashboardPage .central-more-v041{color:#5d7483!important}
+  body.theme-white #dashboardPage .central-done-v041{
+    background:#eaf4fb!important;color:#176aa3!important;border-color:#cfe0ea!important
+  }
+}
