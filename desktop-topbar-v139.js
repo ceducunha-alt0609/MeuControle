@@ -15,6 +15,12 @@
     .desktop-profile-menu-v139{position:absolute;right:50px;top:50px;width:230px;max-height:320px;overflow:auto;padding:7px;background:#fff;border:1px solid #dfe6e1;border-radius:13px;box-shadow:0 16px 38px rgba(0,0,0,.2);z-index:1600;color:var(--text)}
     .desktop-profile-menu-v139[hidden]{display:none!important}.desktop-profile-option-v139{width:100%;min-height:40px;padding:8px 10px;background:transparent;color:#263a30;display:flex;align-items:center;gap:9px;text-align:left;border-radius:9px;box-shadow:none}.desktop-profile-option-v139:hover{background:var(--primary-soft);transform:none}.desktop-profile-option-v139.active{background:var(--primary-soft);color:var(--primary)}.desktop-profile-check-v139{width:18px;text-align:center;font-weight:900}
     .topbar-lower .profile-filter-wrap{display:none!important}.topbar-lower{justify-content:flex-start}
+    body.theme-white .desktop-top-tools-v139 .sync-quick-v103{background:#eaf4fb!important;color:#176aa3!important;border:1px solid #c9deeb!important;box-shadow:0 3px 10px rgba(23,95,152,.08)!important}
+    body.theme-white .desktop-top-tools-v139 .sync-quick-v103:hover,body.theme-white .desktop-top-tools-v139 .sync-quick-v103:focus-visible{background:#dceef9!important;border-color:#a9cfe5!important}
+    body.theme-white .desktop-profile-btn-v139{background:#f2f6f8!important;color:#176aa3!important;border:1px solid #d4e0e6!important;box-shadow:0 3px 10px rgba(31,64,84,.055)!important}
+    body.theme-white .desktop-profile-btn-v139:hover,body.theme-white .desktop-profile-btn-v139:focus-visible{background:#e7f1f6!important;border-color:#bfd5e0!important}
+    body.theme-white .desktop-exit-btn-v139{background:#fff2f1!important;color:#b34a43!important;border:1px solid #efd2cf!important;box-shadow:0 3px 10px rgba(145,55,48,.055)!important}
+    body.theme-white .desktop-exit-btn-v139:hover,body.theme-white .desktop-exit-btn-v139:focus-visible{background:#fce5e3!important;border-color:#e5b9b5!important}
   }`;document.head.appendChild(st)}
   function profileData(){try{const list=Array.isArray(profiles)?profiles:[];return [{id:'all',name:'Todos'},...list.map(p=>({id:p.id,name:p.name}))]}catch{return [{id:'all',name:'Todos'}]}}
   function currentId(){try{return typeof activeProfile!=='undefined'&&activeProfile?activeProfile:'all'}catch{return'all'}}
