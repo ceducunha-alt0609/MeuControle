@@ -88,6 +88,26 @@ body.font-merriweather .brand h1{letter-spacing:-.3px}
 body.theme-blue{--primary:#164f78;--primary-dark:#103c5c;--primary-soft:#edf5fa;--primary-rgb:22,79,120;--page-bg:#f3f6f8;--text:#1d2c35}
 body.theme-green{--primary:#1f6f4a;--primary-dark:#174f36;--primary-soft:#eef7f2;--primary-rgb:31,111,74;--page-bg:#f3f6f4;--text:#1e2a22}
 body.theme-graphite{--primary:#39444c;--primary-dark:#293238;--primary-soft:#f0f2f3;--primary-rgb:57,68,76;--page-bg:#f4f5f5;--text:#242c31}
+body.theme-white{--primary:#f8faf9;--primary-dark:#e8eeeb;--primary-soft:#f5f7f6;--primary-rgb:92,108,99;--page-bg:#ffffff;--text:#17211c}
+body.theme-white .topbar{color:#17211c;border-bottom:1px solid #dce4df}
+body.theme-white .topbar-lower{background:#eef2f0}
+body.theme-white .top-stat,body.theme-white .nav-btn{color:#17211c;border:1px solid #dce4df;background:#fff}
+body.theme-white .nav-btn.active{background:#17211c;color:#fff}
+body.theme-white .brand p,body.theme-white .profile-filter-wrap{color:#425148}
+body.theme-white button:not(.secondary):not(.ghost):not(.secondary-action):not(.danger):not(.top-stat):not(.nav-btn):not(.premium-card):not(.theme-choice):not(.appearance-choice):not(.calendar-month-btn){background:#17211c;color:#fff}
+body.theme-black{--primary:#111513;--primary-dark:#050706;--primary-soft:#202622;--primary-rgb:200,210,204;--page-bg:#0d100f;--text:#edf2ef}
+body.theme-black .panel,body.theme-black .calendar-shell,body.theme-black .settings-card,body.theme-black .premium-cards,body.theme-black .premium-card,body.theme-black .calendar-events-panel,body.theme-black .calendar-months,body.theme-black .modal-card,body.theme-black .item,body.theme-black .dashboard-card,body.theme-black .dashboard-detail-row{background:#171b19;color:#edf2ef;border-color:#303833}
+body.theme-black input,body.theme-black select,body.theme-black textarea,body.theme-black .search-wrap,body.theme-black .theme-choice{background:#111513;color:#edf2ef;border-color:#39423d}
+body.theme-black .topbar{background:#090b0a}
+body.theme-black .topbar-lower{background:#050706}
+body.theme-black .nav-btn.active{background:#edf2ef;color:#111513}
+body.theme-black .premium-card strong,body.theme-black .item-title,body.theme-black .settings-card h3,body.theme-black .calendar-head h2,body.theme-black .list-top h2,body.theme-black .panel-head h2{color:#edf2ef}
+body.theme-black .premium-card small,body.theme-black .premium-card .premium-label,body.theme-black .meta,body.theme-black .notes,body.theme-black .settings-card p,body.theme-black .panel-head p,body.theme-black .calendar-head p,body.theme-black .list-top p{color:#aeb9b2}
+body.theme-black .tabs .tab,body.theme-black .ghost,body.theme-black .secondary-action{background:#252c28;color:#dce5df}
+body.theme-black .secondary{background:#edf2ef;color:#111513}
+body.theme-black .today-card{background:#202622}
+body.theme-black .calendar-month-btn{color:#dce5df}
+body.theme-black .calendar-month-btn:hover{background:#252c28}
 .topbar{background:var(--primary)}
 .nav-btn.active{color:var(--primary)}
 .secondary{color:var(--primary)}
@@ -107,7 +127,7 @@ body.theme-graphite{--primary:#39444c;--primary-dark:#293238;--primary-soft:#f0f
 .theme-choice.active{border-color:var(--primary);box-shadow:0 0 0 2px rgba(var(--primary-rgb),.08)}
 .theme-choice small{display:block;margin-top:2px;color:#77847c;font-weight:500}
 .theme-swatch{width:30px;height:30px;border-radius:9px;flex:0 0 30px}
-.swatch-blue{background:#164f78}.swatch-green{background:#1f6f4a}.swatch-graphite{background:#39444c}
+.swatch-blue{background:#164f78}.swatch-green{background:#1f6f4a}.swatch-graphite{background:#39444c}.swatch-white{background:#fff;border:1px solid #cfd8d2}.swatch-black{background:#0d100f;border:1px solid #39423d}
 
 /* V2.2.1 — Configurações compactas em linha */
 .settings-shell{max-width:1320px}
