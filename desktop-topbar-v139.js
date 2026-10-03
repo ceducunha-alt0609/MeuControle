@@ -21,6 +21,9 @@
     body.theme-white .desktop-profile-btn-v139:hover,body.theme-white .desktop-profile-btn-v139:focus-visible{background:#e7f1f6!important;border-color:#bfd5e0!important}
     body.theme-white .desktop-exit-btn-v139{background:#fff2f1!important;color:#b34a43!important;border:1px solid #efd2cf!important;box-shadow:0 3px 10px rgba(145,55,48,.055)!important}
     body.theme-white .desktop-exit-btn-v139:hover,body.theme-white .desktop-exit-btn-v139:focus-visible{background:#fce5e3!important;border-color:#e5b9b5!important}
+    body.theme-white .desktop-top-tools-v139 .sync-quick-v103 .sync-quick-icon-v103{color:#176aa3!important}
+    body.theme-white .desktop-profile-btn-v139>span{color:#176aa3!important;filter:none!important}
+    body.theme-white .desktop-exit-btn-v139>span{color:#b34a43!important;filter:none!important}
   }`;document.head.appendChild(st)}
   function profileData(){try{const list=Array.isArray(profiles)?profiles:[];return [{id:'all',name:'Todos'},...list.map(p=>({id:p.id,name:p.name}))]}catch{return [{id:'all',name:'Todos'}]}}
   function currentId(){try{return typeof activeProfile!=='undefined'&&activeProfile?activeProfile:'all'}catch{return'all'}}
