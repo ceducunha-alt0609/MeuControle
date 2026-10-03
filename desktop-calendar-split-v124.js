@@ -35,6 +35,26 @@
   #calendarPage .mc-cal-done-heading-v124 strong{font-size:11px;letter-spacing:.055em;text-transform:uppercase;color:#637168}#calendarPage .mc-cal-done-count-v124{margin-left:auto;font-size:10px;font-weight:700;color:#8a958f}.mc-cal-done-toggle-v124{width:25px;height:25px;display:inline-flex;align-items:center;justify-content:center;border:1px solid rgba(var(--primary-rgb),.18);border-radius:8px;background:#fff;color:var(--primary);font:800 16px/1 system-ui;transition:transform .16s ease}.mc-cal-done-heading-v124.collapsed .mc-cal-done-toggle-v124{transform:rotate(-90deg)}
   #calendarPage .mc-cal-done-item-v124.mc-hidden-v124{display:none!important}#calendarPage .mc-cal-no-pending-v124{grid-column:1/-1;padding:14px;border:1px dashed #dce5e0;border-radius:12px;text-align:center;color:#7b8881;font-size:13px}
   body.mc-dark #calendarPage .mc-cal-nav-v124{background:linear-gradient(180deg,#183342,#142c39);border-bottom-color:#31505f}body.mc-dark #calendarPage .mc-cal-nav-v124 button{background:#203b49;color:#e8f3f8}body.mc-dark #calendarPage .mc-cal-nav-v124 button:hover{background:#294958}body.mc-dark #calendarPage .mc-cal-nav-v124 strong{color:#f2f7f9}body.mc-dark #calendarPage .mc-cal-year-v124{color:#b4c7d1}body.mc-dark #calendarPage #calendarMonthTitle{color:#f1f6f8!important}body.mc-dark #calendarPage #calendarMonthSummary{color:#c0d0d8!important}
+  body.theme-black #calendarPage .mc-cal-board-v124{background:#0d181e!important;border-color:#304650!important;box-shadow:0 6px 18px rgba(0,0,0,.28)!important}
+  body.theme-black #calendarPage .mc-cal-nav-v124{background:linear-gradient(180deg,#142934,#10222c)!important;border-bottom-color:#304b59!important}
+  body.theme-black #calendarPage .mc-cal-nav-v124 button{background:#183441!important;color:#6ec1ff!important}
+  body.theme-black #calendarPage .mc-cal-nav-v124 button:hover{background:#204555!important}
+  body.theme-black #calendarPage .mc-cal-nav-v124 strong{color:#eef7fb!important}
+  body.theme-black #calendarPage .mc-cal-year-v124{color:#9eb9c7!important}
+  body.theme-black #calendarPage .mc-cal-week-v124{background:#101d24!important;border-bottom-color:#2a3f4a!important}
+  body.theme-black #calendarPage .mc-cal-week-v124 span{color:#9fb6c2!important;border-right-color:#263a45!important}
+  body.theme-black #calendarPage .mc-cal-day-v124{background:#0e1a20!important;color:#e5eff4!important;border-right-color:#243843!important;border-bottom-color:#243843!important}
+  body.theme-black #calendarPage .mc-cal-day-v124:hover{background:#172a34!important}
+  body.theme-black #calendarPage .mc-cal-day-v124.out{background:#0a1419!important}
+  body.theme-black #calendarPage .mc-cal-day-v124.today{background:#168fe0!important;color:#fff!important;box-shadow:0 5px 14px rgba(0,126,214,.32)!important}
+  body.theme-black #calendarPage .mc-cal-day-v124.selected:not(.today){background:#153246!important;color:#79c9ff!important;box-shadow:inset 0 0 0 1px #27698f!important}
+  body.theme-black #calendarPage .mc-cal-clear-v124{background:#172a34!important;color:#bfe2f5!important}
+  body.theme-black #calendarPage .calendar-events-panel{background:#0d181e!important;border-color:#304650!important}
+  body.theme-black #calendarPage .mc-cal-pending-title-v124{color:#9fb6c2!important}
+  body.theme-black #calendarPage .mc-cal-no-pending-v124{background:#0b151b!important;border-color:#304650!important;color:#91a9b5!important}
+  body.theme-black #calendarPage .mc-cal-done-heading-v124{border-color:#2c414c!important;background:#111f27!important;color:#a9bdc7!important}
+  body.theme-black #calendarPage .mc-cal-done-heading-v124 strong{color:#a9bdc7!important}
+  body.theme-black #calendarPage .mc-cal-done-toggle-v124{background:#172a34!important;color:#6ec1ff!important;border-color:#31505f!important}
  }
  @media(min-width:701px) and (max-width:1050px){#calendarPage #calendarEventsList{grid-template-columns:1fr!important}#calendarPage .mc-cal-day-v124{min-height:52px}#calendarPage .calendar-events-panel{max-height:430px}}
  `;document.head.appendChild(s)}
