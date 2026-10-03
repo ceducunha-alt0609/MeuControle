@@ -398,7 +398,7 @@ function removeEntry(id){if(!confirm('Excluir este lançamento?'))return;createA
 function applyAppearance(){
   const theme=localStorage.getItem(THEME_KEY)||'blue';
   const font=localStorage.getItem(FONT_KEY)||'merriweather';
-  document.body.classList.remove('theme-blue','theme-green','theme-graphite','font-merriweather');
+  document.body.classList.remove('theme-blue','theme-green','theme-graphite','theme-white','theme-black','font-merriweather');
   document.body.classList.add(`theme-${theme}`);
   if(font==='merriweather')document.body.classList.add('font-merriweather');
   document.querySelectorAll('[data-theme]').forEach(b=>b.classList.toggle('active',b.dataset.theme===theme));
