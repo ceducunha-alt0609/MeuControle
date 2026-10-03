@@ -21,7 +21,7 @@
   const paint=()=>{
    const card=slot.querySelector('.settings-card');if(card){card.style.setProperty('background','#101b21','important');card.style.setProperty('color','#edf5f9','important');card.style.setProperty('border-color','#304550','important')}
    const session=slot.querySelector('.mc-user-session-v141');if(session){session.style.setProperty('background','#111d24','important');session.style.setProperty('color','#edf5f9','important');session.style.setProperty('border-color','#344a56','important')}
-   const sync=slot.querySelector('.firebase-sync-box');if(sync){sync.style.setProperty('background','transparent','important');sync.style.setProperty('color','#edf5f9','important');sync.style.setProperty('border-top-color','#344a56','important')}
+   const sync=slot.querySelector('.firebase-sync-box');if(sync){sync.style.setProperty('background','#142129','important');sync.style.setProperty('color','#edf5f9','important');sync.style.setProperty('border','1px solid #304550','important');sync.style.setProperty('border-radius','12px','important')}
    const user=slot.querySelector('.firebase-sync-user');if(user){user.style.setProperty('background','#142129','important');user.style.setProperty('color','#b9cad2','important');user.style.setProperty('border','1px solid #304550','important')}
    slot.querySelectorAll('.mc-user-session-head-v141 h4,.mc-user-session-copy-v141 strong,.firebase-sync-head h4').forEach(x=>x.style.setProperty('color','#edf5f9','important'));
    slot.querySelectorAll('.mc-user-session-head-v141 p,.mc-user-session-copy-v141 span,.firebase-sync-head p').forEach(x=>x.style.setProperty('color','#a6bbc6','important'));
