@@ -191,6 +191,35 @@ body.theme-black .ghost,body.theme-black .secondary-action{background:#18262e!im
 body.theme-black .today-card{background:#101d24!important}
 body.theme-black .closing,body.theme-black .help-diagnostic,body.theme-black .account-card{background:#111d24!important;color:#e9f2f6!important;border-color:#314650!important}
 body.theme-black hr{border-color:#31444f!important}
+@media(min-width:701px){
+ body.theme-black #dashboardPage .dashboard-toolbar p,
+ body.theme-black #dashboardPage .dashboard-hint{color:#9eb4c0!important}
+ body.theme-black #dashboardPage .premium-card.mc-desktop-receivables-v168{background:linear-gradient(135deg,#10291f,#0d2119)!important;border-color:#2e7651!important}
+ body.theme-black #dashboardPage .mc-desktop-receivables-v168 .premium-label,
+ body.theme-black #dashboardPage .mc-desktop-receivables-v168 small{color:#a9cfb8!important}
+ body.theme-black #dashboardPage .mc-desktop-receivables-v168 strong{color:#67e19a!important}
+ body.theme-black #dashboardPage .premium-cards>[data-dash="expenses"]{background:linear-gradient(135deg,#2a171a,#211316)!important;border-color:#74434a!important}
+ body.theme-black #dashboardPage .premium-cards>[data-dash="expenses"] .premium-label,
+ body.theme-black #dashboardPage .premium-cards>[data-dash="expenses"] small{color:#d7aeb3!important}
+ body.theme-black #dashboardPage .premium-cards>[data-dash="expenses"] strong{color:#ff8d96!important}
+ body.theme-black #dashboardPage .central-hoje-v041{background:#0e181e!important;border-color:#2a3d48!important;box-shadow:0 8px 24px rgba(0,0,0,.22)!important}
+ body.theme-black #dashboardPage .central-hoje-head-v041{border-bottom-color:#273b46!important}
+ body.theme-black #dashboardPage .central-hoje-head-v041 h3{color:#eef5f9!important}
+ body.theme-black #dashboardPage .central-hoje-head-v041 p{color:#a7bbc6!important}
+ body.theme-black #dashboardPage .central-hoje-date-v041{color:#59b6ff!important}
+ body.theme-black #dashboardPage .central-lane-v041{border-right-color:#273b46!important}
+ body.theme-black #dashboardPage .central-lane-title-v041 strong{color:#dce9ef!important}
+ body.theme-black #dashboardPage .central-item-v041{background:#111d24!important;border-color:#30434e!important}
+ body.theme-black #dashboardPage .central-item-main-v041 strong{color:#eef5f9!important}
+ body.theme-black #dashboardPage .central-item-main-v041 span{color:#a6bac5!important}
+ body.theme-black #dashboardPage .central-empty-v041{background:#0b151b!important;border-color:#344954!important;color:#91a8b4!important}
+ body.theme-black #dashboardPage .central-done-v041{background:#14262f!important;color:#59b6ff!important;border-color:#34505e!important}
+ body.theme-black #dashboardPage .central-more-v041{color:#59b6ff!important}
+ body.theme-black #dashboardPage .central-lane-count-v041{background:#182730!important;color:#c5d6df!important}
+ body.theme-black #dashboardPage .central-lane-v041.late .central-lane-count-v041{background:#321d20!important;color:#ff9b9b!important}
+ body.theme-black #dashboardPage .central-lane-v041.today .central-lane-count-v041{background:#102b3d!important;color:#72c3ff!important}
+ body.theme-black #dashboardPage .central-lane-v041.important .central-lane-count-v041{background:#332c15!important;color:#f0cd62!important}
+}
 @media(max-width:700px){
  body.theme-black .topnav{background:#071016!important;border-top-color:#263b47!important}
  body.theme-black .topnav .nav-btn{background:transparent!important;border:0!important;color:#9fb5c1!important}
