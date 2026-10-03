@@ -144,6 +144,59 @@ body.theme-black .secondary{background:#edf2ef;color:#111513}
 body.theme-black .today-card{background:#202622}
 body.theme-black .calendar-month-btn{color:#dce5df}
 body.theme-black .calendar-month-btn:hover{background:#252c28}
+body.theme-black{--primary:#168eea;--primary-dark:#0871c1;--primary-soft:#10283a;--primary-rgb:22,142,234;--page-bg:#081117;--text:#eef5f9}
+body.theme-black .topbar{background:#071016!important;border-bottom:1px solid #1b303d!important;box-shadow:0 4px 18px rgba(0,0,0,.28)}
+body.theme-black .brand p{color:#b8cad5!important;opacity:1}
+body.theme-black .top-stat{background:#111d25!important;color:#f4f8fa!important;border:1px solid #31434f!important;box-shadow:0 4px 12px rgba(0,0,0,.18)}
+body.theme-black .top-stat span{color:#b8c8d2!important;opacity:1}
+body.theme-black .topbar-lower{background:#050b0f!important;border-top:1px solid #172630;border-bottom:1px solid #1b303d}
+body.theme-black .nav-btn{background:#111a20!important;color:#d8e5ec!important;border:1px solid #243641!important;border-bottom:0!important}
+body.theme-black .nav-btn.active{background:#0b74c5!important;color:#fff!important;border-color:#168eea!important;box-shadow:0 -1px 12px rgba(22,142,234,.16)}
+body.theme-black .profile-filter-wrap{color:#a9bdc9!important}
+body.theme-black .panel,body.theme-black .calendar-shell,body.theme-black .settings-card,body.theme-black .calendar-events-panel{background:#0e181e!important;color:#eef5f9!important;border-color:#24343e!important}
+body.theme-black .premium-cards{background:#0e181e!important;border-color:#263842!important;box-shadow:0 6px 18px rgba(0,0,0,.22)}
+body.theme-black .premium-card{background:#111d24!important;color:#eef5f9!important;border-color:#30424d!important;box-shadow:0 5px 14px rgba(0,0,0,.16)}
+body.theme-black .premium-card .premium-label,body.theme-black .premium-card small{color:#a9bdc9!important}
+body.theme-black .premium-card strong{color:#f3f8fb!important}
+body.theme-black .dashboard-card,body.theme-black .dashboard-detail-row,body.theme-black .item{background:#111c22!important;color:#edf5f9!important;border-color:#30414b!important}
+body.theme-black .dashboard-card *,body.theme-black .dashboard-detail-row *{opacity:1}
+body.theme-black .item-title,body.theme-black .dashboard-card strong{color:#eef5f9!important}
+body.theme-black .meta,body.theme-black .notes{color:#a8bdc8!important}
+body.theme-black label,body.theme-black .appearance-label{color:#b9cbd5!important}
+body.theme-black input,body.theme-black select,body.theme-black textarea,body.theme-black .search-wrap{background:#091319!important;color:#edf5f9!important;border-color:#38505e!important}
+body.theme-black input::placeholder,body.theme-black textarea::placeholder{color:#77909e!important;opacity:1}
+body.theme-black .tabs .tab{background:#17242b!important;color:#aebfc9!important}
+body.theme-black .tabs .tab.active{background:#0b74c5!important;color:#fff!important}
+body.theme-black .calendar-months{background:#0b151b!important;border-color:#2b3e49!important}
+body.theme-black .calendar-month-btn{color:#bfd0da!important}
+body.theme-black .calendar-month-btn:hover{background:#15242d!important}
+body.theme-black .calendar-shell table,body.theme-black .calendar-shell th,body.theme-black .calendar-shell td{border-color:#273b46!important}
+body.theme-black .calendar-shell th{color:#a9beca!important}
+body.theme-black .calendar-shell td{background:#0c171d!important;color:#e8f1f5!important}
+body.theme-black .calendar-shell td.today,body.theme-black .calendar-shell td.selected{background:#0c65a7!important;color:#fff!important}
+body.theme-black .calendar-events-panel{background:#0d181e!important}
+body.theme-black .calendar-events-panel .item{background:#111d24!important}
+body.theme-black .settings-card{background:#111c22!important}
+body.theme-black .settings-card h3{color:#eef5f9!important}
+body.theme-black .settings-card p{color:#9fb5c1!important}
+body.theme-black .modal-card{background:#101a20!important;color:#edf5f9!important;border:1px solid #2e424e!important}
+body.theme-black .modal-card>div,body.theme-black .modal-card section{color:inherit}
+body.theme-black .theme-choice{background:#0c161c!important;color:#edf5f9!important;border-color:#344853!important}
+body.theme-black .theme-choice small{color:#9fb4c0!important}
+body.theme-black .theme-choice.active{border-color:#168eea!important;box-shadow:0 0 0 2px rgba(22,142,234,.14)}
+body.theme-black .appearance-choice{background:#17242b!important;color:#c7d6de!important}
+body.theme-black .appearance-choice.active{background:#0b74c5!important;color:#fff!important;border-color:#168eea!important}
+body.theme-black .secondary{background:#eaf2f6!important;color:#10212b!important}
+body.theme-black .ghost,body.theme-black .secondary-action{background:#18262e!important;color:#dce8ee!important;border-color:#354b57!important}
+body.theme-black .today-card{background:#101d24!important}
+body.theme-black .closing,body.theme-black .help-diagnostic,body.theme-black .account-card{background:#111d24!important;color:#e9f2f6!important;border-color:#314650!important}
+body.theme-black hr{border-color:#31444f!important}
+@media(max-width:700px){
+ body.theme-black .topnav{background:#071016!important;border-top-color:#263b47!important}
+ body.theme-black .topnav .nav-btn{background:transparent!important;border:0!important;color:#9fb5c1!important}
+ body.theme-black .topnav .nav-btn.active{background:#10283a!important;color:#39a8ff!important}
+ body.theme-black .topbar-lower{background:#081117!important}
+}
 .topbar{background:var(--primary)}
 .nav-btn.active{color:var(--primary)}
 .secondary{color:var(--primary)}
