@@ -231,6 +231,27 @@ body.theme-black hr{border-color:#31444f!important}
  body.theme-black .mc-desktop-actions-grid-v113 .secondary-action{background:#1b2b33!important;color:#e8f1f5!important;border-color:#3a4f5a!important}
  body.theme-black .mc-desktop-actions-grid-v113 [data-action="done"]{background:#168fe0!important;color:#fff!important;border-color:#168fe0!important}
  body.theme-black .mc-desktop-actions-grid-v113 .mc-desktop-delete-v113{background:#a83f3f!important;border-color:#a83f3f!important;color:#fff!important}
+ body.theme-black #calendarPage .calendar-shell{background:#0e181e!important;border-color:#263b46!important}
+ body.theme-black #calendarPage .calendar-head h2{color:#eef5f9!important}
+ body.theme-black #calendarPage .calendar-head p{color:#9fb5c1!important}
+ body.theme-black #calendarPage .calendar-months{background:linear-gradient(180deg,#101c23,#0b151b)!important;border-color:#2d424e!important;box-shadow:0 6px 18px rgba(0,0,0,.22)!important}
+ body.theme-black #calendarPage .calendar-month-btn{color:#9fb5c1!important}
+ body.theme-black #calendarPage .calendar-month-btn.has-events-v025{color:#d8e5ec!important}
+ body.theme-black #calendarPage .calendar-month-btn:hover{background:#172731!important;color:#fff!important;box-shadow:0 5px 12px rgba(0,0,0,.22)!important}
+ body.theme-black #calendarPage .calendar-month-btn .month-badge{color:#55b8ff!important}
+ body.theme-black #calendarPage .calendar-month-btn.active{background:linear-gradient(145deg,#168fe0,#0b65a7)!important;border-color:#42a9ee!important;color:#fff!important;box-shadow:0 13px 26px rgba(0,92,157,.34),inset 0 1px 0 rgba(255,255,255,.28)!important}
+ body.theme-black #calendarPage .calendar-year-inline-v024{background:#0b151b!important;border-color:#304650!important;box-shadow:none!important}
+ body.theme-black #calendarPage .calendar-year-inline-v024 button{background:#172731!important;color:#d9e7ee!important}
+ body.theme-black #calendarPage .calendar-year-inline-v024 strong{color:#eef5f9!important}
+ body.theme-black #calendarPage .calendar-events-head h3{color:#eef5f9!important}
+ body.theme-black #calendarPage .calendar-events-head p{color:#9fb5c1!important}
+ body.theme-black #calendarPage .calendar-events-panel{background:#0e181e!important;border-color:#314752!important}
+ body.theme-black #calendarPage #calendarEventsList .item{background:#111d24!important;color:#eef5f9!important;border-color:#30444f!important}
+ body.theme-black #calendarPage #calendarEventsList .item-title{color:#eef5f9!important}
+ body.theme-black #calendarPage #calendarEventsList .meta{color:#a9bdc8!important}
+ body.theme-black #calendarPage #calendarEventsList .item.recurring{border-color:#43a96e!important}
+ body.theme-black #calendarPage #calendarEventsList .item.important{border-color:#d7ad00!important}
+}
 }
 }
 @media(max-width:700px){
