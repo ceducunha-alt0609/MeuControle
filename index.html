@@ -19,7 +19,7 @@
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=185">
   <style>
     /* V2.2 - refinamento da topbar */
     .top-actions[hidden]{display:none!important}
@@ -94,7 +94,7 @@
       <article class="settings-card"><h3>Dados e segurança</h3><p>Exporte tudo para um arquivo e restaure quando precisar.</p><div class="settings-actions"><button id="exportBackupBtn">Exportar backup</button><button id="importBackupBtn" class="secondary">Restaurar backup</button><input id="backupFileInput" type="file" accept=".json,application/json" hidden></div><div class="backup-status"><span>Último backup</span><strong id="lastBackupLabel">Ainda não realizado</strong></div><div class="auto-backup-box"><div class="auto-backup-head"><div><strong>Backup automático</strong><span id="autoBackupState">Ativo ✓</span></div><button id="viewAutoBackupsBtn" type="button" class="ghost small">Ver backups automáticos</button></div><div class="backup-status"><span>Última cópia automática</span><strong id="lastAutoBackupLabel">Ainda não realizada</strong></div></div></article>
       <article class="settings-card install-card"><h3>Aplicativo</h3><p>Instale o Meu Controle no computador para abrir em uma janela própria, como um programa.</p><div class="install-status"><img src="icons/icon-96.png" alt=""><div><strong id="installStatusTitle">Verificando instalação...</strong><span id="installStatusText">Aguarde um instante.</span></div></div><button id="installAppBtn" type="button">Instalar Meu Controle</button><div class="install-help">No GitHub Pages/HTTPS, o botão será habilitado quando o navegador oferecer a instalação.</div></article>
       <article class="settings-card"><h3>Perfis</h3><p>Gerencie Pessoal, Condomínio, Escolinha e outros perfis.</p><div id="profilesList" class="profiles-list"></div><div class="profile-create"><input id="newProfileName" maxlength="30" placeholder="Novo perfil"><button id="addProfileBtn">Adicionar</button></div></article>
-      <article class="settings-card"><h3>Aparência</h3><p>Escolha a identidade visual do Meu Controle. As alterações são aplicadas na hora.</p><div class="appearance-group"><span class="appearance-label">Fonte</span><div class="choice-row"><button type="button" class="appearance-choice" data-font="system">Sistema</button><button type="button" class="appearance-choice" data-font="merriweather">Merriweather</button></div></div><div class="appearance-group"><span class="appearance-label">Tema</span><div class="theme-grid"><button type="button" class="theme-choice" data-theme="blue"><span class="theme-swatch swatch-blue"></span><span><strong>Azul Premium</strong><small>Elegante e sóbrio</small></span></button><button type="button" class="theme-choice" data-theme="green"><span class="theme-swatch swatch-green"></span><span><strong>Verde Clássico</strong><small>Visual original</small></span></button><button type="button" class="theme-choice" data-theme="graphite"><span class="theme-swatch swatch-graphite"></span><span><strong>Grafite</strong><small>Neutro e discreto</small></span></button></div></div><button id="resetAppearanceBtn" type="button" class="ghost small">Restaurar aparência padrão</button></article>
+      <article class="settings-card"><h3>Aparência</h3><p>Escolha a identidade visual do Meu Controle. As alterações são aplicadas na hora.</p><div class="appearance-group"><span class="appearance-label">Fonte</span><div class="choice-row"><button type="button" class="appearance-choice" data-font="system">Sistema</button><button type="button" class="appearance-choice" data-font="merriweather">Merriweather</button></div></div><div class="appearance-group"><span class="appearance-label">Tema</span><div class="theme-grid"><button type="button" class="theme-choice" data-theme="blue"><span class="theme-swatch swatch-blue"></span><span><strong>Azul Premium</strong><small>Elegante e sóbrio</small></span></button><button type="button" class="theme-choice" data-theme="green"><span class="theme-swatch swatch-green"></span><span><strong>Verde Clássico</strong><small>Visual original</small></span></button><button type="button" class="theme-choice" data-theme="graphite"><span class="theme-swatch swatch-graphite"></span><span><strong>Grafite</strong><small>Neutro e discreto</small></span></button><button type="button" class="theme-choice" data-theme="white"><span class="theme-swatch swatch-white"></span><span><strong>Branco</strong><small>Claro e minimalista</small></span></button><button type="button" class="theme-choice" data-theme="black"><span class="theme-swatch swatch-black"></span><span><strong>Preto</strong><small>Escuro e elegante</small></span></button></div></div><button id="resetAppearanceBtn" type="button" class="ghost small">Restaurar aparência padrão</button></article>
     </div></div></section>
   </main>
 
@@ -145,7 +145,7 @@
     }
   </style>
   <script src="splash-font-preload-v129.js"></script>
-  <script src="app.js?v=184"></script>
+  <script src="app.js?v=185"></script>
   <script src="mobile-launches.js"></script>
   <script src="todo-steps-v164.js?v=180"></script>
   <script src="recurrence-custom-v166.js?v=169"></script>
