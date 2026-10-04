@@ -103,8 +103,6 @@
       <button type="button" class="mobile-more-card" data-more="profiles"><span class="mobile-more-icon">♙</span><span class="mobile-more-copy"><strong>Perfis</strong><small id="mobileMoreProfiles">Perfis cadastrados</small></span><span class="mobile-more-arrow">›</span></button>
       <button type="button" class="mobile-more-card" data-more="appearance"><span class="mobile-more-icon">◐</span><span class="mobile-more-copy"><strong>Aparência</strong><small id="mobileMoreAppearance">Fonte e tema</small></span><span class="mobile-more-arrow">›</span></button>
       <button type="button" class="mobile-more-card" data-more="holidays"><span class="mobile-more-icon">●</span><span class="mobile-more-copy"><strong>Feriados</strong><small>Nacionais, estaduais, municipais e personalizados</small></span><span class="mobile-more-arrow">›</span></button>
-      <button type="button" class="mobile-more-card" data-more="help"><span class="mobile-more-icon">?</span><span class="mobile-more-copy"><strong>Ajuda</strong><small>Guia rápido e tour inicial</small></span><span class="mobile-more-arrow">›</span></button>
-      <button type="button" class="mobile-more-card" data-more="close"><span class="mobile-more-icon">↪</span><span class="mobile-more-copy"><strong>Fechar MeuControle</strong><small>Fechar sem desconectar a sincronização</small></span><span class="mobile-more-arrow">›</span></button>
     </div>`;
   title.after(home);
 
