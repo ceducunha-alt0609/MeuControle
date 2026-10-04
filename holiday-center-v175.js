@@ -78,11 +78,14 @@
       if(name&&dots){const d=document.createElement('i');d.className='mc-holiday-dot-v1';d.title=name;dots.appendChild(d);btn.setAttribute('aria-label',(btn.getAttribute('aria-label')||'')+', feriado: '+name)}
     });
     const list=document.getElementById('calendarEventsList');if(!list)return;
-    list.parentElement?.querySelector('.mc-holiday-banner-v1')?.remove();
     const selected=localStorage.getItem('meu_controle_mobile_calendar_selected_v1');
-    if(matchMedia('(max-width:700px)').matches&&selected&&map.has(selected)){
-      const b=document.createElement('div');b.className='mc-holiday-banner-v1';b.textContent='● '+map.get(selected)+' · Feriado';list.before(b);
-    }
+    let b=list.parentElement?.querySelector('.mc-holiday-banner-v1');
+    const name=matchMedia('(max-width:700px)').matches&&selected?map.get(selected):'';
+    if(name){
+      if(!b){b=document.createElement('div');b.className='mc-holiday-banner-v1';list.before(b)}
+      b.textContent='● '+name+' · Feriado';
+      b.hidden=false;
+    }else if(b){b.hidden=true}
   }
   function refresh(){renderCard();setTimeout(decorateCalendar,0);setTimeout(decorateCalendar,150)}
   ensureCard();
