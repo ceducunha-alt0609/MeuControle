@@ -86,7 +86,16 @@
   }
   function refresh(){renderCard();setTimeout(decorateCalendar,0);setTimeout(decorateCalendar,150)}
   ensureCard();
-  const mo=new MutationObserver(()=>{ensureCard();decorateCalendar()});mo.observe(document.body,{childList:true,subtree:true});
+  /* Observa somente mudanças estruturais relevantes, sem repintar o DOM dentro do próprio observer. */
+  let holidaySyncQueued=false;
+  const mo=new MutationObserver(mutations=>{
+    if(holidaySyncQueued)return;
+    const relevant=mutations.some(m=>[...m.addedNodes].some(n=>n.nodeType===1&&(n.matches?.('#settingsPage,.mobile-calendar-grid-v109')||n.querySelector?.('#settingsPage,.mobile-calendar-grid-v109'))));
+    if(!relevant)return;
+    holidaySyncQueued=true;
+    requestAnimationFrame(()=>{holidaySyncQueued=false;ensureCard();decorateCalendar()});
+  });
+  mo.observe(document.body,{childList:true,subtree:true});
   window.addEventListener('meucontrole:holidays-changed',refresh);
   document.querySelectorAll('.nav-btn').forEach(b=>b.addEventListener('click',()=>setTimeout(refresh,60)));
   setTimeout(refresh,500);
