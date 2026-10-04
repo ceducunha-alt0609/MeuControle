@@ -28,7 +28,7 @@
   function save(s){localStorage.setItem(KEY,JSON.stringify(s));window.dispatchEvent(new CustomEvent('meucontrole:holidays-changed'));refresh()}
   function holidays(y){const s=state(),base=defaults(y).map(x=>({...x,enabled:!s.disabled.includes(x.id)})),custom=(s.custom||[]).map(x=>{const yy=x.annual?String(y)+x.date.slice(4):x.date;return{...x,date:yy,scope:'Personalizado',builtin:false,enabled:x.enabled!==false}}).filter(x=>x.date.startsWith(String(y)));return [...base,...custom].sort((a,b)=>a.date.localeCompare(b.date))}
   function activeMap(y){return new Map(holidays(y).filter(x=>x.enabled).map(x=>[x.date,x.name]))}
-  window.MeuControleHolidaysV1={list:holidays,map:activeMap};
+  window.MeuControleHolidaysV1={list:holidays,map:activeMap,name:date=>activeMap(Number(String(date).slice(0,4))).get(date)||''};
 
   /* Integra com a regra já existente de próximo dia útil. */
   try{
