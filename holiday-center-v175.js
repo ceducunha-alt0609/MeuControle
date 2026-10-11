@@ -30,10 +30,7 @@
   function activeMap(y){return new Map(holidays(y).filter(x=>x.enabled).map(x=>[x.date,x.name]))}
   window.MeuControleHolidaysV1={list:holidays,map:activeMap,name:date=>activeMap(Number(String(date).slice(0,4))).get(date)||''};
 
-  /* Integra com a regra já existente de próximo dia útil. */
-  try{
-    holidayMapSP=function(year){return activeMap(year)};
-  }catch{}
+  try{holidayMapSP=function(year){return activeMap(year)}}catch{}
 
   const css=document.createElement('style');css.textContent=`
     .mc-holiday-card{grid-column:1/-1}
@@ -52,7 +49,6 @@
     .mc-holiday-banner-v1{margin:0 0 10px;padding:10px 12px;border:1px solid #cfe3f0;border-radius:10px;background:#eef7fc;color:#195f89;font-size:12px;font-weight:700;line-height:1.35;display:flex;align-items:center;gap:8px}
     .mc-holiday-banner-v1 .mc-holiday-dot-v1{flex:0 0 auto;box-shadow:none}
     .mc-holiday-banner-v1 strong{color:#164f78}
-    .mc-holiday-banner-v1 small{font-size:10px;font-weight:700;opacity:.78;margin-left:3px}
     .mc-holiday-legend-v1{display:flex;align-items:center;justify-content:flex-end;gap:6px;padding:7px 12px 0;color:#607b8a;font:700 10px/1 system-ui,sans-serif}
     .mc-holiday-legend-v1 .mc-holiday-dot-v1{flex:0 0 auto;box-shadow:none}
     #calendarPage .mc-cal-day-v124.mc-holiday-day-v1:not(.today) .mc-cal-day-num-v124{color:#1684c6}
@@ -62,79 +58,32 @@
     body.mc-dark .mc-holiday-legend-v1,body.theme-black .mc-holiday-legend-v1{color:#9eb9c7}
     body.mc-dark .mc-holiday-banner-v1,body.theme-black .mc-holiday-banner-v1{background:#112b39;border-color:#285267;color:#b9ddef}
     body.mc-dark .mc-holiday-banner-v1 strong,body.theme-black .mc-holiday-banner-v1 strong{color:#7bc9f3}
-    @media(max-width:700px){
-      .mc-holiday-card{padding:16px!important}.mc-holiday-head{align-items:flex-start}
-      .mc-holiday-list{max-height:none}.mc-holiday-row{grid-template-columns:68px minmax(0,1fr) auto}
-      .mc-holiday-add{grid-template-columns:1fr}.mc-holiday-add button{width:100%}
-    }`;document.head.appendChild(css);
+    @media(max-width:700px){.mc-holiday-card{padding:16px!important}.mc-holiday-head{align-items:flex-start}.mc-holiday-list{max-height:none}.mc-holiday-row{grid-template-columns:68px minmax(0,1fr) auto}.mc-holiday-add{grid-template-columns:1fr}.mc-holiday-add button{width:100%}}
+  `;document.head.appendChild(css);
 
   function ensureCard(){
     const grid=document.querySelector('#settingsPage .settings-grid');if(!grid||document.querySelector('.mc-holiday-card'))return;
     const card=document.createElement('article');card.className='settings-card mc-holiday-card';
     card.innerHTML=`<div class="mc-holiday-head"><div><h3>Feriados</h3><p>Nacionais, estaduais, municipais e datas personalizadas.</p></div><span style="font-size:22px">●</span></div><div class="mc-holiday-list"></div><form class="mc-holiday-add"><input type="date" required aria-label="Data"><input type="text" maxlength="60" required placeholder="Nome da data"><select aria-label="Repetição"><option value="annual">Repetir todo ano</option><option value="once">Somente esta data</option></select><button type="submit">Adicionar</button></form>`;
     grid.appendChild(card);
-    card.querySelector('form').onsubmit=e=>{e.preventDefault();const [date,name,repeat]=e.currentTarget.elements;if(!date.value||!name.value.trim())return;const s=state();s.custom=s.custom||[];s.custom.push({id:'custom:'+Date.now(),date:date.value,name:name.value.trim(),annual:repeat.value==='annual',enabled:true});save(s);e.currentTarget.reset();renderCard()};
-    renderCard();
+    card.querySelector('form').onsubmit=e=>{e.preventDefault();const [date,name,repeat]=e.currentTarget.elements;if(!date.value||!name.value.trim())return;const s=state();s.custom=s.custom||[];s.custom.push({id:'custom:'+Date.now(),date:date.value,name:name.value.trim(),annual:repeat.value==='annual',enabled:true});save(s);e.currentTarget.reset();renderCard()};renderCard();
   }
   function renderCard(){
-    const box=document.querySelector('.mc-holiday-list');if(!box)return;const y=new Date().getFullYear(),s=state();
+    const box=document.querySelector('.mc-holiday-list');if(!box)return;const y=new Date().getFullYear();
     box.innerHTML=holidays(y).map(h=>`<div class="mc-holiday-row"><time>${h.date.slice(8,10)}/${h.date.slice(5,7)}</time><span><strong>${h.name.replace(/[<>&"]/g,'')}</strong><small>${h.scope}${h.builtin?' · padrão':' · personalizado'}</small></span><button type="button" class="mc-holiday-toggle ${h.enabled?'on':''}" data-id="${h.id}" data-custom="${h.builtin?'0':'1'}" aria-label="${h.enabled?'Desativar':'Ativar'} ${h.name}"></button></div>`).join('');
     box.querySelectorAll('.mc-holiday-toggle').forEach(b=>b.onclick=()=>{const st=state(),id=b.dataset.id;if(b.dataset.custom==='1'){const x=(st.custom||[]).find(v=>v.id===id);if(x)x.enabled=x.enabled===false}else{st.disabled=st.disabled||[];st.disabled=st.disabled.includes(id)?st.disabled.filter(x=>x!==id):[...st.disabled,id]}save(st);renderCard()});
   }
   function decorateCalendar(){
     const y=typeof calendarYear==='number'?calendarYear:new Date().getFullYear(),map=activeMap(y);
-
-    /* Calendário mobile. */
-    document.querySelectorAll('.mobile-calendar-day-v109[data-date]').forEach(btn=>{
-      const date=btn.dataset.date,name=map.get(date),dots=btn.querySelector('.mc-day-dots-v109'),old=btn.querySelector('.mc-holiday-dot-v1');
-      if(!name){old?.remove();return}
-      btn.title=`Feriado: ${name}`;
-      if(dots&&!old){const d=document.createElement('i');d.className='mc-holiday-dot-v1';d.title=name;dots.appendChild(d)}
-    });
-
-    /* Calendário desktop V124: usa o mesmo cadastro de feriados, sem tocar na lógica do calendário. */
+    document.querySelectorAll('.mobile-calendar-day-v109[data-date]').forEach(btn=>{const date=btn.dataset.date,name=map.get(date),dots=btn.querySelector('.mc-day-dots-v109'),old=btn.querySelector('.mc-holiday-dot-v1');if(!name){old?.remove();return}btn.title=`Feriado: ${name}`;if(dots&&!old){const d=document.createElement('i');d.className='mc-holiday-dot-v1';d.title=name;dots.appendChild(d)}});
     const month=typeof calendarMonth==='number'?calendarMonth:new Date().getMonth();
-    document.querySelectorAll('#calendarPage .mc-cal-day-v124[data-day]').forEach(btn=>{
-      const day=pad(Number(btn.dataset.day)),date=`${y}-${pad(month+1)}-${day}`,name=map.get(date),dots=btn.querySelector('.mc-cal-dots-v124'),old=btn.querySelector('.mc-holiday-dot-v1');
-      btn.classList.toggle('mc-holiday-day-v1',!!name);
-      if(!name){old?.remove();if(btn.dataset.holidayTitle==='1'){btn.removeAttribute('title');delete btn.dataset.holidayTitle}return}
-      btn.title=`Feriado: ${name}`;btn.dataset.holidayTitle='1';
-      if(dots&&!old){const d=document.createElement('i');d.className='mc-cal-dot-v124 mc-holiday-dot-v1';d.title=name;dots.appendChild(d)}
-    });
-
-    const board=document.querySelector('#calendarPage .mc-cal-board-v124');
-    if(board&&!board.querySelector('.mc-holiday-legend-v1')){
-      const legend=document.createElement('div');legend.className='mc-holiday-legend-v1';legend.innerHTML='<i class="mc-holiday-dot-v1"></i><span>Feriado</span>';
-      const clear=board.querySelector('.mc-cal-clear-v124');clear?board.insertBefore(legend,clear):board.appendChild(legend);
-    }
-
-    /* Identifica também o feriado no painel de detalhes do dia selecionado. */
+    document.querySelectorAll('#calendarPage .mc-cal-day-v124[data-day]').forEach(btn=>{const day=pad(Number(btn.dataset.day)),date=`${y}-${pad(month+1)}-${day}`,name=map.get(date),dots=btn.querySelector('.mc-cal-dots-v124'),old=btn.querySelector('.mc-holiday-dot-v1');btn.classList.toggle('mc-holiday-day-v1',!!name);if(!name){old?.remove();if(btn.dataset.holidayTitle==='1'){btn.removeAttribute('title');delete btn.dataset.holidayTitle}return}btn.title=`Feriado: ${name}`;btn.dataset.holidayTitle='1';if(dots&&!old){const d=document.createElement('i');d.className='mc-cal-dot-v124 mc-holiday-dot-v1';d.title=name;dots.appendChild(d)}});
+    const board=document.querySelector('#calendarPage .mc-cal-board-v124');if(board&&!board.querySelector('.mc-holiday-legend-v1')){const legend=document.createElement('div');legend.className='mc-holiday-legend-v1';legend.innerHTML='<i class="mc-holiday-dot-v1"></i><span>Feriado</span>';const clear=board.querySelector('.mc-cal-clear-v124');clear?board.insertBefore(legend,clear):board.appendChild(legend)}
     const panel=document.querySelector('#calendarPage .calendar-events-panel'),oldBanner=panel?.querySelector('.mc-holiday-banner-v1');
-    const selected=document.querySelector('#calendarPage .mc-cal-day-v124.selected[data-day]');
-    if(!panel||!selected){oldBanner?.remove();return}
-    const selectedDate=`${y}-${pad(month+1)}-${pad(Number(selected.dataset.day))}`;
-    const holiday=holidays(y).find(h=>h.enabled&&h.date===selectedDate);
-    if(!holiday){oldBanner?.remove();return}
-    const safeName=String(holiday.name).replace(/[<>&"]/g,'');
-    const safeScope=String(holiday.scope||'Feriado').replace(/[<>&"]/g,'');
-    const banner=oldBanner||document.createElement('div');banner.className='mc-holiday-banner-v1';
-    banner.innerHTML=`<i class="mc-holiday-dot-v1"></i><span>Feriado: <strong>${safeName}</strong><small>· ${safeScope}</small></span>`;
-    const scroll=panel.querySelector('.calendar-events-scroll');
-    if(!oldBanner)scroll?panel.insertBefore(banner,scroll):panel.appendChild(banner);
+    const selected=document.querySelector('#calendarPage .mc-cal-day-v124.selected[data-day]');if(!panel||!selected){oldBanner?.remove();return}
+    const selectedDate=`${y}-${pad(month+1)}-${pad(Number(selected.dataset.day))}`;const holiday=holidays(y).find(h=>h.enabled&&h.date===selectedDate);if(!holiday){oldBanner?.remove();return}
+    const safeName=String(holiday.name).replace(/[<>&"]/g,'');const banner=oldBanner||document.createElement('div');banner.className='mc-holiday-banner-v1';banner.innerHTML=`<i class="mc-holiday-dot-v1"></i><span>Feriado: <strong>${safeName}</strong></span>`;const scroll=panel.querySelector('.calendar-events-scroll');if(!oldBanner)scroll?panel.insertBefore(banner,scroll):panel.appendChild(banner);
   }
   function refresh(){renderCard();setTimeout(decorateCalendar,0);setTimeout(decorateCalendar,150)}
-  ensureCard();
-  /* Observa somente mudanças estruturais relevantes, sem repintar o DOM dentro do próprio observer. */
-  let holidaySyncQueued=false;
-  const mo=new MutationObserver(mutations=>{
-    if(holidaySyncQueued)return;
-    const relevant=mutations.some(m=>[...m.addedNodes].some(n=>n.nodeType===1&&(n.matches?.('#settingsPage,.mobile-calendar-grid-v109,.mc-cal-grid-v124,.mc-cal-board-v124,.calendar-events-panel')||n.querySelector?.('#settingsPage,.mobile-calendar-grid-v109,.mc-cal-grid-v124,.mc-cal-board-v124,.calendar-events-panel'))));
-    if(!relevant)return;
-    holidaySyncQueued=true;
-    requestAnimationFrame(()=>{holidaySyncQueued=false;ensureCard();decorateCalendar()});
-  });
-  mo.observe(document.body,{childList:true,subtree:true});
-  window.addEventListener('meucontrole:holidays-changed',refresh);
-  document.querySelectorAll('.nav-btn').forEach(b=>b.addEventListener('click',()=>setTimeout(refresh,60)));
-  setTimeout(refresh,500);
+  ensureCard();let holidaySyncQueued=false;const mo=new MutationObserver(mutations=>{if(holidaySyncQueued)return;const relevant=mutations.some(m=>[...m.addedNodes].some(n=>n.nodeType===1&&(n.matches?.('#settingsPage,.mobile-calendar-grid-v109,.mc-cal-grid-v124,.mc-cal-board-v124,.calendar-events-panel')||n.querySelector?.('#settingsPage,.mobile-calendar-grid-v109,.mc-cal-grid-v124,.mc-cal-board-v124,.calendar-events-panel'))));if(!relevant)return;holidaySyncQueued=true;requestAnimationFrame(()=>{holidaySyncQueued=false;ensureCard();decorateCalendar()})});mo.observe(document.body,{childList:true,subtree:true});window.addEventListener('meucontrole:holidays-changed',refresh);document.querySelectorAll('.nav-btn').forEach(b=>b.addEventListener('click',()=>setTimeout(refresh,60)));setTimeout(refresh,500);
 })();
