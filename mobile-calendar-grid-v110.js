@@ -3,7 +3,7 @@
   if(window.__meuControleMobileCalendarGridV110Loaded)return;
   window.__meuControleMobileCalendarGridV110Loaded=true;
   window.__meuControleMobileCalendarGridV109Loaded=true;
-  const VERSION='1.14-safe3';
+  const VERSION='1.14-safe4';
   const mq=matchMedia('(max-width:700px)');
   const DAY_KEY='meu_controle_mobile_calendar_selected_v1';
   const originalRenderCalendar=typeof renderCalendar==='function'?renderCalendar:null;
@@ -44,7 +44,7 @@
     summary.textContent=`${raw.length} lançamento${raw.length===1?'':'s'} • ${raw.filter(e=>!e.done).length} pendente${raw.filter(e=>!e.done).length===1?'':'s'}`;
     const panel=document.querySelector('#calendarPage .calendar-events-panel'),oldBanner=panel?.querySelector('.mc-holiday-banner-v1');oldBanner?.remove();
     const holiday=window.MeuControleHolidaysV1?.list?.(Number(selectedDate.slice(0,4)))?.find(h=>h.enabled&&h.date===selectedDate);
-    if(panel&&holiday){const banner=document.createElement('div');banner.className='mc-holiday-banner-v1';banner.innerHTML=`● Feriado: <strong>${String(holiday.name).replace(/[<>&\"]/g,'')}</strong> · ${holiday.scope||''}`;const head=panel.querySelector('.calendar-events-head');head?.insertAdjacentElement('afterend',banner)}
+    if(panel&&holiday){const banner=document.createElement('div');banner.className='mc-holiday-banner-v1';banner.innerHTML=`● Feriado: <strong>${String(holiday.name).replace(/[<>&\"]/g,'')}</strong>`;const head=panel.querySelector('.calendar-events-head');head?.insertAdjacentElement('afterend',banner)}
     list.innerHTML='';
     empty.classList.toggle('hidden',items.length>0);
     empty.textContent=q?'Nenhum lançamento encontrado neste dia.':'Nenhum lançamento neste dia.';
