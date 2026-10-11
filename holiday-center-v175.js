@@ -49,7 +49,10 @@
     .mc-holiday-add{display:grid;grid-template-columns:150px minmax(0,1fr) 120px auto;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid #e5ebe7}
     .mc-holiday-add input,.mc-holiday-add select{min-width:0}
     .mc-holiday-dot-v1{width:6px;height:6px;border-radius:50%;display:block;background:#1684c6;box-shadow:0 0 0 1px rgba(255,255,255,.8)}
-    .mc-holiday-banner-v1{margin:0 0 10px;padding:9px 11px;border:1px solid #cfe3f0;border-radius:10px;background:#eef7fc;color:#195f89;font-size:12px;font-weight:700}
+    .mc-holiday-banner-v1{margin:0 0 10px;padding:10px 12px;border:1px solid #cfe3f0;border-radius:10px;background:#eef7fc;color:#195f89;font-size:12px;font-weight:700;line-height:1.35;display:flex;align-items:center;gap:8px}
+    .mc-holiday-banner-v1 .mc-holiday-dot-v1{flex:0 0 auto;box-shadow:none}
+    .mc-holiday-banner-v1 strong{color:#164f78}
+    .mc-holiday-banner-v1 small{font-size:10px;font-weight:700;opacity:.78;margin-left:3px}
     .mc-holiday-legend-v1{display:flex;align-items:center;justify-content:flex-end;gap:6px;padding:7px 12px 0;color:#607b8a;font:700 10px/1 system-ui,sans-serif}
     .mc-holiday-legend-v1 .mc-holiday-dot-v1{flex:0 0 auto;box-shadow:none}
     #calendarPage .mc-cal-day-v124.mc-holiday-day-v1:not(.today) .mc-cal-day-num-v124{color:#1684c6}
@@ -57,6 +60,8 @@
     #calendarPage .mc-cal-day-v124.mc-holiday-day-v1.selected:not(.today) .mc-cal-day-num-v124{color:#1684c6}
     body.mc-dark .mc-holiday-row{background:#182229;border-color:#34434c}body.mc-dark .mc-holiday-row strong{color:#eef3f6}body.mc-dark .mc-holiday-row small{color:#aebbc3}
     body.mc-dark .mc-holiday-legend-v1,body.theme-black .mc-holiday-legend-v1{color:#9eb9c7}
+    body.mc-dark .mc-holiday-banner-v1,body.theme-black .mc-holiday-banner-v1{background:#112b39;border-color:#285267;color:#b9ddef}
+    body.mc-dark .mc-holiday-banner-v1 strong,body.theme-black .mc-holiday-banner-v1 strong{color:#7bc9f3}
     @media(max-width:700px){
       .mc-holiday-card{padding:16px!important}.mc-holiday-head{align-items:flex-start}
       .mc-holiday-list{max-height:none}.mc-holiday-row{grid-template-columns:68px minmax(0,1fr) auto}
@@ -102,6 +107,20 @@
       const legend=document.createElement('div');legend.className='mc-holiday-legend-v1';legend.innerHTML='<i class="mc-holiday-dot-v1"></i><span>Feriado</span>';
       const clear=board.querySelector('.mc-cal-clear-v124');clear?board.insertBefore(legend,clear):board.appendChild(legend);
     }
+
+    /* Identifica também o feriado no painel de detalhes do dia selecionado. */
+    const panel=document.querySelector('#calendarPage .calendar-events-panel'),oldBanner=panel?.querySelector('.mc-holiday-banner-v1');
+    const selected=document.querySelector('#calendarPage .mc-cal-day-v124.selected[data-day]');
+    if(!panel||!selected){oldBanner?.remove();return}
+    const selectedDate=`${y}-${pad(month+1)}-${pad(Number(selected.dataset.day))}`;
+    const holiday=holidays(y).find(h=>h.enabled&&h.date===selectedDate);
+    if(!holiday){oldBanner?.remove();return}
+    const safeName=String(holiday.name).replace(/[<>&"]/g,'');
+    const safeScope=String(holiday.scope||'Feriado').replace(/[<>&"]/g,'');
+    const banner=oldBanner||document.createElement('div');banner.className='mc-holiday-banner-v1';
+    banner.innerHTML=`<i class="mc-holiday-dot-v1"></i><span>Feriado: <strong>${safeName}</strong><small>· ${safeScope}</small></span>`;
+    const scroll=panel.querySelector('.calendar-events-scroll');
+    if(!oldBanner)scroll?panel.insertBefore(banner,scroll):panel.appendChild(banner);
   }
   function refresh(){renderCard();setTimeout(decorateCalendar,0);setTimeout(decorateCalendar,150)}
   ensureCard();
@@ -109,7 +128,7 @@
   let holidaySyncQueued=false;
   const mo=new MutationObserver(mutations=>{
     if(holidaySyncQueued)return;
-    const relevant=mutations.some(m=>[...m.addedNodes].some(n=>n.nodeType===1&&(n.matches?.('#settingsPage,.mobile-calendar-grid-v109,.mc-cal-grid-v124,.mc-cal-board-v124')||n.querySelector?.('#settingsPage,.mobile-calendar-grid-v109,.mc-cal-grid-v124,.mc-cal-board-v124'))));
+    const relevant=mutations.some(m=>[...m.addedNodes].some(n=>n.nodeType===1&&(n.matches?.('#settingsPage,.mobile-calendar-grid-v109,.mc-cal-grid-v124,.mc-cal-board-v124,.calendar-events-panel')||n.querySelector?.('#settingsPage,.mobile-calendar-grid-v109,.mc-cal-grid-v124,.mc-cal-board-v124,.calendar-events-panel'))));
     if(!relevant)return;
     holidaySyncQueued=true;
     requestAnimationFrame(()=>{holidaySyncQueued=false;ensureCard();decorateCalendar()});
