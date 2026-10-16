@@ -83,7 +83,11 @@
       }
       if(run!==bootRun||!uid)return;bootstrapComplete=true;
       window.dispatchEvent(new CustomEvent('meucontrole:cloud-bootstrap-complete',{detail:{uid}}));
-      unsub=cloud().watch(uid,remote=>{if(run!==bootRun||!remote?.workspace||applyingRemote)return;const rh=workspaceHash(remote.workspace),lh=workspaceHash(currentWorkspace());if(rh===lh){lastHash=rh;localDirty=false;writeMeta(uid,{lastCloudHash:rh});if(status!=='synced')setStatus('synced');return}if(localDirty||lh!==lastHash){localDirty=true;scheduleUpload('alteração local pendente');return}applyRemote(remote,run,{notify:true})},e=>{if(run===bootRun)setStatus(navigator.onLine?'error':'offline','',errorMessage(e))});
+      unsub=cloud().watch(uid,remote=>{if(run!==bootRun||!remote?.workspace||applyingRemote)return;const rh=workspaceHash(remote.workspace),lh=workspaceHash(currentWorkspace());if(rh===lh){lastHash=rh;localDirty=false;writeMeta(uid,{lastCloudHash:rh});if(status!=='synced')setStatus('synced');return}
+        const meta=readMeta(uid),remoteTime=Date.parse(remote.clientUpdatedAt||0)||0,localTime=Date.parse(meta.lastLocalChangeAt||0)||0;
+        /* Nunca deixa um snapshot remoto mais antigo apagar uma alteração local recém-salva. */
+        if(localDirty||lh!==lastHash||localTime>remoteTime){localDirty=true;writeMeta(uid,{lastLocalChangeAt:meta.lastLocalChangeAt||new Date().toISOString()});scheduleUpload('alteração local pendente');return}
+        applyRemote(remote,run,{notify:true})},e=>{if(run===bootRun)setStatus(navigator.onLine?'error':'offline','',errorMessage(e))});
       startPolling(run);
     }catch(e){if(run!==bootRun)return;setStatus(navigator.onLine?'error':'offline','',errorMessage(e));bootstrapComplete=true;startPolling(run)}
   }
