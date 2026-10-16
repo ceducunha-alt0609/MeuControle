@@ -63,7 +63,7 @@
     if(run!==bootRun||!uid||!remote?.workspace||applyingRemote)return;
     const raw=remote.workspace,localFull=scope()?.exportCurrent?.()||{},w={...raw,autoBackups:Array.isArray(localFull.autoBackups)?localFull.autoBackups:[],lastBackup:localFull.lastBackup||null},h=workspaceHash(raw),local=currentWorkspace(),lh=workspaceHash(local);
     if(h===lh){lastHash=h;localDirty=false;writeMeta(uid,{lastCloudHash:h});if(status!=='synced')setStatus('synced');return}
-    if(localDirty||lh!==lastHash){scheduleUpload('alteração local pendente');return}
+    if(localDirty){scheduleUpload('alteração local pendente');return}
     const sameEntries=entriesHash(w)===entriesHash(local);
     if(sameEntries){
       applyMetaOnly(w);const nh=workspaceHash(currentWorkspace());lastHash=nh;localDirty=false;writeMeta(uid,{lastCloudHash:h,lastRemoteAt:remote.clientUpdatedAt||new Date().toISOString()});setStatus('synced');return;
@@ -92,11 +92,11 @@
       }
       if(run!==bootRun||!uid)return;bootstrapComplete=true;
       window.dispatchEvent(new CustomEvent('meucontrole:cloud-bootstrap-complete',{detail:{uid}}));
-      unsub=cloud().watch(uid,remote=>{if(run!==bootRun||!remote?.workspace||applyingRemote)return;const rh=workspaceHash(remote.workspace),lh=workspaceHash(currentWorkspace());if(rh===lh){lastHash=rh;localDirty=false;writeMeta(uid,{lastCloudHash:rh});if(status!=='synced')setStatus('synced');return}if(localDirty||lh!==lastHash){localDirty=true;scheduleUpload('alteração local pendente');return}applyRemote(remote,run,{notify:true})},e=>{if(run===bootRun)setStatus(navigator.onLine?'error':'offline','',errorMessage(e))});
+      unsub=cloud().watch(uid,remote=>{if(run!==bootRun||!remote?.workspace||applyingRemote)return;const rh=workspaceHash(remote.workspace),lh=workspaceHash(currentWorkspace());if(rh===lh){lastHash=rh;localDirty=false;writeMeta(uid,{lastCloudHash:rh});if(status!=='synced')setStatus('synced');return}if(localDirty){scheduleUpload('alteração local pendente');return}applyRemote(remote,run,{notify:true})},e=>{if(run===bootRun)setStatus(navigator.onLine?'error':'offline','',errorMessage(e))});
       startPolling(run);
     }catch(e){if(run!==bootRun)return;setStatus(navigator.onLine?'error':'offline','',errorMessage(e));bootstrapComplete=true;startPolling(run)}
   }
-  function startPolling(run){clearInterval(pollTimer);lastHash=workspaceHash(currentWorkspace());pollTimer=setInterval(()=>{if(run!==bootRun||!uid||applyingRemote)return;const h=workspaceHash(currentWorkspace());if(h!==lastHash){localDirty=true;writeMeta(uid,{lastLocalChangeAt:new Date().toISOString()});scheduleUpload()}},1200)}
+  function startPolling(run){clearInterval(pollTimer);lastHash=workspaceHash(currentWorkspace());pollTimer=setInterval(()=>{if(run!==bootRun||!uid||applyingRemote)return;const h=workspaceHash(currentWorkspace());if(h!==lastHash&&!localDirty){localDirty=true;writeMeta(uid,{lastLocalChangeAt:new Date().toISOString()});scheduleUpload()}},1200)}
   async function manualSync(){if(!navigator.onLine){setStatus('offline');return}clearRuntime({invalidate:true});uid=null;const run=bootRun;await bootstrap(run)}
   window.addEventListener('meucontrole:user-session-changed',()=>scheduleBootstrap(280));window.addEventListener('meucontrole:user-data-ready',()=>scheduleBootstrap(180));window.addEventListener('online',()=>scheduleBootstrap(120));window.addEventListener('offline',()=>setStatus('offline'));window.addEventListener('pagehide',()=>{if(uid)scope()?.saveCurrent?.()});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{ensureUI();scheduleBootstrap(550)},{once:true});else{ensureUI();scheduleBootstrap(550)}
