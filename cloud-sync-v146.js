@@ -27,7 +27,7 @@
   function errorMessage(e){const code=e?.code||'';if(code.includes('permission-denied'))return'O Firestore recusou o acesso. Seus dados locais continuam preservados.';if(code.includes('unavailable')||!navigator.onLine)return'Firestore indisponível no momento. Seus dados locais continuam funcionando.';return`Falha na sincronização${code?` (${code})`:''}. Os dados locais foram preservados.`}
   function clearRuntime({invalidate=false}={}){if(invalidate)bootRun++;if(unsub){try{unsub()}catch{}unsub=null}clearInterval(pollTimer);pollTimer=null;clearTimeout(pushTimer);pushTimer=null;clearTimeout(bootTimer);bootTimer=null;applyingRemote=false;bootstrapComplete=false}
   function scheduleBootstrap(delay=250){clearTimeout(bootTimer);const planned=++bootRun;bootTimer=setTimeout(()=>bootstrap(planned),delay)}
-  function markLocalDirty(reason='alteração local'){if(applyingRemote)return;localDirty=true;const now=new Date().toISOString();if(uid)writeMeta(uid,{lastLocalChangeAt:now});scope()?.saveCurrent?.();if(uid)scheduleUpload(reason)}
+  function markLocalDirty(reason='alteração local'){if(applyingRemote||!uid)return;localDirty=true;writeMeta(uid,{lastLocalChangeAt:new Date().toISOString()});scope()?.saveCurrent?.();scheduleUpload(reason)}
 
   const nativeSetItem=Storage.prototype.setItem;
   if(!window.__mcCloudSyncStorageHookV146){window.__mcCloudSyncStorageHookV146=true;Storage.prototype.setItem=function(key,value){const r=nativeSetItem.call(this,key,value);if(this===localStorage&&TRACKED.has(String(key))&&!applyingRemote)markLocalDirty();return r}}
@@ -83,25 +83,13 @@
       }
       if(run!==bootRun||!uid)return;bootstrapComplete=true;
       window.dispatchEvent(new CustomEvent('meucontrole:cloud-bootstrap-complete',{detail:{uid}}));
-      unsub=cloud().watch(uid,remote=>{if(run!==bootRun||!remote?.workspace||applyingRemote)return;const rh=workspaceHash(remote.workspace),lh=workspaceHash(currentWorkspace());if(rh===lh){lastHash=rh;localDirty=false;writeMeta(uid,{lastCloudHash:rh});if(status!=='synced')setStatus('synced');return}
-        const meta=readMeta(uid),remoteTime=Date.parse(remote.clientUpdatedAt||0)||0,localTime=Date.parse(meta.lastLocalChangeAt||0)||0;
-        /* Nunca deixa um snapshot remoto mais antigo apagar uma alteração local recém-salva. */
-        if(localDirty||lh!==lastHash||localTime>remoteTime){localDirty=true;writeMeta(uid,{lastLocalChangeAt:meta.lastLocalChangeAt||new Date().toISOString()});scheduleUpload('alteração local pendente');return}
-        applyRemote(remote,run,{notify:true})},e=>{if(run===bootRun)setStatus(navigator.onLine?'error':'offline','',errorMessage(e))});
+      unsub=cloud().watch(uid,remote=>{if(run!==bootRun||!remote?.workspace||applyingRemote)return;const rh=workspaceHash(remote.workspace),lh=workspaceHash(currentWorkspace());if(rh===lh){lastHash=rh;localDirty=false;writeMeta(uid,{lastCloudHash:rh});if(status!=='synced')setStatus('synced');return}if(localDirty||lh!==lastHash){localDirty=true;scheduleUpload('alteração local pendente');return}applyRemote(remote,run,{notify:true})},e=>{if(run===bootRun)setStatus(navigator.onLine?'error':'offline','',errorMessage(e))});
       startPolling(run);
     }catch(e){if(run!==bootRun)return;setStatus(navigator.onLine?'error':'offline','',errorMessage(e));bootstrapComplete=true;startPolling(run)}
   }
   function startPolling(run){clearInterval(pollTimer);lastHash=workspaceHash(currentWorkspace());pollTimer=setInterval(()=>{if(run!==bootRun||!uid||applyingRemote)return;const h=workspaceHash(currentWorkspace());if(h!==lastHash){localDirty=true;writeMeta(uid,{lastLocalChangeAt:new Date().toISOString()});scheduleUpload()}},1200)}
-  async function pushLocalNow(reason='alteração local'){
-    if(applyingRemote||!navigator.onLine)return false;
-    localDirty=true;scope()?.saveCurrent?.();
-    const s=session(),active=scope()?.activeUid?.();
-    if(!s?.signedIn||!s.uid||active!==s.uid||!cloud())return false;
-    uid=s.uid;writeMeta(uid,{lastLocalChangeAt:new Date().toISOString()});
-    clearTimeout(pushTimer);await upload(reason,bootRun);return status==='synced';
-  }
   async function manualSync(){if(!navigator.onLine){setStatus('offline');return}clearRuntime({invalidate:true});uid=null;const run=bootRun;await bootstrap(run)}
   window.addEventListener('meucontrole:user-session-changed',()=>scheduleBootstrap(280));window.addEventListener('meucontrole:user-data-ready',()=>scheduleBootstrap(180));window.addEventListener('online',()=>scheduleBootstrap(120));window.addEventListener('offline',()=>setStatus('offline'));window.addEventListener('pagehide',()=>{if(uid)scope()?.saveCurrent?.()});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{ensureUI();scheduleBootstrap(550)},{once:true});else{ensureUI();scheduleBootstrap(550)}
-  window.MeuControleCloudSync={version:VERSION,status:()=>status,error:()=>lastError,syncNow:manualSync,markLocalDirty,pushLocalNow};
+  window.MeuControleCloudSync={version:VERSION,status:()=>status,error:()=>lastError,syncNow:manualSync};
 })();
