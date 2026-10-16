@@ -92,8 +92,16 @@
     }catch(e){if(run!==bootRun)return;setStatus(navigator.onLine?'error':'offline','',errorMessage(e));bootstrapComplete=true;startPolling(run)}
   }
   function startPolling(run){clearInterval(pollTimer);lastHash=workspaceHash(currentWorkspace());pollTimer=setInterval(()=>{if(run!==bootRun||!uid||applyingRemote)return;const h=workspaceHash(currentWorkspace());if(h!==lastHash){localDirty=true;writeMeta(uid,{lastLocalChangeAt:new Date().toISOString()});scheduleUpload()}},1200)}
+  async function pushLocalNow(reason='alteração local'){
+    if(applyingRemote||!navigator.onLine)return false;
+    localDirty=true;scope()?.saveCurrent?.();
+    const s=session(),active=scope()?.activeUid?.();
+    if(!s?.signedIn||!s.uid||active!==s.uid||!cloud())return false;
+    uid=s.uid;writeMeta(uid,{lastLocalChangeAt:new Date().toISOString()});
+    clearTimeout(pushTimer);await upload(reason,bootRun);return status==='synced';
+  }
   async function manualSync(){if(!navigator.onLine){setStatus('offline');return}clearRuntime({invalidate:true});uid=null;const run=bootRun;await bootstrap(run)}
   window.addEventListener('meucontrole:user-session-changed',()=>scheduleBootstrap(280));window.addEventListener('meucontrole:user-data-ready',()=>scheduleBootstrap(180));window.addEventListener('online',()=>scheduleBootstrap(120));window.addEventListener('offline',()=>setStatus('offline'));window.addEventListener('pagehide',()=>{if(uid)scope()?.saveCurrent?.()});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{ensureUI();scheduleBootstrap(550)},{once:true});else{ensureUI();scheduleBootstrap(550)}
-  window.MeuControleCloudSync={version:VERSION,status:()=>status,error:()=>lastError,syncNow:manualSync,markLocalDirty};
+  window.MeuControleCloudSync={version:VERSION,status:()=>status,error:()=>lastError,syncNow:manualSync,markLocalDirty,pushLocalNow};
 })();
