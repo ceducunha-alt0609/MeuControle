@@ -112,7 +112,7 @@ function restoreAutoBackup(id){
   alert('Backup automático restaurado com sucesso.');
 }
 
-function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify(entries))}
+function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify(entries));try{window.MeuControleCloudSync?.markLocalDirty?.('lançamentos alterados')}catch{}}
 function saveProfiles(){localStorage.setItem(PROFILES_KEY,JSON.stringify(profiles))}
 function migrateData(){
   let changed=false;
