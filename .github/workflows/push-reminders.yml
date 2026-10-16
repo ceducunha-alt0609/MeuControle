@@ -1,10 +1,8 @@
 name: MeuControle Push Reminders
 
 on:
-  schedule:
-    # Uma execução a cada 10 minutos reduz drasticamente leituras no Firestore
-    # sem comprometer os lembretes do MeuControle.
-    - cron: '*/10 * * * *'
+  # Temporariamente somente manual. O agendamento automático estava consumindo
+  # a cota do Firestore e bloqueando a sincronização entre dispositivos.
   workflow_dispatch:
 
 permissions:
