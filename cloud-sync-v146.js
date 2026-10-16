@@ -27,7 +27,7 @@
   function errorMessage(e){const code=e?.code||'';if(code.includes('permission-denied'))return'O Firestore recusou o acesso. Seus dados locais continuam preservados.';if(code.includes('unavailable')||!navigator.onLine)return'Firestore indisponível no momento. Seus dados locais continuam funcionando.';return`Falha na sincronização${code?` (${code})`:''}. Os dados locais foram preservados.`}
   function clearRuntime({invalidate=false}={}){if(invalidate)bootRun++;if(unsub){try{unsub()}catch{}unsub=null}clearInterval(pollTimer);pollTimer=null;clearTimeout(pushTimer);pushTimer=null;clearTimeout(bootTimer);bootTimer=null;applyingRemote=false;bootstrapComplete=false}
   function scheduleBootstrap(delay=250){clearTimeout(bootTimer);const planned=++bootRun;bootTimer=setTimeout(()=>bootstrap(planned),delay)}
-  function markLocalDirty(reason='alteração local'){if(applyingRemote||!uid)return;localDirty=true;writeMeta(uid,{lastLocalChangeAt:new Date().toISOString()});scope()?.saveCurrent?.();scheduleUpload(reason)}
+  function markLocalDirty(reason='alteração local'){if(applyingRemote)return;localDirty=true;const now=new Date().toISOString();if(uid)writeMeta(uid,{lastLocalChangeAt:now});scope()?.saveCurrent?.();if(uid)scheduleUpload(reason)}
 
   const nativeSetItem=Storage.prototype.setItem;
   if(!window.__mcCloudSyncStorageHookV146){window.__mcCloudSyncStorageHookV146=true;Storage.prototype.setItem=function(key,value){const r=nativeSetItem.call(this,key,value);if(this===localStorage&&TRACKED.has(String(key))&&!applyingRemote)markLocalDirty();return r}}
@@ -95,5 +95,5 @@
   async function manualSync(){if(!navigator.onLine){setStatus('offline');return}clearRuntime({invalidate:true});uid=null;const run=bootRun;await bootstrap(run)}
   window.addEventListener('meucontrole:user-session-changed',()=>scheduleBootstrap(280));window.addEventListener('meucontrole:user-data-ready',()=>scheduleBootstrap(180));window.addEventListener('online',()=>scheduleBootstrap(120));window.addEventListener('offline',()=>setStatus('offline'));window.addEventListener('pagehide',()=>{if(uid)scope()?.saveCurrent?.()});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{ensureUI();scheduleBootstrap(550)},{once:true});else{ensureUI();scheduleBootstrap(550)}
-  window.MeuControleCloudSync={version:VERSION,status:()=>status,error:()=>lastError,syncNow:manualSync};
+  window.MeuControleCloudSync={version:VERSION,status:()=>status,error:()=>lastError,syncNow:manualSync,markLocalDirty};
 })();
