@@ -47,17 +47,21 @@
   function scheduleUpload(reason='alteração local'){clearTimeout(pushTimer);const run=bootRun;pushTimer=setTimeout(()=>upload(reason,run),350)}
 
   function applyMetaOnly(w){
-    const profiles=Array.isArray(w?.profiles)&&w.profiles.length?w.profiles:null;
+    const remoteProfiles=Array.isArray(w?.profiles)&&w.profiles.length?w.profiles:null;
     const filter=w?.profileFilter||'all';
     applyingRemote=true;
     try{
-      if(profiles)localStorage.setItem('meu_controle_profiles_v2',JSON.stringify(profiles));
+      if(remoteProfiles)localStorage.setItem('meu_controle_profiles_v2',JSON.stringify(remoteProfiles));
       localStorage.setItem('meu_controle_profile_filter_v2',filter);
-      try{if(profiles)window.profiles=clone(profiles)}catch{}
-      try{window.activeProfile=filter}catch{}
+      /* app.js declara profiles/activeProfile como let globais, nao propriedades de window.
+         Atualize os bindings reais ao receber apenas metadados da nuvem. */
+      try{if(remoteProfiles)profiles=clone(remoteProfiles)}catch{}
+      try{activeProfile=filter}catch{}
       try{if(typeof renderProfileSelectors==='function')renderProfileSelectors()}catch{}
       try{if(typeof renderProfilesList==='function')renderProfilesList()}catch{}
+      try{if(typeof renderAll==='function')renderAll()}catch{}
       scope()?.saveCurrent?.();
+      window.dispatchEvent(new CustomEvent('meucontrole:profiles-cloud-applied'));
     }finally{applyingRemote=false}
   }
 

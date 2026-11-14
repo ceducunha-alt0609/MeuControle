@@ -190,7 +190,7 @@ function renderProfilesList(){
     row.innerHTML=`<div class="profile-row-main"><strong>${esc(p.name)}</strong><span>${count} lançamento${count===1?'':'s'}${p.locked?' • perfil padrão':''}</span></div>`;
     if(!p.locked){
       const del=document.createElement('button');del.className='danger small';del.textContent='Excluir';
-      del.onclick=()=>{if(count){alert('Este perfil possui lançamentos.');return}createAutoBackup('Antes de excluir perfil');profiles=profiles.filter(x=>x.id!==p.id);saveProfiles();renderProfileSelectors();renderProfilesList()};
+      del.onclick=()=>{const dates=Array.isArray(p.specialDates)?p.specialDates.length:0;if(count||dates){alert('Este perfil possui '+count+' lançamento(s) e '+dates+' data(s) especial(is). Mova ou exclua esses registros antes de excluir o perfil.');return}createAutoBackup('Antes de excluir perfil');profiles=profiles.filter(x=>x.id!==p.id);saveProfiles();renderProfileSelectors();renderProfilesList()};
       row.appendChild(del);
     }
     box.appendChild(row);
