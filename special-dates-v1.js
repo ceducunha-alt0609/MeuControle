@@ -6,6 +6,7 @@
  const css=document.createElement('style');
  css.id='mc-special-dates-v1-style';
  css.textContent='.mc-special-card{margin-top:14px;padding:14px;border:1px solid #dfe7e2;border-radius:13px;background:var(--card,#fff)}.mc-special-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.mc-special-head h4{margin:0;font-size:15px}.mc-special-head p{margin:4px 0;color:var(--muted,#718078);font-size:11px}.mc-special-items{display:grid;gap:7px;margin-top:12px}.mc-special-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border:1px solid #e1e8e4;border-radius:10px}.mc-special-item-main{flex:1;min-width:0}.mc-special-item-main strong{display:block;font-size:12px}.mc-special-item-main small{display:block;margin-top:3px;font-size:10px;color:#718078}.mc-special-item button{padding:6px 9px!important;min-height:30px!important;font-size:11px!important}.mc-special-add{white-space:nowrap}.mc-special-calendar-btn{font-size:12px!important;padding:8px 12px!important;margin-left:auto}.mc-special-dot{width:7px;height:7px;background:#a568c9;border-radius:50%;display:block;flex-shrink:0}.mc-special-calendar-panel{border:1px solid rgba(165,104,201,.28);background:rgba(165,104,201,.08);border-radius:11px;padding:10px 12px;margin:8px 0}.mc-special-calendar-panel strong{font-size:12px;display:block;margin-bottom:5px}.mc-special-calendar-panel div{font-size:12px;margin:4px 0}.mc-special-calendar-panel button{font-size:11px!important;padding:5px 8px!important;margin-top:6px}.mc-special-overlay{position:fixed;inset:0;background:rgba(10,20,28,.6);z-index:110000;display:flex;align-items:center;justify-content:center;padding:14px}.mc-special-modal{width:min(440px,100%);max-height:95vh;overflow:auto;background:var(--surface,#fff);color:var(--text,#273b30);border:1px solid #dce6e0;border-radius:18px;padding:20px;box-shadow:0 20px 70px #0004}.mc-special-modal h3{margin:0 0 5px;font-size:19px}.mc-special-modal p{margin:0 0 16px;font-size:12px;color:var(--muted,#718078)}.mc-special-modal label{display:block;font-size:12px;font-weight:700;margin:10px 0}.mc-special-modal input,.mc-special-modal select,.mc-special-modal textarea{display:block;width:100%;margin-top:5px;box-sizing:border-box}.mc-special-modal-actions{display:flex;gap:8px;margin-top:16px;justify-content:flex-end}.mc-special-modal-actions button{min-height:40px!important}.mc-special-empty{font-size:12px;color:#718078;padding:8px 0}.mc-special-day{position:relative}.mc-special-day .mc-special-dot{box-shadow:0 0 0 1px #fff}.mc-special-day.today .mc-special-dot{background:#fff}.mc-special-legend{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--muted,#718078);padding:6px 12px}.mc-dark .mc-special-card,.theme-black .mc-special-card{background:#18252d;border-color:#334851}.mc-dark .mc-special-item,.theme-black .mc-special-item{border-color:#334851}.mc-dark .mc-special-modal,.theme-black .mc-special-modal{background:#19262e;color:#ecf4f6;border-color:#37515e}.mc-dark .mc-special-calendar-panel,.theme-black .mc-special-calendar-panel{background:#30233c;border-color:#664a79}@media(max-width:700px){.mc-special-overlay{align-items:flex-end}.mc-special-modal{border-radius:20px 20px 14px 14px}.mc-special-calendar-btn{font-size:11px!important}}';
+ css.textContent+="\n#calendarPage .mc-special-calendar-panel{display:none!important}\n#calendarPage #calendarEventsList>.mc-special-event-card{position:relative;min-width:0;min-height:72px;padding:11px 12px;border:1px solid rgba(165,115,200,.32);border-left:3px solid #a36cc0;border-radius:12px;background:rgba(165,115,200,.045);color:inherit;cursor:pointer;box-sizing:border-box}\n#calendarPage .mc-special-event-main{display:flex;gap:8px;align-items:flex-start;min-width:0}\n#calendarPage .mc-special-event-icon{font-size:17px;line-height:1.3;flex-shrink:0}\n#calendarPage .mc-special-event-copy{flex:1;min-width:0}\n#calendarPage .mc-special-event-copy strong{display:block;font-size:14px;line-height:1.3;overflow-wrap:anywhere}\n#calendarPage .mc-special-event-copy small{display:block;margin-top:5px;font-size:11px;color:var(--muted,#85929e);line-height:1.35}\n#calendarPage .mc-special-event-more{flex-shrink:0;width:27px!important;height:27px!important;min-height:27px!important;padding:0!important;border:1px solid rgba(150,160,170,.23)!important;border-radius:8px!important;background:rgba(150,160,170,.10)!important;color:inherit!important;font-size:20px!important;box-shadow:none!important}\n#calendarPage .mc-special-event-menu[hidden]{display:none!important}\n#calendarPage .mc-special-event-menu{position:absolute;z-index:99;top:40px;right:8px;min-width:138px;padding:5px;display:grid;gap:2px;border:1px solid #d5dfe5;border-radius:10px;background:#fff;color:#263b49;box-shadow:0 10px 26px rgba(0,0,0,.2)}\n#calendarPage .mc-special-event-menu button{background:transparent!important;color:inherit!important;text-align:left;padding:8px!important;min-height:32px!important;border:0!important;box-shadow:none!important;font-size:12px!important}\n#calendarPage .mc-special-event-menu button:hover{background:#eef4f7!important}\n#calendarPage .mc-special-menu-open{z-index:100}\nbody.mc-dark #calendarPage .mc-special-event-card,body.theme-black #calendarPage .mc-special-event-card{background:#272031!important;border-color:#654d73!important;border-left:3px solid #ad79c7!important;color:#f0edf4!important}\nbody.mc-dark #calendarPage .mc-special-event-menu,body.theme-black #calendarPage .mc-special-event-menu{background:#22323d;color:#edf5f8;border-color:#435a68}\nbody.mc-dark #calendarPage .mc-special-event-menu button:hover,body.theme-black #calendarPage .mc-special-event-menu button:hover{background:#304454!important}\n@media(max-width:700px){#calendarPage #calendarEventsList>.mc-special-event-card{width:100%;min-height:66px}#calendarPage .mc-special-event-copy strong{font-size:13px}}\n";
  document.head.appendChild(css);
  const safe=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const pad=n=>String(n).padStart(2,'0');
@@ -15,24 +16,25 @@
  function display(x){return pad(x.day)+'/'+pad(x.month)}
  function age(x,y){return x.year&&Number(x.year)<=y?' • '+(y-Number(x.year))+' anos':''}
  const byDate=date=>visible().filter(x=>occurrence(x,Number(date.slice(0,4)))===date);
- function showEditor(id,initialDate){
+ function showEditor(id,initialDate,duplicateId){
    document.querySelector('.mc-special-overlay')?.remove();
    const original=all().find(x=>x.id===id);
-   const selectedProfile=original?.profile||(typeof activeProfile!=='undefined'&&activeProfile!=='all'?activeProfile:'pessoal');
+   const draft=original||all().find(x=>x.id===duplicateId);
+   const selectedProfile=draft?.profile||(typeof activeProfile!=='undefined'&&activeProfile!=='all'?activeProfile:'pessoal');
    const modal=document.createElement('div');modal.className='mc-special-overlay';
-   modal.innerHTML='<form class="mc-special-modal" role="dialog" aria-modal="true" aria-label="Data especial"><h3>'+(original?'Editar data especial':'Nova data especial')+'</h3><p>Cadastre uma vez para aparecer automaticamente todo ano.</p><label>Perfil<select name="profile"></select></label><label>Tipo<select name="type"><option value="birthday">🎂 Aniversário</option><option value="special">💜 Data comemorativa</option></select></label><label>Nome / descrição<input name="name" maxlength="70" required placeholder="Ex.: Aniversário de Maria"></label><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px"><label>Dia<input name="day" type="number" min="1" max="31" required></label><label>Mês<input name="month" type="number" min="1" max="12" required></label><label>Ano (opcional)<input name="year" type="number" min="1900" max="2200"></label></div><label>Observações<textarea name="notes" rows="2" maxlength="400"></textarea></label><div class="mc-special-modal-actions"><button type="button" class="secondary-action mc-special-cancel">Cancelar</button><button type="submit">Salvar data</button></div></form>';
+   modal.innerHTML='<form class="mc-special-modal" role="dialog" aria-modal="true" aria-label="Data especial"><h3>'+(original?'Editar data especial':duplicateId?'Duplicar data especial':'Nova data especial')+'</h3><p>Cadastre uma vez para aparecer automaticamente todo ano.</p><label>Perfil<select name="profile"></select></label><label>Tipo<select name="type"><option value="birthday">🎂 Aniversário</option><option value="special">💜 Data comemorativa</option></select></label><label>Nome / descrição<input name="name" maxlength="70" required placeholder="Ex.: Aniversário de Maria"></label><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px"><label>Dia<input name="day" type="number" min="1" max="31" required></label><label>Mês<input name="month" type="number" min="1" max="12" required></label><label>Ano (opcional)<input name="year" type="number" min="1900" max="2200"></label></div><label>Observações<textarea name="notes" rows="2" maxlength="400"></textarea></label><div class="mc-special-modal-actions"><button type="button" class="secondary-action mc-special-cancel">Cancelar</button><button type="submit">Salvar data</button></div></form>';
    document.body.appendChild(modal);
    const form=modal.querySelector('form');
    const pick=form.elements.profile;
    (Array.isArray(profiles)?profiles:[]).forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.name;pick.appendChild(o)});
    pick.value=selectedProfile;
-   form.elements.type.value=original?.type||'birthday';
-   form.elements.name.value=original?.name||'';
+   form.elements.type.value=draft?.type||'birthday';
+   form.elements.name.value=draft?.name||'';
    const parts=initialDate?.split('-')||[];
-   form.elements.day.value=original?.day||Number(parts[2])||new Date().getDate();
-   form.elements.month.value=original?.month||Number(parts[1])||new Date().getMonth()+1;
-   form.elements.year.value=original?.year||'';
-   form.elements.notes.value=original?.notes||'';
+   form.elements.day.value=draft?.day||Number(parts[2])||new Date().getDate();
+   form.elements.month.value=draft?.month||Number(parts[1])||new Date().getMonth()+1;
+   form.elements.year.value=draft?.year||'';
+   form.elements.notes.value=draft?.notes||'';
    function close(){modal.remove()}
    modal.querySelector('.mc-special-cancel').onclick=close;
    modal.addEventListener('click',e=>{if(e.target===modal)close()});
@@ -75,19 +77,47 @@
    const mobile=window.MeuControleMobileCalendarGridV110?.selected?.();
    return mobile&&mobile.startsWith(String(calendarYear)+'-'+pad(calendarMonth+1))?mobile:'';
  }
+
+ function removeSpecial(x){
+   if(!confirm('Excluir '+x.name+' das Datas Especiais?'))return;
+   createAutoBackup('Antes de excluir data especial');
+   const p=profiles.find(p=>p.id===x.profile);if(p)p.specialDates=(p.specialDates||[]).filter(v=>v.id!==x.id);
+   saveProfiles();refresh();
+ }
+ function makeSpecialCard(x,year){
+   const node=document.createElement('article');node.className='mc-special-event-card';node.dataset.specialId=x.id;
+   const birthday=x.type==='birthday',hasAge=birthday&&Number(x.year)>0&&Number(x.year)<=year;
+   node.innerHTML='<div class="mc-special-event-main"><span class="mc-special-event-icon">'+(birthday?'🎂':'💜')+'</span><div class="mc-special-event-copy"><strong>'+safe(x.name)+'</strong><small>'+display(x)+' · '+safe(x.profileName)+(hasAge?' · '+(year-Number(x.year))+' anos':'')+'</small></div><button class="mc-special-event-more" type="button" aria-label="Opções de '+safe(x.name)+'" aria-expanded="false">⋯</button></div><div class="mc-special-event-menu" hidden><button type="button" data-action="edit">✎ Editar</button><button type="button" data-action="copy">▣ Duplicar</button><button type="button" data-action="delete">🗑 Excluir</button></div>';
+   const btn=node.querySelector('.mc-special-event-more'),menu=node.querySelector('.mc-special-event-menu');
+   function close(){menu.hidden=true;node.classList.remove('mc-special-menu-open');btn.setAttribute('aria-expanded','false')}
+   function toggle(){
+     const open=menu.hidden;
+     document.querySelectorAll('.mc-special-menu-open').forEach(n=>{n.classList.remove('mc-special-menu-open');const m=n.querySelector('.mc-special-event-menu');if(m)m.hidden=true;n.querySelector('.mc-special-event-more')?.setAttribute('aria-expanded','false')});
+     menu.hidden=!open;node.classList.toggle('mc-special-menu-open',open);btn.setAttribute('aria-expanded',String(open));
+   }
+   node.dataset.specialSignature=[x.id,x.name,x.type,x.profile,x.day,x.month,x.year||'',x.notes||''].join('|');
+   node.tabIndex=0;node.setAttribute('role','group');
+   node.addEventListener('click',e=>{if(e.target.closest('.mc-special-event-menu'))return;e.stopPropagation();toggle()});
+   node.addEventListener('keydown',e=>{if(e.target===node&&(e.key==='Enter'||e.key===' ')){e.preventDefault();toggle()}if(e.key==='Escape')close()});
+   menu.addEventListener('click',e=>{const action=e.target.closest('button')?.dataset.action;if(!action)return;e.stopPropagation();close();if(action==='edit')showEditor(x.id);if(action==='copy')showEditor(null,null,x.id);if(action==='delete')removeSpecial(x)});
+   return node;
+ }
  function renderCalendarSpecial(){
    const page=document.getElementById('calendarPage');if(!page||typeof calendarYear==='undefined'||typeof calendarMonth==='undefined')return;
-   const head=page.querySelector('.calendar-head');if(head&&!head.querySelector('.mc-special-calendar-btn')){const btn=document.createElement('button');btn.type='button';btn.className='secondary-action mc-special-calendar-btn';btn.textContent='+ Aniversário';btn.onclick=()=>showEditor(null,calendarDate()||String(calendarYear)+'-'+pad(calendarMonth+1)+'-01');head.appendChild(btn)}
-   const desktop=page.querySelectorAll('.mc-cal-day-v124[data-day]'),mobile=page.querySelectorAll('.mobile-calendar-day-v109[data-date]');
-   desktop.forEach(btn=>{const date=String(calendarYear)+'-'+pad(calendarMonth+1)+'-'+pad(btn.dataset.day);decorateDay(btn,date,'.mc-cal-dots-v124')});
-   mobile.forEach(btn=>decorateDay(btn,btn.dataset.date,'.mc-day-dots-v109'));
-   const panel=page.querySelector('.calendar-events-panel');if(!panel)return;
-   let box=panel.querySelector('.mc-special-calendar-panel');const date=calendarDate();const matches=date?byDate(date):[];
-   if(!matches.length){box?.remove();return}
-   if(!box){box=document.createElement('section');box.className='mc-special-calendar-panel';const scroll=panel.querySelector('.calendar-events-scroll');panel.insertBefore(box,scroll||null)}
-   const yr=Number(date.slice(0,4));
-   box.innerHTML='<strong>🎂 Datas especiais · '+pad(Number(date.slice(8)))+'/'+pad(Number(date.slice(5,7)))+'</strong>'+matches.map(x=>'<div>'+(x.type==='special'?'💜':'🎉')+' '+safe(x.name)+safe(age(x,yr))+'</div>').join('')+'<button type="button" class="secondary-action">+ Aniversário</button>';
-   box.querySelector('button').onclick=()=>showEditor(null,date);
+   const head=page.querySelector('.calendar-head');
+   if(head&&!head.querySelector('.mc-special-calendar-btn')){const b=document.createElement('button');b.type='button';b.className='secondary-action mc-special-calendar-btn';b.textContent='+ Aniversário';b.onclick=()=>showEditor(null,calendarDate()||String(calendarYear)+'-'+pad(calendarMonth+1)+'-01');head.appendChild(b)}
+   page.querySelectorAll('.mc-cal-day-v124[data-day]').forEach(btn=>decorateDay(btn,String(calendarYear)+'-'+pad(calendarMonth+1)+'-'+pad(btn.dataset.day),'.mc-cal-dots-v124'));
+   page.querySelectorAll('.mobile-calendar-day-v109[data-date]').forEach(btn=>decorateDay(btn,btn.dataset.date,'.mc-day-dots-v109'));
+   page.querySelector('.mc-special-calendar-panel')?.remove();
+   const list=page.querySelector('#calendarEventsList'),empty=page.querySelector('#calendarEmpty');if(!list)return;
+   const date=calendarDate(),year=calendarYear,month=calendarMonth+1;
+   const matches=visible().filter(x=>date?occurrence(x,year)===date:Number(x.month)===month).sort((a,b)=>a.day-b.day||String(a.name).localeCompare(String(b.name),'pt-BR'));
+   const existing=[...list.querySelectorAll(':scope > .mc-special-event-card')];
+   if(existing.map(n=>n.dataset.specialSignature).join('||')!==matches.map(x=>[x.id,x.name,x.type,x.profile,x.day,x.month,x.year||'',x.notes||''].join('|')).join('||')){
+     existing.forEach(n=>n.remove());
+     matches.forEach(x=>list.appendChild(makeSpecialCard(x,year)));
+   }
+   if(empty&&matches.length)empty.classList.add('hidden');
  }
 
  function activatePublishedCalendar(){
@@ -147,6 +177,21 @@
    if(muts.some(m=>[...m.addedNodes].some(n=>n.nodeType===1&&(n.matches?.('.mc-cal-grid-v124,.mobile-calendar-grid-v109,.calendar-events-panel,.settings-grid,.profiles-list,.profile-row')||n.querySelector?.('.mc-cal-grid-v124,.mobile-calendar-grid-v109,.calendar-events-panel,.settings-grid,.profiles-list,.profile-row')))))queue();
  });
  observer.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class']});
+ const calendarList=document.getElementById('calendarEventsList');
+ if(calendarList)new MutationObserver(mutations=>{
+   if(mutations.some(m=>[...m.addedNodes,...m.removedNodes].some(node=>node.nodeType===1&&!node.classList?.contains('mc-special-event-card'))))queue();
+ }).observe(calendarList,{childList:true});
+ document.addEventListener('click',e=>{
+   if(e.target.closest('.mc-special-event-card'))return;
+   document.querySelectorAll('.mc-special-menu-open').forEach(card=>{
+     card.classList.remove('mc-special-menu-open');
+     const menu=card.querySelector('.mc-special-event-menu');if(menu)menu.hidden=true;
+     card.querySelector('.mc-special-event-more')?.setAttribute('aria-expanded','false');
+   });
+ });
+ document.getElementById('calendarPage')?.addEventListener('click',e=>{
+   if(e.target.closest('.mc-cal-day-v124,.mobile-calendar-day-v109,[data-nav],.mc-cal-clear-v124,.mc-special-month-footer'))setTimeout(queue,70);
+ },true);
  window.addEventListener('meucontrole:user-workspace-imported',queue);
  window.addEventListener('meucontrole:cloud-bootstrap-complete',queue);
  window.addEventListener('meucontrole:cloud-trace',e=>{if(e.detail?.type==='remote-event')setTimeout(queue,350)});
