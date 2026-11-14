@@ -270,6 +270,7 @@
  document.getElementById('calendarPage')?.addEventListener('click',e=>{
    if(e.target.closest('.mc-cal-day-v124,.mobile-calendar-day-v109,[data-nav],.mc-cal-clear-v124,.mc-special-month-footer'))setTimeout(queue,70);
  },true);
+ window.addEventListener('meucontrole:profiles-cloud-applied',queue);
  window.addEventListener('meucontrole:user-workspace-imported',queue);
  window.addEventListener('meucontrole:cloud-bootstrap-complete',queue);
  window.addEventListener('meucontrole:cloud-trace',e=>{if(e.detail?.type==='remote-event')setTimeout(queue,350)});
