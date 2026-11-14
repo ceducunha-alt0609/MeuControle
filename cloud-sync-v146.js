@@ -1,11 +1,21 @@
-/* MeuControle — V1.46: bootstrap silencioso + conflito local-first + eventos remotos reais */
+/* MeuControle — V1.48: proteção atômica contra sobrescritas e cópias pré-recebimento */
 (()=>{
   if(window.__mcCloudSyncV146)return;window.__mcCloudSyncV146=true;window.__mcCloudSyncV145=true;window.__mcCloudSyncV144=true;
-  const VERSION='1.47',META_PREFIX='meu_controle_cloud_sync_meta_v1:';
+  const VERSION='1.48',META_PREFIX='meu_controle_cloud_sync_meta_v1:';
   const TRACKED=new Set(['meu_controle_entries_v2','meu_controle_profiles_v2','meu_controle_profile_filter_v2']);
-  let uid=null,unsub=null,pollTimer=null,pushTimer=null,bootTimer=null,retryTimer=null,retryCount=0,inFlightRun=null,uploadQueued=false,bootRun=0,applyingRemote=false,lastHash='',status='idle',lastError='',localDirty=false,bootstrapComplete=false;const TRACE_KEY='meu_controle_cloud_trace_v1';let trace=[];
+  let uid=null,unsub=null,pollTimer=null,pushTimer=null,bootTimer=null,retryTimer=null,retryCount=0,inFlightRun=null,uploadQueued=false,seenRevision=null,conflictBlocked=false,bootRun=0,applyingRemote=false,lastHash='',status='idle',lastError='',localDirty=false,bootstrapComplete=false;const TRACE_KEY='meu_controle_cloud_trace_v1';let trace=[];
   let renderedKey='',renderedBox=null;
   const clone=v=>JSON.parse(JSON.stringify(v));
+  const revisionOf=r=>cloud()?.revisionOf?.(r)??null;
+  function preserveBeforeRemote(reason){
+    const current=scope()?.exportCurrent?.();if(!current)throw new Error('Não foi possível preservar o estado local');
+    const k='meu_controle_cloud_safety_snapshots_v1';
+    let previous=[];try{previous=JSON.parse(localStorage.getItem(k)||'[]')}catch{}
+    const snapshots=[{savedAt:new Date().toISOString(),reason,workspace:clone(current)},...(Array.isArray(previous)?previous:[])].slice(0,3);
+    try{localStorage.setItem(k,JSON.stringify(snapshots))}catch(e){throw new Error('Sem espaço para salvar cópia de segurança; recebimento bloqueado')}
+    traceEvent('safety-snapshot',reason);
+  }
+  function blockConflict(reason){conflictBlocked=true;localDirty=true;clearTimeout(pushTimer);pushTimer=null;clearTimeout(retryTimer);retryTimer=null;traceEvent('conflict-blocked',reason);setStatus('error','Conflito de versões — nenhum dado foi substituído.','Existem alterações divergentes neste aparelho e na nuvem. Os dados locais foram preservados. Exporte um backup em cada dispositivo antes de resolver o conflito. Não force a sincronização.');}
   const stable=v=>JSON.stringify({entries:v?.entries||[],profiles:v?.profiles||[],profileFilter:v?.profileFilter||'all'});
   const entriesStable=v=>JSON.stringify(v?.entries||[]);
   function hashText(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return(h>>>0).toString(16)}
@@ -34,7 +44,7 @@
   function ensureUI(){installStyle();const host=document.querySelector('.mc-user-session-v141');if(!host)return null;let box=host.querySelector('.mc-cloud-sync-v143');if(box)return box;box=document.createElement('section');box.className='mc-cloud-sync-v143';box.innerHTML='<div class="mc-cloud-sync-row-v143"><div class="mc-cloud-sync-copy-v143"><strong>Sincronização na nuvem</strong><span>Preparando Firestore…</span></div><span class="mc-cloud-sync-badge-v143">Aguardando</span></div><div class="mc-cloud-sync-actions-v143"><button type="button" class="secondary-action mc-cloud-sync-now-v143">Sincronizar agora</button><button type="button" class="secondary-action mc-cloud-diagnose-v7">Ver diagnóstico</button></div><div class="mc-cloud-sync-detail-v143"></div><pre class="mc-cloud-sync-diagnostic-v7" hidden></pre>';host.appendChild(box);box.querySelector('.mc-cloud-sync-now-v143').onclick=()=>manualSync();box.querySelector('.mc-cloud-diagnose-v7').onclick=()=>showDiagnostic(box);renderedKey='';renderedBox=null;return box}
   function setStatus(next,text='',detail=''){status=next;lastError=detail||'';const map={idle:['Aguardando',''],loading:['Conectando','busy'],uploading:['Enviando…','busy'],downloading:['Recebendo…','busy'],synced:['Sincronizado ✓','ok'],offline:['Offline',''],error:['Atenção','error']};const[label,cls]=map[next]||map.idle;const copyText=text||({synced:'Seus dados desta conta estão sincronizados.',offline:'Sem internet; o app continua funcionando localmente.',error:'A sincronização precisa de atenção.'}[next]||'Preparando sincronização…');const detailText=detail||'';const box=ensureUI();if(!box)return;const key=[next,label,cls,copyText,detailText].join('|');if(renderedBox===box&&renderedKey===key)return;renderedBox=box;renderedKey=key;const badge=box.querySelector('.mc-cloud-sync-badge-v143'),copy=box.querySelector('.mc-cloud-sync-copy-v143 span'),d=box.querySelector('.mc-cloud-sync-detail-v143');badge.className='mc-cloud-sync-badge-v143'+(cls?' '+cls:'');badge.textContent=label;copy.textContent=copyText;d.textContent=detailText;d.classList.toggle('show',!!detailText)}
   function traceEvent(type,detail=''){const item={at:new Date().toISOString(),type,detail:String(detail||''),uid:uid||''};trace.push(item);trace=trace.slice(-40);try{localStorage.setItem(TRACE_KEY,JSON.stringify(trace))}catch{};window.dispatchEvent(new CustomEvent('meucontrole:cloud-trace',{detail:item}))}
-  function diagnostic(){const w=currentWorkspace(),m=uid?readMeta(uid):{};return{version:'1.47-diag2',retryCount,uploadInProgress:inFlightRun===bootRun,status,error:lastError,uid:uid||'',activeUid:scope()?.activeUid?.()||'',localDirty,applyingRemote,bootstrapComplete,lastHash,currentHash:workspaceHash(w),entries:Array.isArray(w?.entries)?w.entries.length:0,lastCloudHash:m.lastCloudHash||'',lastUploadAt:m.lastUploadAt||'',lastRemoteAt:m.lastRemoteAt||'',lastLocalChangeAt:m.lastLocalChangeAt||'',trace:trace.slice(-15)}}
+  function diagnostic(){const w=currentWorkspace(),m=uid?readMeta(uid):{};return{version:'1.48-diag3',conflictBlocked,seenRevision:seenRevision?'known':'unknown',retryCount,uploadInProgress:inFlightRun===bootRun,status,error:lastError,uid:uid||'',activeUid:scope()?.activeUid?.()||'',localDirty,applyingRemote,bootstrapComplete,lastHash,currentHash:workspaceHash(w),entries:Array.isArray(w?.entries)?w.entries.length:0,lastCloudHash:m.lastCloudHash||'',lastUploadAt:m.lastUploadAt||'',lastRemoteAt:m.lastRemoteAt||'',lastLocalChangeAt:m.lastLocalChangeAt||'',trace:trace.slice(-15)}}
 
   /* Diagnóstico somente de leitura: não importa, envia nem substitui dados. */
   async function showDiagnostic(box){
@@ -44,7 +54,7 @@
     target.textContent='Consultando estado local e servidor (somente leitura)...';
     if(button)button.disabled=true;
     const w=currentWorkspace(),sessionInfo=session(),localProfiles=Array.isArray(w?.profiles)?w.profiles:[],localDates=localProfiles.reduce((n,p)=>n+(Array.isArray(p.specialDates)?p.specialDates.length:0),0);
-    const report={versao:VERSION,status,contaConectada:!!sessionInfo?.signedIn,espacoLocalCorreto:!!uid&&scope()?.activeUid?.()===uid,cloudDisponivel:!!cloud(),online:navigator.onLine,alteracoesPendentes:localDirty,envioEmAndamento:inFlightRun===bootRun,tentativas:retryCount,erroAtual:lastError||'',lancamentosLocais:w?.entries?.length||0,datasEspeciaisLocais:localDates,ultimoEnvio:uid?readMeta(uid).lastUploadAt||'':'',ultimoRecebimento:uid?readMeta(uid).lastRemoteAt||'':'',ultimaMudancaLocal:uid?readMeta(uid).lastLocalChangeAt||'':'',nuvem:'nao consultada',lancamentosNuvem:null,datasEspeciaisNuvem:null,estadoIgual:null,ultimosEventos:trace.slice(-8).map(e=>({tipo:e.type,horario:e.at,detalhe:/error|retry|skip/.test(e.type)?String(e.detail).slice(0,100):''}))};
+    const report={versao:VERSION,status,conflitoBloqueado:conflictBlocked,versaoNuvemConhecida:seenRevision!==null,contaConectada:!!sessionInfo?.signedIn,espacoLocalCorreto:!!uid&&scope()?.activeUid?.()===uid,cloudDisponivel:!!cloud(),online:navigator.onLine,alteracoesPendentes:localDirty,envioEmAndamento:inFlightRun===bootRun,tentativas:retryCount,erroAtual:lastError||'',lancamentosLocais:w?.entries?.length||0,datasEspeciaisLocais:localDates,ultimoEnvio:uid?readMeta(uid).lastUploadAt||'':'',ultimoRecebimento:uid?readMeta(uid).lastRemoteAt||'':'',ultimaMudancaLocal:uid?readMeta(uid).lastLocalChangeAt||'':'',nuvem:'nao consultada',lancamentosNuvem:null,datasEspeciaisNuvem:null,estadoIgual:null,ultimosEventos:trace.slice(-8).map(e=>({tipo:e.type,horario:e.at,detalhe:/error|retry|skip/.test(e.type)?String(e.detail).slice(0,100):''}))};
     try{
       if(!uid)report.nuvem='conta de sincronizacao indisponivel';
       else if(!cloud())report.nuvem='ponte de nuvem indisponivel';
@@ -70,9 +80,9 @@
   }
 
   function errorMessage(e){const code=e?.code||'';if(code.includes('permission-denied'))return'O Firestore recusou o acesso. Seus dados locais continuam preservados.';if(code.includes('resource-exhausted'))return'A cota do Firestore foi atingida. Seus dados locais estão preservados; a sincronização volta quando a cota estiver disponível.';if(code.includes('unavailable')||!navigator.onLine)return'Firestore indisponível no momento. Seus dados locais continuam funcionando.';return`Falha na sincronização${code?` (${code})`:''}. Os dados locais foram preservados.`}
-  function clearRuntime({invalidate=false}={}){if(invalidate)bootRun++;if(unsub){try{unsub()}catch{}unsub=null}clearInterval(pollTimer);pollTimer=null;clearTimeout(pushTimer);pushTimer=null;clearTimeout(retryTimer);retryTimer=null;retryCount=0;inFlightRun=null;uploadQueued=false;clearTimeout(bootTimer);bootTimer=null;applyingRemote=false;bootstrapComplete=false}
+  function clearRuntime({invalidate=false}={}){if(invalidate)bootRun++;seenRevision=null;conflictBlocked=false;if(unsub){try{unsub()}catch{}unsub=null}clearInterval(pollTimer);pollTimer=null;clearTimeout(pushTimer);pushTimer=null;clearTimeout(retryTimer);retryTimer=null;retryCount=0;inFlightRun=null;uploadQueued=false;clearTimeout(bootTimer);bootTimer=null;applyingRemote=false;bootstrapComplete=false}
   function scheduleBootstrap(delay=250){clearTimeout(bootTimer);const planned=++bootRun;bootTimer=setTimeout(()=>bootstrap(planned),delay)}
-  function markLocalDirty(reason='alteração local'){if(applyingRemote)return;traceEvent('local-change',reason);localDirty=true;const now=new Date().toISOString();scope()?.saveCurrent?.();if(uid){writeMeta(uid,{lastLocalChangeAt:now});scheduleUpload(reason)}}
+  function markLocalDirty(reason='alteração local'){if(applyingRemote)return;traceEvent('local-change',reason);localDirty=true;const now=new Date().toISOString();scope()?.saveCurrent?.();if(uid){writeMeta(uid,{lastLocalChangeAt:now});if(!conflictBlocked)scheduleUpload(reason)}}
 
   const nativeSetItem=Storage.prototype.setItem;
   if(!window.__mcCloudSyncStorageHookV146){window.__mcCloudSyncStorageHookV146=true;Storage.prototype.setItem=function(key,value){const r=nativeSetItem.call(this,key,value);if(this===localStorage&&TRACKED.has(String(key))&&!applyingRemote)markLocalDirty();return r}}
@@ -80,7 +90,7 @@
 
   /* Um envio de cada vez: evita inversao de gravacoes no Firestore. */
   async function upload(reason='alteração local',run=bootRun){
-    if(run!==bootRun||!uid||applyingRemote||!cloud()){traceEvent('upload-skip',reason);return}
+    if(run!==bootRun||!uid||applyingRemote||!cloud()||conflictBlocked){traceEvent('upload-skip',reason);return}
     if(inFlightRun===run){uploadQueued=true;traceEvent('upload-queued',reason);return}
     const w=currentWorkspace();if(!w)return;
     clearTimeout(retryTimer);retryTimer=null;
@@ -91,10 +101,10 @@
     setStatus('uploading','Salvando '+reason+'…');
     try{
       const clientUpdatedAt=new Date().toISOString();
-      await cloud().set(uid,{schema:1,clientUpdatedAt,workspace:clone(w)});
+      const savedRevision=await cloud().set(uid,{schema:1,clientUpdatedAt,workspace:clone(w)},seenRevision);
       traceEvent('upload-ok',reason+' | '+uploadHash);
       if(run!==bootRun)return;
-      succeeded=true;retryCount=0;
+      succeeded=true;retryCount=0;seenRevision=savedRevision;
       const currentHash=workspaceHash(currentWorkspace());
       writeMeta(uid,{lastCloudHash:uploadHash,lastUploadAt:clientUpdatedAt,...(currentHash===uploadHash?{lastLocalChangeAt:clientUpdatedAt}:{})});
       lastHash=uploadHash;
@@ -107,6 +117,7 @@
     }catch(e){
       traceEvent('upload-error',e?.code||e?.message||'erro');
       if(run!==bootRun)return;
+      if(e?.code==='sync/conflict'){blockConflict('Gravação concorrente detectada no servidor');return}
       localDirty=true;
       setStatus(navigator.onLine?'error':'offline','',errorMessage(e));
       const n=++retryCount;
@@ -125,6 +136,7 @@
     }
   }
   function scheduleUpload(reason='alteração local'){
+    if(conflictBlocked)return;
     clearTimeout(pushTimer);pushTimer=null;
     clearTimeout(retryTimer);retryTimer=null;
     const run=bootRun;
@@ -134,6 +146,7 @@
   function applyMetaOnly(w){
     const remoteProfiles=Array.isArray(w?.profiles)&&w.profiles.length?w.profiles:null;
     const filter=w?.profileFilter||'all';
+    preserveBeforeRemote('Antes de aplicar perfis recebidos da nuvem');
     applyingRemote=true;
     try{
       if(remoteProfiles)localStorage.setItem('meu_controle_profiles_v2',JSON.stringify(remoteProfiles));
@@ -153,18 +166,15 @@
   async function applyRemote(remote,run=bootRun,{notify=true}={}){
     if(run!==bootRun||!uid||!remote?.workspace||applyingRemote)return;
     const raw=remote.workspace,localFull=scope()?.exportCurrent?.()||{},w={...raw,autoBackups:Array.isArray(localFull.autoBackups)?localFull.autoBackups:[],lastBackup:localFull.lastBackup||null},h=workspaceHash(raw),local=currentWorkspace(),lh=workspaceHash(local);
-    if(h===lh){lastHash=h;localDirty=false;writeMeta(uid,{lastCloudHash:h});if(status!=='synced')setStatus('synced');return}
-    if(localDirty){
-      const meta=readMeta(uid),remoteTime=Date.parse(remote.clientUpdatedAt||0)||0,localTime=Date.parse(meta.lastLocalChangeAt||0)||0;
-      if(localTime>remoteTime){scheduleUpload('alteração local pendente');return}
-      localDirty=false;
-    }
+    if(h===lh){lastHash=h;seenRevision=revisionOf(remote);localDirty=false;writeMeta(uid,{lastCloudHash:h});if(status!=='synced')setStatus('synced');return}
+    if(localDirty||conflictBlocked){blockConflict('Dados locais alterados durante o recebimento');return}
     const sameEntries=entriesHash(w)===entriesHash(local);
     if(sameEntries){
-      applyMetaOnly(w);const nh=workspaceHash(currentWorkspace());lastHash=nh;localDirty=false;writeMeta(uid,{lastCloudHash:h,lastRemoteAt:remote.clientUpdatedAt||new Date().toISOString()});setStatus('synced');return;
+      applyMetaOnly(w);const nh=workspaceHash(currentWorkspace());lastHash=nh;seenRevision=revisionOf(remote);localDirty=false;writeMeta(uid,{lastCloudHash:h,lastRemoteAt:remote.clientUpdatedAt||new Date().toISOString()});setStatus('synced');return;
     }
+    preserveBeforeRemote('Antes de aplicar lançamentos recebidos da nuvem');
     applyingRemote=true;clearTimeout(pushTimer);setStatus('downloading','Atualizando este dispositivo com os dados da sua conta…');
-    try{const ok=scope()?.importCurrent?.(w,{reload:false});if(ok===false)throw new Error('workspace-not-active');if(run!==bootRun)return;lastHash=h;localDirty=false;writeMeta(uid,{lastCloudHash:h,lastRemoteAt:remote.clientUpdatedAt||new Date().toISOString(),lastLocalChangeAt:remote.clientUpdatedAt||new Date().toISOString()});setStatus('synced');if(notify&&bootstrapComplete&&remote.sourceDeviceId&&remote.sourceDeviceId!==deviceId())window.dispatchEvent(new CustomEvent('meucontrole:remote-workspace-applied',{detail:{uid,sourceDeviceId:remote.sourceDeviceId,at:remote.clientUpdatedAt||new Date().toISOString()}}))}catch(e){if(run===bootRun)setStatus('error','',errorMessage(e))}finally{if(run===bootRun)setTimeout(()=>{applyingRemote=false;lastHash=workspaceHash(currentWorkspace())},0)}
+    try{const ok=scope()?.importCurrent?.(w,{reload:false});if(ok===false)throw new Error('workspace-not-active');if(run!==bootRun)return;lastHash=h;seenRevision=revisionOf(remote);localDirty=false;writeMeta(uid,{lastCloudHash:h,lastRemoteAt:remote.clientUpdatedAt||new Date().toISOString(),lastLocalChangeAt:remote.clientUpdatedAt||new Date().toISOString()});setStatus('synced');if(notify&&bootstrapComplete&&remote.sourceDeviceId&&remote.sourceDeviceId!==deviceId())window.dispatchEvent(new CustomEvent('meucontrole:remote-workspace-applied',{detail:{uid,sourceDeviceId:remote.sourceDeviceId,at:remote.clientUpdatedAt||new Date().toISOString()}}))}catch(e){if(run===bootRun)setStatus('error','',errorMessage(e))}finally{if(run===bootRun)setTimeout(()=>{applyingRemote=false;lastHash=workspaceHash(currentWorkspace())},0)}
   }
 
   async function bootstrap(run){
@@ -172,28 +182,40 @@
     clearRuntime();if(run!==bootRun)return;uid=s.uid;localDirty=false;bootstrapComplete=false;setStatus('loading','Comparando este dispositivo com a nuvem…');
     try{
       const local=currentWorkspace(),remote=await cloud().get(uid);if(run!==bootRun)return;
-      if(!remote){await upload('primeira cópia desta conta',run)}else{
-        const lh=workspaceHash(local),rh=workspaceHash(remote.workspace||{}),meta=readMeta(uid);lastHash=meta.lastCloudHash||lh;
+      seenRevision=revisionOf(remote);
+      if(!remote){
+        if(!isEmpty(local)){localDirty=true;await upload('primeira cópia desta conta',run)}
+        else{lastHash=workspaceHash(local);setStatus('synced')}
+      }else{
+        const lh=workspaceHash(local),rh=workspaceHash(remote.workspace||{}),meta=readMeta(uid);
         if(lh===rh){lastHash=lh;localDirty=false;writeMeta(uid,{lastCloudHash:rh});setStatus('synced')}
-        else if(entriesHash(local)===entriesHash(remote.workspace||{})){
-          if(meta.lastCloudHash===rh){localDirty=true;await upload('ajustes locais desta conta',run)}
-          else await applyRemote(remote,run,{notify:false});
-        }
         else if(isEmpty(local)&&!isEmpty(remote.workspace)){await applyRemote(remote,run,{notify:false})}
-        else if(!isEmpty(local)&&isEmpty(remote.workspace)){localDirty=true;await upload('dados locais desta conta',run)}
-        else if(meta.lastCloudHash===lh){const remoteTime=Date.parse(remote.clientUpdatedAt||0)||0,localTime=Date.parse(meta.lastLocalChangeAt||0)||0;if(localTime&&localTime>remoteTime){localDirty=true;await upload('alterações locais mais recentes',run)}else await applyRemote(remote,run,{notify:false})}
-        else if(meta.lastCloudHash===rh){localDirty=true;await upload('alterações locais pendentes',run)}
-        else{const remoteTime=Date.parse(remote.clientUpdatedAt||0)||0,localTime=Date.parse(meta.lastLocalChangeAt||0)||0;if(localTime&&localTime>=remoteTime){localDirty=true;await upload('versão local mais recente',run)}else await applyRemote(remote,run,{notify:false})}
+        else if(meta.lastCloudHash===lh){await applyRemote(remote,run,{notify:false})}
+        else if(meta.lastCloudHash===rh){
+          localDirty=true;await upload('alterações locais pendentes',run)
+        }else{
+          blockConflict('Históricos divergentes ao entrar; sem ancestral comum comprovado');
+        }
       }
       if(run!==bootRun||!uid)return;bootstrapComplete=true;lastHash=workspaceHash(currentWorkspace());
       window.dispatchEvent(new CustomEvent('meucontrole:cloud-bootstrap-complete',{detail:{uid}}));
-      unsub=cloud().watch(uid,remote=>{traceEvent('remote-event',remote?.clientUpdatedAt||'sem data');if(run!==bootRun||!remote?.workspace||applyingRemote)return;const rh=workspaceHash(remote.workspace),lh=workspaceHash(currentWorkspace());if(rh===lh){lastHash=rh;localDirty=false;writeMeta(uid,{lastCloudHash:rh});if(status!=='synced')setStatus('synced');return}if(localDirty){const meta=readMeta(uid),remoteTime=Date.parse(remote.clientUpdatedAt||0)||0,localTime=Date.parse(meta.lastLocalChangeAt||0)||0;if(localTime>remoteTime){scheduleUpload('alteração local pendente');return}localDirty=false}applyRemote(remote,run,{notify:true})},e=>{if(run===bootRun)setStatus(navigator.onLine?'error':'offline','',errorMessage(e))});
+      unsub=cloud().watch(uid,remote=>{
+        traceEvent('remote-event',remote?.clientUpdatedAt||'sem data');
+        if(run!==bootRun||!remote?.workspace||applyingRemote||conflictBlocked)return;
+        const rh=workspaceHash(remote.workspace),lh=workspaceHash(currentWorkspace());
+        if(rh===lh){lastHash=rh;seenRevision=revisionOf(remote);if(!localDirty){writeMeta(uid,{lastCloudHash:rh});setStatus('synced')}return}
+        if(localDirty||inFlightRun===run||pushTimer){
+          blockConflict('Alterações remotas recebidas com trabalho local pendente');
+          return;
+        }
+        applyRemote(remote,run,{notify:true}).catch(e=>{blockConflict(e?.message||'Falha ao preservar dados locais')});
+      },e=>{if(run===bootRun)setStatus(navigator.onLine?'error':'offline','',errorMessage(e))});
       startPolling(run);
     }catch(e){if(run!==bootRun)return;setStatus(navigator.onLine?'error':'offline','',errorMessage(e));bootstrapComplete=true;startPolling(run)}
   }
-  function startPolling(run){clearInterval(pollTimer);pollTimer=setInterval(()=>{if(run!==bootRun||!uid||applyingRemote)return;const h=workspaceHash(currentWorkspace());if(h!==lastHash&&!localDirty){localDirty=true;writeMeta(uid,{lastLocalChangeAt:new Date().toISOString()});scope()?.saveCurrent?.();scheduleUpload('alteração detectada pelo monitor')}else if(localDirty&&navigator.onLine&&!pushTimer&&!retryTimer&&inFlightRun!==run){scheduleUpload('pendência local ainda não enviada')}},1200)}
-  async function manualSync(){if(!navigator.onLine){setStatus('offline');return}clearRuntime({invalidate:true});uid=null;const run=bootRun;await bootstrap(run)}
-  window.addEventListener('meucontrole:user-session-changed',()=>scheduleBootstrap(280));window.addEventListener('meucontrole:user-data-ready',()=>scheduleBootstrap(180));window.addEventListener('online',()=>scheduleBootstrap(120));window.addEventListener('pageshow',e=>{if(e.persisted)scheduleBootstrap(120)});document.addEventListener('visibilitychange',()=>{if(!document.hidden&&uid&&localDirty&&!pushTimer&&!retryTimer&&inFlightRun!==bootRun)scheduleUpload('retomada do aplicativo')});window.addEventListener('offline',()=>setStatus('offline'));window.addEventListener('pagehide',()=>{if(uid)scope()?.saveCurrent?.()});
+  function startPolling(run){clearInterval(pollTimer);pollTimer=setInterval(()=>{if(run!==bootRun||!uid||applyingRemote||conflictBlocked)return;const h=workspaceHash(currentWorkspace());if(h!==lastHash&&!localDirty){localDirty=true;writeMeta(uid,{lastLocalChangeAt:new Date().toISOString()});scope()?.saveCurrent?.();scheduleUpload('alteração detectada pelo monitor')}else if(localDirty&&navigator.onLine&&!pushTimer&&!retryTimer&&inFlightRun!==run){scheduleUpload('pendência local ainda não enviada')}},1200)}
+  async function manualSync(){if(conflictBlocked){blockConflict('Sincronização manual bloqueada para proteger dados divergentes');return}if(!navigator.onLine){setStatus('offline');return}clearRuntime({invalidate:true});uid=null;const run=bootRun;await bootstrap(run)}
+  window.addEventListener('meucontrole:user-session-changed',()=>scheduleBootstrap(280));window.addEventListener('meucontrole:user-data-ready',()=>scheduleBootstrap(180));window.addEventListener('online',()=>scheduleBootstrap(120));window.addEventListener('pageshow',e=>{if(e.persisted)scheduleBootstrap(120)});document.addEventListener('visibilitychange',()=>{if(!document.hidden&&uid&&localDirty&&!conflictBlocked&&!pushTimer&&!retryTimer&&inFlightRun!==bootRun)scheduleUpload('retomada do aplicativo')});window.addEventListener('offline',()=>setStatus('offline'));window.addEventListener('pagehide',()=>{if(uid)scope()?.saveCurrent?.()});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{ensureUI();scheduleBootstrap(550)},{once:true});else{ensureUI();scheduleBootstrap(550)}
   window.MeuControleCloudSync={version:VERSION,status:()=>status,error:()=>lastError,syncNow:manualSync,markLocalDirty,diagnostic,trace:()=>trace.slice()};
 })();
