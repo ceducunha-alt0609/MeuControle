@@ -7,6 +7,7 @@
  css.id='mc-special-dates-v1-style';
  css.textContent='.mc-special-card{margin-top:14px;padding:14px;border:1px solid #dfe7e2;border-radius:13px;background:var(--card,#fff)}.mc-special-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.mc-special-head h4{margin:0;font-size:15px}.mc-special-head p{margin:4px 0;color:var(--muted,#718078);font-size:11px}.mc-special-items{display:grid;gap:7px;margin-top:12px}.mc-special-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border:1px solid #e1e8e4;border-radius:10px}.mc-special-item-main{flex:1;min-width:0}.mc-special-item-main strong{display:block;font-size:12px}.mc-special-item-main small{display:block;margin-top:3px;font-size:10px;color:#718078}.mc-special-item button{padding:6px 9px!important;min-height:30px!important;font-size:11px!important}.mc-special-add{white-space:nowrap}.mc-special-calendar-btn{font-size:12px!important;padding:8px 12px!important;margin-left:auto}.mc-special-dot{width:7px;height:7px;background:#a568c9;border-radius:50%;display:block;flex-shrink:0}.mc-special-calendar-panel{border:1px solid rgba(165,104,201,.28);background:rgba(165,104,201,.08);border-radius:11px;padding:10px 12px;margin:8px 0}.mc-special-calendar-panel strong{font-size:12px;display:block;margin-bottom:5px}.mc-special-calendar-panel div{font-size:12px;margin:4px 0}.mc-special-calendar-panel button{font-size:11px!important;padding:5px 8px!important;margin-top:6px}.mc-special-overlay{position:fixed;inset:0;background:rgba(10,20,28,.6);z-index:110000;display:flex;align-items:center;justify-content:center;padding:14px}.mc-special-modal{width:min(440px,100%);max-height:95vh;overflow:auto;background:var(--surface,#fff);color:var(--text,#273b30);border:1px solid #dce6e0;border-radius:18px;padding:20px;box-shadow:0 20px 70px #0004}.mc-special-modal h3{margin:0 0 5px;font-size:19px}.mc-special-modal p{margin:0 0 16px;font-size:12px;color:var(--muted,#718078)}.mc-special-modal label{display:block;font-size:12px;font-weight:700;margin:10px 0}.mc-special-modal input,.mc-special-modal select,.mc-special-modal textarea{display:block;width:100%;margin-top:5px;box-sizing:border-box}.mc-special-modal-actions{display:flex;gap:8px;margin-top:16px;justify-content:flex-end}.mc-special-modal-actions button{min-height:40px!important}.mc-special-empty{font-size:12px;color:#718078;padding:8px 0}.mc-special-day{position:relative}.mc-special-day .mc-special-dot{box-shadow:0 0 0 1px #fff}.mc-special-day.today .mc-special-dot{background:#fff}.mc-special-legend{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--muted,#718078);padding:6px 12px}.mc-dark .mc-special-card,.theme-black .mc-special-card{background:#18252d;border-color:#334851}.mc-dark .mc-special-item,.theme-black .mc-special-item{border-color:#334851}.mc-dark .mc-special-modal,.theme-black .mc-special-modal{background:#19262e;color:#ecf4f6;border-color:#37515e}.mc-dark .mc-special-calendar-panel,.theme-black .mc-special-calendar-panel{background:#30233c;border-color:#664a79}@media(max-width:700px){.mc-special-overlay{align-items:flex-end}.mc-special-modal{border-radius:20px 20px 14px 14px}.mc-special-calendar-btn{font-size:11px!important}}';
  css.textContent+="\n#calendarPage .mc-special-calendar-panel{display:none!important}\n#calendarPage #calendarEventsList>.mc-special-event-card{position:relative;min-width:0;min-height:72px;padding:11px 12px;border:1px solid rgba(165,115,200,.32);border-left:3px solid #a36cc0;border-radius:12px;background:rgba(165,115,200,.045);color:inherit;cursor:pointer;box-sizing:border-box}\n#calendarPage .mc-special-event-main{display:flex;gap:8px;align-items:flex-start;min-width:0}\n#calendarPage .mc-special-event-icon{font-size:17px;line-height:1.3;flex-shrink:0}\n#calendarPage .mc-special-event-copy{flex:1;min-width:0}\n#calendarPage .mc-special-event-copy strong{display:block;font-size:14px;line-height:1.3;overflow-wrap:anywhere}\n#calendarPage .mc-special-event-copy small{display:block;margin-top:5px;font-size:11px;color:var(--muted,#85929e);line-height:1.35}\n#calendarPage .mc-special-event-more{flex-shrink:0;width:27px!important;height:27px!important;min-height:27px!important;padding:0!important;border:1px solid rgba(150,160,170,.23)!important;border-radius:8px!important;background:rgba(150,160,170,.10)!important;color:inherit!important;font-size:20px!important;box-shadow:none!important}\n#calendarPage .mc-special-event-menu[hidden]{display:none!important}\n#calendarPage .mc-special-event-menu{position:absolute;z-index:99;top:40px;right:8px;min-width:138px;padding:5px;display:grid;gap:2px;border:1px solid #d5dfe5;border-radius:10px;background:#fff;color:#263b49;box-shadow:0 10px 26px rgba(0,0,0,.2)}\n#calendarPage .mc-special-event-menu button{background:transparent!important;color:inherit!important;text-align:left;padding:8px!important;min-height:32px!important;border:0!important;box-shadow:none!important;font-size:12px!important}\n#calendarPage .mc-special-event-menu button:hover{background:#eef4f7!important}\n#calendarPage .mc-special-menu-open{z-index:100}\nbody.mc-dark #calendarPage .mc-special-event-card,body.theme-black #calendarPage .mc-special-event-card{background:#272031!important;border-color:#654d73!important;border-left:3px solid #ad79c7!important;color:#f0edf4!important}\nbody.mc-dark #calendarPage .mc-special-event-menu,body.theme-black #calendarPage .mc-special-event-menu{background:#22323d;color:#edf5f8;border-color:#435a68}\nbody.mc-dark #calendarPage .mc-special-event-menu button:hover,body.theme-black #calendarPage .mc-special-event-menu button:hover{background:#304454!important}\n@media(max-width:700px){#calendarPage #calendarEventsList>.mc-special-event-card{width:100%;min-height:66px}#calendarPage .mc-special-event-copy strong{font-size:13px}}\n";
+ css.textContent+="\n.mc-special-action-panel-v3[hidden]{display:none!important}\n.mc-special-action-panel-v3{position:fixed;z-index:100860;width:300px;padding:11px;border:1px solid #dce5e1;border-radius:15px;background:#fff;color:#263b31;box-shadow:0 18px 48px rgba(18,44,59,.2);font-family:inherit}\n.mc-special-action-handle-v3{height:19px;margin:-3px -3px 5px;display:flex;align-items:center;justify-content:center;color:#9aa6a0;font:900 16px/1 system-ui,sans-serif;cursor:ns-resize;touch-action:none;user-select:none}\n.mc-special-action-head-v3{display:flex;align-items:flex-start;gap:9px;padding:0 4px 9px}\n.mc-special-action-copy-v3{min-width:0;flex:1}\n.mc-special-action-copy-v3 strong{display:block;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}\n.mc-special-action-copy-v3 span{display:block;margin-top:3px;font-size:10px;color:#758178;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}\n.mc-special-action-close-v3{width:30px!important;height:30px!important;min-height:30px!important;padding:0!important;border-radius:9px!important;background:#edf2ef!important;color:#536159!important;box-shadow:none!important}\n.mc-special-action-note-v3{margin:0 4px 10px;padding:9px 10px;border:1px solid #dfe7e3;border-radius:10px;background:#f6f9f7;color:#43544b;font-size:11px;line-height:1.42;white-space:pre-wrap;overflow-wrap:anywhere}\n.mc-special-action-note-v3[hidden]{display:none!important}\n.mc-special-action-note-v3 strong{display:block;margin-bottom:4px;font-size:10px;text-transform:uppercase}\n.mc-special-action-grid-v3{display:grid;grid-template-columns:1fr 1fr;gap:7px}\n.mc-special-action-grid-v3 button{min-height:38px!important;border-radius:10px!important;font-size:11px!important}\n.mc-special-action-delete-v3{grid-column:1/-1;background:#a83f3f!important;border-color:#a83f3f!important;color:#fff!important}\nbody.mc-dark .mc-special-action-panel-v3,body.theme-black .mc-special-action-panel-v3{background:#101b21!important;color:#eef5f9!important;border-color:#354954!important;box-shadow:0 20px 54px rgba(0,0,0,.52)!important}\nbody.mc-dark .mc-special-action-copy-v3 span,body.theme-black .mc-special-action-copy-v3 span{color:#a6bac5!important}\nbody.mc-dark .mc-special-action-grid-v3 .secondary-action,body.theme-black .mc-special-action-grid-v3 .secondary-action{background:#1b2b33!important;color:#e8f1f5!important;border-color:#3a4f5a!important}\nbody.mc-dark .mc-special-action-note-v3,body.theme-black .mc-special-action-note-v3{background:#14232b;color:#dbe7e1;border-color:#354954}\n@media(max-width:700px){\n .mc-special-action-panel-v3{left:12px!important;right:12px!important;top:auto!important;bottom:12px!important;width:auto!important;border-radius:19px;padding:17px;box-shadow:0 -14px 42px rgba(0,0,0,.3)}\n .mc-special-action-handle-v3{height:16px;cursor:default}\n .mc-special-action-copy-v3 strong{font-size:18px}\n .mc-special-action-grid-v3 button{min-height:46px!important;font-size:13px!important}\n}\n";
  document.head.appendChild(css);
  const safe=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const pad=n=>String(n).padStart(2,'0');
@@ -17,6 +18,7 @@
  function age(x,y){return x.year&&Number(x.year)<=y?' • '+(y-Number(x.year))+' anos':''}
  const byDate=date=>visible().filter(x=>occurrence(x,Number(date.slice(0,4)))===date);
  function showEditor(id,initialDate,duplicateId){
+   closeSpecialActions();
    document.querySelector('.mc-special-overlay')?.remove();
    const original=all().find(x=>x.id===id);
    const draft=original||all().find(x=>x.id===duplicateId);
@@ -79,29 +81,76 @@
  }
 
  function removeSpecial(x){
+   closeSpecialActions();
    if(!confirm('Excluir '+x.name+' das Datas Especiais?'))return;
    createAutoBackup('Antes de excluir data especial');
    const p=profiles.find(p=>p.id===x.profile);if(p)p.specialDates=(p.specialDates||[]).filter(v=>v.id!==x.id);
    saveProfiles();refresh();
  }
+
+ function closeSpecialActions(){
+   const p=document.querySelector('.mc-special-action-panel-v3');
+   if(p){p.classList.remove('show');p.hidden=true}
+   document.querySelectorAll('.mc-special-event-more[aria-expanded="true"]').forEach(b=>b.setAttribute('aria-expanded','false'));
+ }
+ function ensureSpecialActions(){
+   let panel=document.querySelector('.mc-special-action-panel-v3');
+   if(panel)return panel;
+   panel=document.createElement('section');
+   panel.className='mc-special-action-panel-v3';panel.hidden=true;
+   panel.setAttribute('role','dialog');panel.setAttribute('aria-label','Ações da data especial');
+   panel.innerHTML='<div class="mc-special-action-handle-v3" title="Ações da data especial">•••</div><div class="mc-special-action-head-v3"><div class="mc-special-action-copy-v3"><strong></strong><span></span></div><button type="button" class="mc-special-action-close-v3" aria-label="Fechar">×</button></div><div class="mc-special-action-note-v3" hidden><strong>Observações</strong><span></span></div><div class="mc-special-action-grid-v3"><button type="button" class="secondary-action" data-action="edit">Editar</button><button type="button" class="secondary-action" data-action="duplicate">Duplicar</button><button type="button" class="mc-special-action-delete-v3" data-action="delete">Excluir</button></div>';
+   document.body.appendChild(panel);
+   panel.querySelector('.mc-special-action-close-v3').onclick=closeSpecialActions;
+   panel.addEventListener('click',e=>e.stopPropagation());
+   panel.querySelectorAll('[data-action]').forEach(btn=>btn.onclick=()=>{
+     const id=panel.dataset.specialId,act=btn.dataset.action;
+     const target=all().find(x=>x.id===id);
+     closeSpecialActions();if(!target)return;
+     if(act==='edit')showEditor(id);
+     if(act==='duplicate')showEditor(null,null,id);
+     if(act==='delete')removeSpecial(target);
+   });
+   panel.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();closeSpecialActions()}});
+   const handle=panel.querySelector('.mc-special-action-handle-v3');
+   let drag=null;
+   handle.addEventListener('pointerdown',e=>{if(matchMedia('(max-width:700px)').matches)return;drag={y:e.clientY,top:panel.getBoundingClientRect().top,id:e.pointerId};handle.setPointerCapture?.(e.pointerId);e.preventDefault()});
+   handle.addEventListener('pointermove',e=>{if(!drag||drag.id!==e.pointerId)return;const h=panel.offsetHeight;panel.style.top=Math.max(8,Math.min(innerHeight-h-8,drag.top+e.clientY-drag.y))+'px'});
+   for(const ev of ['pointerup','pointercancel'])handle.addEventListener(ev,()=>{drag=null});
+   return panel;
+ }
+ function openSpecialActions(card,x){
+   if(!card||!x)return;
+   const panel=ensureSpecialActions(),wasOpen=!panel.hidden&&panel.dataset.specialId===x.id;
+   closeSpecialActions();if(wasOpen)return;
+   const year=typeof calendarYear==='number'?calendarYear:new Date().getFullYear();
+   const validAge=x.type==='birthday'&&Number(x.year)>0&&Number(x.year)<year;
+   panel.dataset.specialId=x.id;
+   panel.querySelector('.mc-special-action-copy-v3 strong').textContent=x.name;
+   panel.querySelector('.mc-special-action-copy-v3 span').textContent=display(x)+(validAge?' · '+(year-Number(x.year))+' anos':'');
+   const note=panel.querySelector('.mc-special-action-note-v3');
+   note.hidden=!x.notes;note.querySelector('span').textContent=x.notes||'';
+   panel.hidden=false;panel.classList.add('show');
+   const button=card.querySelector('.mc-special-event-more');button?.setAttribute('aria-expanded','true');
+   if(matchMedia('(min-width:701px)').matches){
+     const rect=card.getBoundingClientRect(),width=300,margin=12;
+     panel.style.left=Math.max(margin,Math.min(innerWidth-width-margin,rect.right-width))+'px';
+     let top=rect.bottom+8;
+     if(top+panel.offsetHeight>innerHeight-margin)top=Math.max(margin,rect.top-panel.offsetHeight-8);
+     panel.style.top=top+'px';
+   }else{panel.style.removeProperty('left');panel.style.removeProperty('top')}
+ }
  function makeSpecialCard(x,year){
    const node=document.createElement('article');node.className='mc-special-event-card';node.dataset.specialId=x.id;
-   const birthday=x.type==='birthday',hasAge=birthday&&Number(x.year)>0&&Number(x.year)<=year;
-   node.innerHTML='<div class="mc-special-event-main"><span class="mc-special-event-icon">'+(birthday?'🎂':'💜')+'</span><div class="mc-special-event-copy"><strong>'+safe(x.name)+'</strong><small>'+display(x)+' · '+safe(x.profileName)+(hasAge?' · '+(year-Number(x.year))+' anos':'')+'</small></div><button class="mc-special-event-more" type="button" aria-label="Opções de '+safe(x.name)+'" aria-expanded="false">⋯</button></div><div class="mc-special-event-menu" hidden><button type="button" data-action="edit">✎ Editar</button><button type="button" data-action="copy">▣ Duplicar</button><button type="button" data-action="delete">🗑 Excluir</button></div>';
-   const btn=node.querySelector('.mc-special-event-more'),menu=node.querySelector('.mc-special-event-menu');
-   function close(){menu.hidden=true;node.classList.remove('mc-special-menu-open');btn.setAttribute('aria-expanded','false')}
-   function toggle(){
-     const open=menu.hidden;
-     document.querySelectorAll('.mc-special-menu-open').forEach(n=>{n.classList.remove('mc-special-menu-open');const m=n.querySelector('.mc-special-event-menu');if(m)m.hidden=true;n.querySelector('.mc-special-event-more')?.setAttribute('aria-expanded','false')});
-     menu.hidden=!open;node.classList.toggle('mc-special-menu-open',open);btn.setAttribute('aria-expanded',String(open));
-   }
+   const birthday=x.type==='birthday',hasAge=birthday&&Number(x.year)>0&&Number(x.year)<year;
+   node.innerHTML='<div class="mc-special-event-main"><span class="mc-special-event-icon">'+(birthday?'🎂':'💜')+'</span><div class="mc-special-event-copy"><strong>'+safe(x.name)+'</strong><small>'+display(x)+(hasAge?' · '+(year-Number(x.year))+' anos':'')+'</small></div><button class="mc-special-event-more" type="button" aria-label="Ações de '+safe(x.name)+'" aria-expanded="false">⋯</button></div>';
    node.dataset.specialSignature=[x.id,x.name,x.type,x.profile,x.day,x.month,x.year||'',x.notes||''].join('|');
    node.tabIndex=0;node.setAttribute('role','group');
-   node.addEventListener('click',e=>{if(e.target.closest('.mc-special-event-menu'))return;e.stopPropagation();toggle()});
-   node.addEventListener('keydown',e=>{if(e.target===node&&(e.key==='Enter'||e.key===' ')){e.preventDefault();toggle()}if(e.key==='Escape')close()});
-   menu.addEventListener('click',e=>{const action=e.target.closest('button')?.dataset.action;if(!action)return;e.stopPropagation();close();if(action==='edit')showEditor(x.id);if(action==='copy')showEditor(null,null,x.id);if(action==='delete')removeSpecial(x)});
+   node.addEventListener('click',e=>{e.stopPropagation();openSpecialActions(node,x)});
+   node.addEventListener('keydown',e=>{if(e.target===node&&(e.key==='Enter'||e.key===' ')){e.preventDefault();openSpecialActions(node,x)}if(e.key==='Escape')closeSpecialActions()});
    return node;
  }
+
  function renderCalendarSpecial(){
    const page=document.getElementById('calendarPage');if(!page||typeof calendarYear==='undefined'||typeof calendarMonth==='undefined')return;
    const head=page.querySelector('.calendar-head');
@@ -181,6 +230,7 @@
  if(calendarList)new MutationObserver(mutations=>{
    if(mutations.some(m=>[...m.addedNodes,...m.removedNodes].some(node=>node.nodeType===1&&!node.classList?.contains('mc-special-event-card'))))queue();
  }).observe(calendarList,{childList:true});
+ document.addEventListener('click',e=>{if(!e.target.closest('.mc-special-event-card,.mc-special-action-panel-v3'))closeSpecialActions()});
  document.addEventListener('click',e=>{
    if(e.target.closest('.mc-special-event-card'))return;
    document.querySelectorAll('.mc-special-menu-open').forEach(card=>{
