@@ -95,10 +95,10 @@
     if(run!==bootRun||!uid||applyingRemote||!cloud()||conflictBlocked||quotaBlocked){traceEvent('upload-skip',reason);return}
     if(inFlightRun===run){uploadQueued=true;traceEvent('upload-queued',reason);return}
     const w=currentWorkspace();if(!w)return;
-    clearTimeout(retryTimer);retryTimer=null;
-    inFlightRun=run;uploadQueued=false;
     const uploadHash=workspaceHash(w);
     if(!localDirty&&uploadHash===lastHash){traceEvent('upload-nochange',reason);return}
+    clearTimeout(retryTimer);retryTimer=null;
+    inFlightRun=run;uploadQueued=false;
     let succeeded=false;
     traceEvent('upload-start',reason);
     setStatus('uploading','Salvando '+reason+'…');
