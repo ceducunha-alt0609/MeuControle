@@ -14,6 +14,7 @@ import {
   doc,
   getDoc,
   setDoc,
+  runTransaction,
   onSnapshot,
   serverTimestamp
 } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js';
@@ -43,9 +44,41 @@ const switchAccount=async()=>{
 const DEVICE_KEY='meu_controle_device_id_v1';
 function deviceId(){let id=localStorage.getItem(DEVICE_KEY);if(!id){id=crypto.randomUUID();localStorage.setItem(DEVICE_KEY,id)}return id}
 const workspaceRef=uid=>doc(db,'users',uid,'workspace','current');
+/* Token canônico legado: propriedades ordenadas para comparar snapshots do Firestore. */
+function canonical(value){
+  if(Array.isArray(value))return value.map(canonical);
+  if(value&&typeof value==='object')return Object.fromEntries(Object.keys(value).sort().map(k=>[k,canonical(value[k])]));
+  return value;
+}
+function legacyRevision(workspace){
+  const json=JSON.stringify(canonical(workspace||{}));let h=2166136261;
+  for(let i=0;i<json.length;i++){h^=json.charCodeAt(i);h=Math.imul(h,16777619)}
+  return 'legacy:'+((h>>>0).toString(16))+':'+json.length;
+}
+function revisionOf(remote){
+  if(!remote)return null;
+  return typeof remote.syncRevision==='string'&&remote.syncRevision?remote.syncRevision:legacyRevision(remote.workspace);
+}
+function conflictError(){
+  const error=new Error('O documento na nuvem foi atualizado por outro dispositivo. Envio bloqueado para evitar perda de dados.');
+  error.code='sync/conflict';return error;
+}
 const cloudWorkspace={
+  revisionOf,
   async get(uid){const snap=await getDoc(workspaceRef(uid));return snap.exists()?snap.data():null},
-  async set(uid,data){return setDoc(workspaceRef(uid),{...data,uid,sourceDeviceId:deviceId(),sourcePlatform:matchMedia('(max-width:700px)').matches?'mobile':'desktop',serverUpdatedAt:serverTimestamp()},{merge:false})},
+  /* Escrita atômica: só substituir se a versão previamente lida ainda for atual. */
+  async set(uid,data,expectedRevision){
+    if(expectedRevision===undefined)throw new Error('sync/missing-revision');
+    const ref=workspaceRef(uid);
+    const nextRevision=crypto.randomUUID();
+    await runTransaction(db,async tx=>{
+      const snap=await tx.get(ref);
+      const found=snap.exists()?revisionOf(snap.data()):null;
+      if(found!==expectedRevision)throw conflictError();
+      tx.set(ref,{...data,uid,syncRevision:nextRevision,sourceDeviceId:deviceId(),sourcePlatform:matchMedia('(max-width:700px)').matches?'mobile':'desktop',serverUpdatedAt:serverTimestamp()});
+    });
+    return nextRevision;
+  },
   watch(uid,onNext,onError){return onSnapshot(workspaceRef(uid),snap=>onNext(snap.exists()?snap.data():null),onError)}
 };
 
