@@ -91,7 +91,6 @@
  function closeSpecialActions(){
    const p=document.querySelector('.mc-special-action-panel-v3');
    if(p){p.classList.remove('show');p.hidden=true}
-   document.querySelectorAll('.mc-special-event-more[aria-expanded="true"]').forEach(b=>b.setAttribute('aria-expanded','false'));
  }
  function ensureSpecialActions(){
    let panel=document.querySelector('.mc-special-action-panel-v3');
@@ -131,7 +130,6 @@
    const note=panel.querySelector('.mc-special-action-note-v3');
    note.hidden=!x.notes;note.querySelector('span').textContent=x.notes||'';
    panel.hidden=false;panel.classList.add('show');
-   const button=card.querySelector('.mc-special-event-more');button?.setAttribute('aria-expanded','true');
    if(matchMedia('(min-width:701px)').matches){
      const rect=card.getBoundingClientRect(),width=300,margin=12;
      panel.style.left=Math.max(margin,Math.min(innerWidth-width-margin,rect.right-width))+'px';
@@ -143,7 +141,7 @@
  function makeSpecialCard(x,year){
    const node=document.createElement('article');node.className='mc-special-event-card';node.dataset.specialId=x.id;
    const birthday=x.type==='birthday',hasAge=birthday&&Number(x.year)>0&&Number(x.year)<year;
-   node.innerHTML='<div class="mc-special-event-main"><span class="mc-special-event-icon">'+(birthday?'🎂':'💜')+'</span><div class="mc-special-event-copy"><strong>'+safe(x.name)+'</strong><small>'+display(x)+(hasAge?' · '+(year-Number(x.year))+' anos':'')+'</small></div><button class="mc-special-event-more" type="button" aria-label="Ações de '+safe(x.name)+'" aria-expanded="false">⋯</button></div>';
+   node.innerHTML='<div class="mc-special-event-main"><span class="mc-special-event-icon">'+(birthday?'🎂':'💜')+'</span><div class="mc-special-event-copy"><strong>'+safe(x.name)+'</strong><small>'+display(x)+(hasAge?' · '+(year-Number(x.year))+' anos':'')+'</small></div></div>';
    node.dataset.specialSignature=[x.id,x.name,x.type,x.profile,x.day,x.month,x.year||'',x.notes||''].join('|');
    node.tabIndex=0;node.setAttribute('role','group');
    node.addEventListener('click',e=>{e.stopPropagation();openSpecialActions(node,x)});
@@ -236,7 +234,6 @@
    document.querySelectorAll('.mc-special-menu-open').forEach(card=>{
      card.classList.remove('mc-special-menu-open');
      const menu=card.querySelector('.mc-special-event-menu');if(menu)menu.hidden=true;
-     card.querySelector('.mc-special-event-more')?.setAttribute('aria-expanded','false');
    });
  });
  document.getElementById('calendarPage')?.addEventListener('click',e=>{
