@@ -49,11 +49,13 @@
     try{entries=snapshot;save();renderAll();const toast=ensureToast();toast.querySelector('strong').textContent='Ação desfeita ✓';toast.querySelector('.mc-undo-copy-v038 span').textContent='O estado anterior foi restaurado.';toast.querySelector('.mc-undo-btn-v038').style.display='none';toast.classList.add('show');settleTimer=setTimeout(()=>{toast.classList.remove('show');settleTimer=null},1800)}catch(e){console.warn('[MeuControle Undo] Falha ao restaurar estado',e)}
   }
 
-  function askDelete(item){
+  function askDelete(item,options={}){
     return new Promise(resolve=>{
       document.querySelector('.mc-delete-backdrop-v038')?.remove();
       const back=document.createElement('div');back.className='mc-delete-backdrop-v038';
       back.innerHTML=`<section class="mc-delete-dialog-v038" role="dialog" aria-modal="true" aria-labelledby="mcDeleteTitleV038"><div class="mc-delete-icon-v038">×</div><h2 id="mcDeleteTitleV038">Excluir lançamento?</h2><p>Esta ação remove o lançamento da sua lista. Você ainda poderá desfazer logo em seguida.</p><span class="mc-delete-name-v038"></span><div class="mc-delete-actions-v038"><button type="button" class="mc-delete-cancel-v038">Cancelar</button><button type="button" class="mc-delete-confirm-v038">Excluir</button></div></section>`;
+      back.querySelector('#mcDeleteTitleV038').textContent=options.title||'Excluir lançamento?';
+      back.querySelector('.mc-delete-dialog-v038 p').textContent=options.message||'Esta ação remove o lançamento da sua lista. Você ainda poderá desfazer logo em seguida.';
       back.querySelector('.mc-delete-name-v038').textContent=item?.description||'Lançamento selecionado';
       document.body.appendChild(back);document.body.style.overflow='hidden';
       const finish=value=>{document.body.style.overflow='';back.remove();document.removeEventListener('keydown',onKey);resolve(value)};
@@ -84,5 +86,5 @@
   function boot(){installStyles();ensureToast();wrapCoreActions();watchForm()}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
   window.addEventListener('load',()=>setTimeout(()=>{wrapCoreActions();watchForm()},250));
-  window.MeuControleUndo={version:VERSION,clear:hideToast};
+  window.MeuControleUndo={version:VERSION,clear:hideToast,confirmDelete:askDelete};
 })();
