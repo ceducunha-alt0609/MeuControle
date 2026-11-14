@@ -1,7 +1,7 @@
 /* MeuControle — V1.48: proteção atômica contra sobrescritas e cópias pré-recebimento */
 (()=>{
   if(window.__mcCloudSyncV146)return;window.__mcCloudSyncV146=true;window.__mcCloudSyncV145=true;window.__mcCloudSyncV144=true;
-  const VERSION='1.49',META_PREFIX='meu_controle_cloud_sync_meta_v1:';
+  const VERSION='1.50',META_PREFIX='meu_controle_cloud_sync_meta_v1:';
   const TRACKED=new Set(['meu_controle_entries_v2','meu_controle_profiles_v2','meu_controle_profile_filter_v2']);
   let uid=null,unsub=null,pollTimer=null,pushTimer=null,bootTimer=null,retryTimer=null,retryCount=0,inFlightRun=null,uploadQueued=false,seenRevision=null,conflictBlocked=false,quotaBlocked=false,bootRun=0,applyingRemote=false,lastHash='',status='idle',lastError='',localDirty=false,bootstrapComplete=false;const TRACE_KEY='meu_controle_cloud_trace_v1';let trace=[];
   let renderedKey='',renderedBox=null;
@@ -46,7 +46,7 @@
   function ensureUI(){installStyle();const host=document.querySelector('.mc-user-session-v141');if(!host)return null;let box=host.querySelector('.mc-cloud-sync-v143');if(box)return box;box=document.createElement('section');box.className='mc-cloud-sync-v143';box.innerHTML='<div class="mc-cloud-sync-row-v143"><div class="mc-cloud-sync-copy-v143"><strong>Sincronização na nuvem</strong><span>Preparando Firestore…</span></div><span class="mc-cloud-sync-badge-v143">Aguardando</span></div><div class="mc-cloud-sync-actions-v143"><button type="button" class="secondary-action mc-cloud-sync-now-v143">Sincronizar agora</button><button type="button" class="secondary-action mc-cloud-diagnose-v7">Ver diagnóstico</button></div><div class="mc-cloud-sync-detail-v143"></div><pre class="mc-cloud-sync-diagnostic-v7" hidden></pre>';host.appendChild(box);box.querySelector('.mc-cloud-sync-now-v143').onclick=()=>manualSync();box.querySelector('.mc-cloud-diagnose-v7').onclick=()=>showDiagnostic(box);renderedKey='';renderedBox=null;return box}
   function setStatus(next,text='',detail=''){status=next;lastError=detail||'';const map={idle:['Aguardando',''],loading:['Conectando','busy'],uploading:['Enviando…','busy'],downloading:['Recebendo…','busy'],synced:['Sincronizado ✓','ok'],offline:['Offline',''],error:['Atenção','error']};const[label,cls]=map[next]||map.idle;const copyText=text||({synced:'Seus dados desta conta estão sincronizados.',offline:'Sem internet; o app continua funcionando localmente.',error:'A sincronização precisa de atenção.'}[next]||'Preparando sincronização…');const detailText=detail||'';const box=ensureUI();if(!box)return;const key=[next,label,cls,copyText,detailText].join('|');if(renderedBox===box&&renderedKey===key)return;renderedBox=box;renderedKey=key;const badge=box.querySelector('.mc-cloud-sync-badge-v143'),copy=box.querySelector('.mc-cloud-sync-copy-v143 span'),d=box.querySelector('.mc-cloud-sync-detail-v143');badge.className='mc-cloud-sync-badge-v143'+(cls?' '+cls:'');badge.textContent=label;copy.textContent=copyText;d.textContent=detailText;d.classList.toggle('show',!!detailText)}
   function traceEvent(type,detail=''){const item={at:new Date().toISOString(),type,detail:String(detail||''),uid:uid||''};trace.push(item);trace=trace.slice(-40);try{localStorage.setItem(TRACE_KEY,JSON.stringify(trace))}catch{};window.dispatchEvent(new CustomEvent('meucontrole:cloud-trace',{detail:item}))}
-  function diagnostic(){const w=currentWorkspace(),m=uid?readMeta(uid):{};return{version:'1.49-diag4',quotaBlocked,conflictBlocked,seenRevision:seenRevision?'known':'unknown',retryCount,uploadInProgress:inFlightRun===bootRun,status,error:lastError,uid:uid||'',activeUid:scope()?.activeUid?.()||'',localDirty,applyingRemote,bootstrapComplete,lastHash,currentHash:workspaceHash(w),entries:Array.isArray(w?.entries)?w.entries.length:0,lastCloudHash:m.lastCloudHash||'',lastUploadAt:m.lastUploadAt||'',lastRemoteAt:m.lastRemoteAt||'',lastLocalChangeAt:m.lastLocalChangeAt||'',trace:trace.slice(-15)}}
+  function diagnostic(){const w=currentWorkspace(),m=uid?readMeta(uid):{};return{version:'1.50-diag5',quotaBlocked,conflictBlocked,seenRevision:seenRevision?'known':'unknown',retryCount,uploadInProgress:inFlightRun===bootRun,status,error:lastError,uid:uid||'',activeUid:scope()?.activeUid?.()||'',localDirty,applyingRemote,bootstrapComplete,lastHash,currentHash:workspaceHash(w),entries:Array.isArray(w?.entries)?w.entries.length:0,lastCloudHash:m.lastCloudHash||'',lastUploadAt:m.lastUploadAt||'',lastRemoteAt:m.lastRemoteAt||'',lastLocalChangeAt:m.lastLocalChangeAt||'',trace:trace.slice(-15)}}
 
   /* Diagnóstico somente de leitura: não importa, envia nem substitui dados. */
   async function showDiagnostic(box){
@@ -87,7 +87,7 @@
   function markLocalDirty(reason='alteração local'){if(applyingRemote)return;traceEvent('local-change',reason);localDirty=true;const now=new Date().toISOString();scope()?.saveCurrent?.();if(uid){writeMeta(uid,{lastLocalChangeAt:now});if(!conflictBlocked&&!quotaBlocked)scheduleUpload(reason)}}
 
   const nativeSetItem=Storage.prototype.setItem;
-  if(!window.__mcCloudSyncStorageHookV146){window.__mcCloudSyncStorageHookV146=true;Storage.prototype.setItem=function(key,value){const r=nativeSetItem.call(this,key,value);if(this===localStorage&&TRACKED.has(String(key))&&!applyingRemote)markLocalDirty();return r}}
+  if(!window.__mcCloudSyncStorageHookV146){window.__mcCloudSyncStorageHookV146=true;Storage.prototype.setItem=function(key,value){const watched=this===localStorage&&TRACKED.has(String(key))&&!applyingRemote;const previousValue=watched?this.getItem(key):null;const r=nativeSetItem.call(this,key,value);if(this===localStorage&&TRACKED.has(String(key))&&!applyingRemote&&previousValue!==String(value))markLocalDirty();return r}}
 
 
   /* Um envio de cada vez: evita inversao de gravacoes no Firestore. */
@@ -95,9 +95,10 @@
     if(run!==bootRun||!uid||applyingRemote||!cloud()||conflictBlocked||quotaBlocked){traceEvent('upload-skip',reason);return}
     if(inFlightRun===run){uploadQueued=true;traceEvent('upload-queued',reason);return}
     const w=currentWorkspace();if(!w)return;
+    const uploadHash=workspaceHash(w);
+    if(!localDirty&&uploadHash===lastHash){traceEvent('upload-nochange',reason);return}
     clearTimeout(retryTimer);retryTimer=null;
     inFlightRun=run;uploadQueued=false;
-    const uploadHash=workspaceHash(w);
     let succeeded=false;
     traceEvent('upload-start',reason);
     setStatus('uploading','Salvando '+reason+'…');
@@ -143,7 +144,7 @@
     clearTimeout(pushTimer);pushTimer=null;
     clearTimeout(retryTimer);retryTimer=null;
     const run=bootRun;
-    pushTimer=setTimeout(()=>{pushTimer=null;upload(reason,run)},350);
+    pushTimer=setTimeout(()=>{pushTimer=null;upload(reason,run)},1500);
   }
 
   function applyMetaOnly(w){
