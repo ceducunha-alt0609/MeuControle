@@ -95,6 +95,7 @@
      document.querySelectorAll('.mc-special-menu-open').forEach(n=>{n.classList.remove('mc-special-menu-open');const m=n.querySelector('.mc-special-event-menu');if(m)m.hidden=true;n.querySelector('.mc-special-event-more')?.setAttribute('aria-expanded','false')});
      menu.hidden=!open;node.classList.toggle('mc-special-menu-open',open);btn.setAttribute('aria-expanded',String(open));
    }
+   node.dataset.specialSignature=[x.id,x.name,x.type,x.profile,x.day,x.month,x.year||'',x.notes||''].join('|');
    node.tabIndex=0;node.setAttribute('role','group');
    node.addEventListener('click',e=>{if(e.target.closest('.mc-special-event-menu'))return;e.stopPropagation();toggle()});
    node.addEventListener('keydown',e=>{if(e.target===node&&(e.key==='Enter'||e.key===' ')){e.preventDefault();toggle()}if(e.key==='Escape')close()});
@@ -112,7 +113,7 @@
    const date=calendarDate(),year=calendarYear,month=calendarMonth+1;
    const matches=visible().filter(x=>date?occurrence(x,year)===date:Number(x.month)===month).sort((a,b)=>a.day-b.day||String(a.name).localeCompare(String(b.name),'pt-BR'));
    const existing=[...list.querySelectorAll(':scope > .mc-special-event-card')];
-   if(existing.map(n=>n.dataset.specialId).join('|')!==matches.map(x=>x.id).join('|')){
+   if(existing.map(n=>n.dataset.specialSignature).join('||')!==matches.map(x=>[x.id,x.name,x.type,x.profile,x.day,x.month,x.year||'',x.notes||''].join('|')).join('||')){
      existing.forEach(n=>n.remove());
      matches.forEach(x=>list.appendChild(makeSpecialCard(x,year)));
    }
