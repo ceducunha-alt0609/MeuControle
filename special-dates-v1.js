@@ -88,6 +88,48 @@
    box.innerHTML='<strong>🎂 Datas especiais · '+pad(Number(date.slice(8)))+'/'+pad(Number(date.slice(5,7)))+'</strong>'+matches.map(x=>'<div>'+(x.type==='special'?'💜':'🎉')+' '+safe(x.name)+safe(age(x,yr))+'</div>').join('')+'<button type="button" class="secondary-action">+ Aniversário</button>';
    box.querySelector('button').onclick=()=>showEditor(null,date);
  }
+
+ function activatePublishedCalendar(){
+   if(typeof renderCalendar!=='function'||typeof calendarEntries!=='function')return;
+   const st=document.createElement('style');st.id='mc-special-active-cal';
+   st.textContent='#calendarPage .calendar-layout{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;align-items:start}#calendarPage .calendar-months{display:block!important;padding:0!important;overflow:visible!important}#calendarPage .mc-special-month-nav{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:linear-gradient(#edf6fb,#e6f2f9)}#calendarPage .mc-special-month-nav strong{font-size:17px;color:#164f78}#calendarPage .mc-special-month-nav button{border:0;background:#dcebf4;color:#164f78;border-radius:8px;width:33px;height:33px;font-size:20px;padding:0}#calendarPage .mc-special-week,#calendarPage .mc-cal-grid-v124{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}#calendarPage .mc-special-week span{text-align:center;padding:9px 0;font-size:10px;font-weight:800;color:#607b8a;background:#f7fafb}#calendarPage .mc-cal-day-v124{border:0;border-right:1px solid #e9eff3;border-bottom:1px solid #e9eff3;background:#fff;min-height:55px;padding:7px 2px;display:flex;flex-direction:column;align-items:center;gap:7px;box-shadow:none;transform:none;border-radius:0;color:#385066}#calendarPage .mc-cal-day-v124.out{background:#fafcfd;pointer-events:none}#calendarPage .mc-cal-day-v124.selected{background:#e6f2fa;color:#164f78}#calendarPage .mc-cal-day-v124.today .mc-cal-day-num-v124{background:var(--primary);color:#fff;border-radius:99px;padding:3px 7px}#calendarPage .mc-cal-day-num-v124{font-weight:800;font-size:13px}#calendarPage .mc-cal-dots-v124{display:flex;align-items:center;gap:3px;min-height:7px}#calendarPage .mc-special-entry-dot,#calendarPage .mc-special-holiday-dot{width:6px;height:6px;border-radius:50%;background:#d28a07}#calendarPage .mc-special-holiday-dot{background:#1684c6}#calendarPage .mc-special-month-footer{padding:9px;text-align:center}#calendarPage .mc-special-month-footer button{border:0;background:transparent;color:var(--primary);font-size:11px}#calendarPage .calendar-year-nav{display:none!important}body.mc-dark #calendarPage .mc-special-month-nav,body.theme-black #calendarPage .mc-special-month-nav{background:#193442}body.mc-dark #calendarPage .mc-cal-day-v124,body.theme-black #calendarPage .mc-cal-day-v124{background:#14242e;color:#eaf3f6;border-color:#30434e}body.mc-dark #calendarPage .mc-cal-day-v124.selected,body.theme-black #calendarPage .mc-cal-day-v124.selected{background:#254659}@media(max-width:700px){#calendarPage .calendar-layout{grid-template-columns:1fr!important}#calendarPage .mc-cal-day-v124{min-height:45px!important;padding:5px 1px!important}}';
+   document.head.appendChild(st);
+   let selectedDay=0,lastPeriod='';
+   function build(){
+     const host=document.getElementById('calendarMonths');if(!host)return;
+     const period=calendarYear+'-'+calendarMonth;
+     if(period!==lastPeriod){selectedDay=0;lastPeriod=period}
+     const first=new Date(calendarYear,calendarMonth,1).getDay(),max=new Date(calendarYear,calendarMonth+1,0).getDate(),count=Math.ceil((first+max)/7)*7;
+     const hasEntry=new Set(calendarEntries().map(e=>e.date));
+     const holidays=typeof holidayMapSP==='function'?holidayMapSP(calendarYear):new Map();
+     let cells='';
+     for(let i=0;i<count;i++){
+       const d=i-first+1;if(d<1||d>max){cells+='<div class="mc-cal-day-v124 out"></div>';continue}
+       const iso=calendarYear+'-'+pad(calendarMonth+1)+'-'+pad(d),now=new Date(),today=now.getFullYear()===calendarYear&&now.getMonth()===calendarMonth&&now.getDate()===d;
+       cells+='<button type="button" data-day="'+d+'" class="mc-cal-day-v124'+(today?' today':'')+(selectedDay===d?' selected':'')+'"><span class="mc-cal-day-num-v124">'+d+'</span><span class="mc-cal-dots-v124">'+(hasEntry.has(iso)?'<i class="mc-special-entry-dot"></i>':'')+(holidays.has(iso)?'<i class="mc-special-holiday-dot"></i>':'')+'</span></button>';
+     }
+     host.innerHTML='<div class="mc-special-month-nav"><button type="button" data-delta="-1" aria-label="Mês anterior">‹</button><strong>'+safe(monthName(calendarMonth))+' '+calendarYear+'</strong><button type="button" data-delta="1" aria-label="Próximo mês">›</button></div><div class="mc-special-week">'+['DOM','SEG','TER','QUA','QUI','SEX','SÁB'].map(x=>'<span>'+x+'</span>').join('')+'</div><div class="mc-cal-grid-v124">'+cells+'</div><div class="mc-special-month-footer"><button type="button">Ver mês inteiro</button></div>';
+     host.querySelectorAll('[data-delta]').forEach(b=>b.onclick=()=>{calendarMonth+=Number(b.dataset.delta);if(calendarMonth<0){calendarMonth=11;calendarYear--}else if(calendarMonth>11){calendarMonth=0;calendarYear++}selectedDay=0;renderCalendar()});
+     host.querySelectorAll('[data-day]').forEach(b=>b.onclick=()=>{const d=Number(b.dataset.day);selectedDay=selectedDay===d?0:d;renderCalendar()});
+     host.querySelector('.mc-special-month-footer button').onclick=()=>{selectedDay=0;renderCalendar()};
+   }
+   const previous=renderCalendar;
+   renderCalendar=function(){
+     const result=previous();build();
+     if(selectedDay){
+       const date=calendarYear+'-'+pad(calendarMonth+1)+'-'+pad(selectedDay),q=(typeof calendarQuery==='string'?calendarQuery:'').toLowerCase().trim();
+       const matches=calendarEntries().filter(e=>e.date===date).filter(e=>!q||searchableText(e).includes(q)).sort((a,b)=>(a.date+(a.time||'')).localeCompare(b.date+(b.time||'')));
+       const list=document.getElementById('calendarEventsList'),empty=document.getElementById('calendarEmpty');
+       if(list){list.innerHTML='';matches.forEach(e=>list.appendChild(createItemNode(e,'calendar')))}
+       if(empty){empty.classList.toggle('hidden',matches.length>0||byDate(date).length>0);empty.textContent='Nenhum lançamento neste dia.'}
+       const title=document.getElementById('calendarMonthTitle');if(title)title.textContent=pad(selectedDay)+' de '+monthName(calendarMonth)+' '+calendarYear;
+       const summary=document.getElementById('calendarMonthSummary');if(summary)summary.textContent=matches.length+' lançamento'+(matches.length===1?'':'s')+' no dia';
+     }
+     renderCalendarSpecial();return result;
+   };
+   renderCalendar();
+ }
+
  function decorateDay(btn,date,slotSelector){
    const special=byDate(date),old=btn.querySelector('.mc-special-dot');btn.classList.toggle('mc-special-day',special.length>0);
    if(!special.length){old?.remove();return}
@@ -108,6 +150,7 @@
  window.addEventListener('meucontrole:remote-workspace-applied',queue);
  window.addEventListener('storage',e=>{if(e.key==='meu_controle_profiles_v2')queue()});
  document.querySelectorAll('.nav-btn').forEach(b=>b.addEventListener('click',()=>setTimeout(queue,60)));
+ activatePublishedCalendar();
  window.MeuControleSpecialDatesV1={refresh:queue,list:all,open:showEditor};
  queue();
 })();
