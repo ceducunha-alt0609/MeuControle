@@ -31,6 +31,7 @@
         main.innerHTML=`<strong>${esc(p.name)}</strong><span>${count} lançamento${count===1?'':'s'}</span>`;
         row.appendChild(main);
 
+        const specialCount=Array.isArray(p.specialDates)?p.specialDates.length:0;
         if(p.id==='pessoal'){
           const lock=document.createElement('span');
           lock.className='profile-lock-icon';
@@ -46,8 +47,8 @@
           del.title='Excluir perfil';
           del.setAttribute('aria-label',`Excluir perfil ${p.name}`);
           del.onclick=()=>{
-            if(count){
-              alert(`O perfil ${p.name} possui ${count} lançamento${count===1?'':'s'}.\n\nPara excluí-lo, primeiro mova ou exclua os lançamentos vinculados.`);
+            if(count||specialCount){
+              alert(`O perfil ${p.name} possui ${count} lançamento${count===1?'':'s'} e ${specialCount} data${specialCount===1?'':'s'} especial${specialCount===1?'':'is'}.\n\nPara excluí-lo, primeiro mova ou exclua os registros vinculados.`);
               return;
             }
             if(!confirm(`Excluir o perfil “${p.name}”?`))return;
