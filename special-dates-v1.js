@@ -10,7 +10,7 @@
  const pad=n=>String(n).padStart(2,'0');
  const all=()=>Array.isArray(profiles)?profiles.flatMap(p=>(Array.isArray(p.specialDates)?p.specialDates:[]).map(x=>({...x,profile:p.id,profileName:p.name}))):[];
  const visible=()=>all().filter(x=>typeof activeProfile==='undefined'||activeProfile==='all'||x.profile===activeProfile);
- const occurrence=(x,y)=>{let d=Number(x.day),m=Number(x.month);if(m===2&&d===29&&!new Date(y,1,29).getDate().toString().includes('29'))d=28;return String(y)+'-'+pad(m)+'-'+pad(d)};
+ const occurrence=(x,y)=>{let d=Number(x.day),m=Number(x.month);if(m===2&&d===29&&new Date(y,1,29).getDate()!==29)d=28;return String(y)+'-'+pad(m)+'-'+pad(d)};
  function display(x){return pad(x.day)+'/'+pad(x.month)}
  function age(x,y){return x.year&&Number(x.year)<=y?' • '+(y-Number(x.year))+' anos':''}
  const byDate=date=>visible().filter(x=>occurrence(x,Number(date.slice(0,4)))===date);
@@ -99,10 +99,12 @@
  function queue(){if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;refresh()})}
  const observer=new MutationObserver(muts=>{
    if(muts.some(m=>m.type==='attributes'&&m.attributeName==='class'&&m.target.matches?.('.mc-cal-day-v124,.mobile-calendar-day-v109')))return queue();
-   if(muts.some(m=>[...m.addedNodes].some(n=>n.nodeType===1&&(n.matches?.('.mc-cal-grid-v124,.mobile-calendar-grid-v109,.calendar-events-panel,.settings-grid,.profiles-list')||n.querySelector?.('.mc-cal-grid-v124,.mobile-calendar-grid-v109,.calendar-events-panel,.settings-grid,.profiles-list')))))queue();
+   if(muts.some(m=>[...m.addedNodes].some(n=>n.nodeType===1&&(n.matches?.('.mc-cal-grid-v124,.mobile-calendar-grid-v109,.calendar-events-panel,.settings-grid,.profiles-list,.profile-row')||n.querySelector?.('.mc-cal-grid-v124,.mobile-calendar-grid-v109,.calendar-events-panel,.settings-grid,.profiles-list,.profile-row')))))queue();
  });
  observer.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class']});
  window.addEventListener('meucontrole:user-workspace-imported',queue);
+ window.addEventListener('meucontrole:cloud-bootstrap-complete',queue);
+ window.addEventListener('meucontrole:cloud-trace',e=>{if(e.detail?.type==='remote-event')setTimeout(queue,350)});
  window.addEventListener('meucontrole:remote-workspace-applied',queue);
  window.addEventListener('storage',e=>{if(e.key==='meu_controle_profiles_v2')queue()});
  document.querySelectorAll('.nav-btn').forEach(b=>b.addEventListener('click',()=>setTimeout(queue,60)));
