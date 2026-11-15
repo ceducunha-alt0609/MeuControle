@@ -111,7 +111,7 @@
         }
       };
       panel.appendChild(copy);
-      if(conflictBlocked&&!quotaBlocked&&eligibleForPublishing(report)){
+      if(!quotaBlocked&&eligibleForPublishing(report)&&(conflictBlocked||eligibleForOneNewEntry(report))){
         const caution=document.createElement('p');
         caution.style.marginTop='12px';
         caution.textContent=eligibleForOneNewEntry(report)?'Recuperação assistida: existe exatamente 1 lançamento somente neste aparelho; os 332 registros compartilhados, perfis e filtro são idênticos aos da nuvem. Baixe primeiro o backup da nuvem. A publicação acrescentará o lançamento sem perder os demais, se a nuvem continuar inalterada.':'Recuperação assistida: os lançamentos têm os mesmos identificadores, não há informações exclusivas da nuvem e os perfis são idênticos. Só use no PC escolhido como versão principal. A publicação substituirá a versão do workspace na nuvem e poderá propagar essas mudanças aos outros aparelhos.';
@@ -288,20 +288,20 @@
     controls.forEach(b=>b.disabled=true);
     let committed=false;
     try{
-      if(!conflictBlocked||quotaBlocked)throw new Error('Recuperação indisponível: estado ou cota alterado.');
+      if(quotaBlocked)throw new Error('Publicação indisponível: cota da nuvem bloqueada.');
       if(!uid||uid!==expectedUid||scope()?.activeUid?.()!==uid||!cloud())throw new Error('Sessão alterada; execute uma nova comparação.');
       const local=currentWorkspace();
       if(workspaceHash(local)!==expectedLocalHash)throw new Error('Os dados deste aparelho mudaram. Compare novamente.');
       const remote=await cloud().get(uid);
       if(!remote?.workspace||revisionOf(remote)!==expectedRemoteRevision)throw new Error('A nuvem mudou desde a comparação. Nada foi enviado. Compare novamente.');
       const report=compareEntries(local,remote.workspace);
-      if(!eligibleForPublishing(report))throw new Error('As diferenças mudaram; publicação bloqueada. Compare novamente.');
+      if(!eligibleForPublishing(report)||(!conflictBlocked&&!eligibleForOneNewEntry(report)))throw new Error('As diferenças mudaram; publicação bloqueada. Compare novamente.');
       if(!window.confirm(eligibleForOneNewEntry(report)
         ? 'CONFIRMAÇÃO FINAL: incorporar 1 lançamento novo à sua conta na nuvem?\\n\\nOs outros '+report.lancamentosNuvem+' lançamentos foram conferidos e não possuem diferenças. Confirme que o backup da nuvem foi baixado. Nenhuma exclusão está prevista.'
         : 'CONFIRMAÇÃO FINAL: publicar os '+report.lancamentosPc+' lançamentos deste PC na nuvem?\\n\\nSerão substituídos apenas os dados do workspace. Confirme somente após verificar o arquivo de segurança da nuvem que acabou de baixar.'))return;
       /* Já existe backup baixado da nuvem. Persistir e reler uma cópia de ambos os estados em IndexedDB antes da transação; não depender do localStorage cheio. */
       await protectRecoverySnapshot(local,remote,uid);
-      if(uid!==expectedUid||scope()?.activeUid?.()!==expectedUid||workspaceHash(currentWorkspace())!==expectedLocalHash||!conflictBlocked)throw new Error('O estado do aparelho mudou durante o backup. Compare novamente.');
+      if(uid!==expectedUid||scope()?.activeUid?.()!==expectedUid||workspaceHash(currentWorkspace())!==expectedLocalHash||quotaBlocked||(!conflictBlocked&&!eligibleForOneNewEntry(report)))throw new Error('O estado do aparelho mudou durante o backup. Compare novamente.');
       const fresh=await cloud().get(uid);
       if(!fresh?.workspace||revisionOf(fresh)!==expectedRemoteRevision||!eligibleForPublishing(compareEntries(local,fresh.workspace)))
         throw new Error('A nuvem ou a comparação mudou durante a cópia de segurança. Nenhum dado publicado.');
