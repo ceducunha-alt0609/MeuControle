@@ -111,7 +111,7 @@
         }
       };
       panel.appendChild(copy);
-      if(conflictBlocked&&!quotaBlocked&&eligibleForPublishing(report)){
+      if(conflictBlocked&&!quotaBlocked&&!matchMedia('(max-width:700px)').matches&&eligibleForPublishing(report)){
         const caution=document.createElement('p');
         caution.style.marginTop='12px';
         caution.textContent='Recuperação assistida: os lançamentos têm os mesmos identificadores, não há informações exclusivas da nuvem e os perfis são idênticos. Só use no PC escolhido como versão principal. A publicação substituirá a versão do workspace na nuvem e poderá propagar essas mudanças aos outros aparelhos.';
