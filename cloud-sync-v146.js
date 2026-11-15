@@ -111,17 +111,17 @@
         }
       };
       panel.appendChild(copy);
-      if(conflictBlocked&&!quotaBlocked&&!matchMedia('(max-width:700px)').matches&&eligibleForPublishing(report)){
+      if(conflictBlocked&&!quotaBlocked&&eligibleForPublishing(report)){
         const caution=document.createElement('p');
         caution.style.marginTop='12px';
-        caution.textContent='Recuperação assistida: os lançamentos têm os mesmos identificadores, não há informações exclusivas da nuvem e os perfis são idênticos. Só use no PC escolhido como versão principal. A publicação substituirá a versão do workspace na nuvem e poderá propagar essas mudanças aos outros aparelhos.';
+        caution.textContent=eligibleForOneNewEntry(report)?'Recuperação assistida: existe exatamente 1 lançamento somente neste aparelho; os 332 registros compartilhados, perfis e filtro são idênticos aos da nuvem. Baixe primeiro o backup da nuvem. A publicação acrescentará o lançamento sem perder os demais, se a nuvem continuar inalterada.':'Recuperação assistida: os lançamentos têm os mesmos identificadores, não há informações exclusivas da nuvem e os perfis são idênticos. Só use no PC escolhido como versão principal. A publicação substituirá a versão do workspace na nuvem e poderá propagar essas mudanças aos outros aparelhos.';
         panel.appendChild(caution);
         const cloudBackup=document.createElement('button');
         cloudBackup.type='button';cloudBackup.className='secondary-action';cloudBackup.textContent='1. Baixar backup da nuvem';
         panel.appendChild(cloudBackup);
         const confirm=document.createElement('button');
         confirm.type='button';confirm.className='secondary-action';confirm.disabled=true;
-        confirm.style.marginLeft='8px';confirm.textContent='2. Publicar versão deste PC';
+        confirm.style.marginLeft='8px';confirm.textContent=eligibleForOneNewEntry(report)?'2. Publicar 1 lançamento novo':'2. Publicar versão deste PC';
         panel.appendChild(confirm);
         const expectedUid=uid,expectedLocalHash=workspaceHash(local),expectedRemoteRevision=revisionOf(remote);
         cloudBackup.onclick=()=>{
@@ -165,10 +165,19 @@
   }
 
   /* Publicação consciente e condicional: nunca ignora atualizações concorrentes. */
-  function eligibleForPublishing(report){
-    return !!report&&report.lancamentosPc>0&&report.lancamentosPc===report.lancamentosNuvem&&
-      report.soNoPc===0&&report.soNaNuvem===0&&report.alterados>0&&report.alterados<=50&&
+  function eligibleForOneNewEntry(report){
+    return !!report&&report.lancamentosPc===report.lancamentosNuvem+1&&
+      report.soNoPc===1&&report.soNaNuvem===0&&report.alterados===0&&
       report.perfilIgual===true&&report.filtroDiferente===false;
+  }
+  function eligibleForPublishing(report){
+    return !!report&&(
+      (report.lancamentosPc>0&&report.lancamentosPc===report.lancamentosNuvem&&
+       report.soNoPc===0&&report.soNaNuvem===0&&report.alterados>0&&report.alterados<=50&&
+       report.perfilIgual===true&&report.filtroDiferente===false&&
+       !matchMedia('(max-width:700px)').matches)
+      || eligibleForOneNewEntry(report)
+    );
   }
   function eligibleForReceiving(report){
     return !!report&&report.lancamentosPc>0&&report.lancamentosPc===report.lancamentosNuvem&&
@@ -287,10 +296,15 @@
       if(!remote?.workspace||revisionOf(remote)!==expectedRemoteRevision)throw new Error('A nuvem mudou desde a comparação. Nada foi enviado. Compare novamente.');
       const report=compareEntries(local,remote.workspace);
       if(!eligibleForPublishing(report))throw new Error('As diferenças mudaram; publicação bloqueada. Compare novamente.');
-      if(!window.confirm('CONFIRMAÇÃO FINAL: publicar os '+report.lancamentosPc+' lançamentos deste PC na nuvem?\n\nSerão substituídos apenas os dados do workspace. Confirme somente após verificar o arquivo de segurança da nuvem que acabou de baixar.'))return;
+      if(!window.confirm(eligibleForOneNewEntry(report)
+        ? 'CONFIRMAÇÃO FINAL: incorporar 1 lançamento novo à sua conta na nuvem?\\n\\nOs outros '+report.lancamentosNuvem+' lançamentos foram conferidos e não possuem diferenças. Confirme que o backup da nuvem foi baixado. Nenhuma exclusão está prevista.'
+        : 'CONFIRMAÇÃO FINAL: publicar os '+report.lancamentosPc+' lançamentos deste PC na nuvem?\\n\\nSerão substituídos apenas os dados do workspace. Confirme somente após verificar o arquivo de segurança da nuvem que acabou de baixar.'))return;
       /* Já existe backup baixado da nuvem. Persistir e reler uma cópia de ambos os estados em IndexedDB antes da transação; não depender do localStorage cheio. */
       await protectRecoverySnapshot(local,remote,uid);
       if(uid!==expectedUid||scope()?.activeUid?.()!==expectedUid||workspaceHash(currentWorkspace())!==expectedLocalHash||!conflictBlocked)throw new Error('O estado do aparelho mudou durante o backup. Compare novamente.');
+      const fresh=await cloud().get(uid);
+      if(!fresh?.workspace||revisionOf(fresh)!==expectedRemoteRevision||!eligibleForPublishing(compareEntries(local,fresh.workspace)))
+        throw new Error('A nuvem ou a comparação mudou durante a cópia de segurança. Nenhum dado publicado.');
       const clientUpdatedAt=new Date().toISOString();
       const savedRevision=await cloud().set(uid,{schema:1,clientUpdatedAt,workspace:clone(local)},expectedRemoteRevision);
       committed=true;
@@ -300,9 +314,9 @@
       conflictBlocked=false;
       quotaBlocked=false;
       writeMeta(uid,{lastCloudHash:lastHash,lastUploadAt:clientUpdatedAt,lastLocalChangeAt:clientUpdatedAt});
-      traceEvent('conflict-recovered','Publicação condicional do PC confirmada');
-      setStatus('synced','PC publicado na nuvem. Atualize os outros aparelhos após conferir os dados.');
-      panel.textContent='Versão do PC publicada com sucesso, após verificação de conflito e cópias de segurança. Confira os compromissos e somente depois abra os celulares para receber a atualização.';
+      traceEvent('conflict-recovered','Publicação condicional do aparelho confirmada');
+      setStatus('synced','Alterações publicadas na nuvem. Verifique os outros aparelhos.');
+      panel.textContent='Publicação segura concluída, após comparação e backups. Confira os lançamentos nos outros aparelhos.';
       /* Reiniciar o observador com o workspace confirmado; não efetuar outro envio. */
       clearRuntime({invalidate:true});
       uid=null;
