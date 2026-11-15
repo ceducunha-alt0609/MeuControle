@@ -181,8 +181,10 @@
       traceEvent('conflict-recovered','Publicação condicional do PC confirmada');
       setStatus('synced','PC publicado na nuvem. Atualize os outros aparelhos após conferir os dados.');
       panel.textContent='Versão do PC publicada com sucesso, após verificação de conflito e cópias de segurança. Confira os compromissos e somente depois abra os celulares para receber a atualização.';
-      /* Reabrir o observador com o workspace já confirmado; sem reenvio automático. */
-      scheduleBootstrap(400);
+      /* Reiniciar o observador com o workspace confirmado; não efetuar outro envio. */
+      clearRuntime({invalidate:true});
+      uid=null;
+      await bootstrap(bootRun);
     }catch(e){
       if(isQuotaError(e))blockQuota();
       const message=e?.code==='sync/conflict'?'Outro dispositivo modificou a nuvem durante a publicação. Nada foi substituído; compare novamente.':String(e?.message||e?.code||e);
