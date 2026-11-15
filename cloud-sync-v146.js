@@ -1,7 +1,7 @@
 /* MeuControle — V1.48: proteção atômica contra sobrescritas e cópias pré-recebimento */
 (()=>{
   if(window.__mcCloudSyncV146)return;window.__mcCloudSyncV146=true;window.__mcCloudSyncV145=true;window.__mcCloudSyncV144=true;
-  const VERSION='1.52',META_PREFIX='meu_controle_cloud_sync_meta_v1:';
+  const VERSION='1.53',META_PREFIX='meu_controle_cloud_sync_meta_v1:';
   const TRACKED=new Set(['meu_controle_entries_v2','meu_controle_profiles_v2','meu_controle_profile_filter_v2']);
   let uid=null,unsub=null,pollTimer=null,pushTimer=null,bootTimer=null,retryTimer=null,retryCount=0,inFlightRun=null,uploadQueued=false,seenRevision=null,conflictBlocked=false,quotaBlocked=false,bootRun=0,applyingRemote=false,lastHash='',status='idle',lastError='',localDirty=false,bootstrapComplete=false;const TRACE_KEY='meu_controle_cloud_trace_v1';let trace=[];
   let renderedKey='',renderedBox=null;
@@ -46,7 +46,7 @@
   function ensureUI(){installStyle();const host=document.querySelector('.mc-user-session-v141');if(!host)return null;let box=host.querySelector('.mc-cloud-sync-v143');if(box)return box;box=document.createElement('section');box.className='mc-cloud-sync-v143';box.innerHTML='<div class="mc-cloud-sync-row-v143"><div class="mc-cloud-sync-copy-v143"><strong>Sincronização na nuvem</strong><span>Preparando Firestore…</span></div><span class="mc-cloud-sync-badge-v143">Aguardando</span></div><div class="mc-cloud-sync-actions-v143"><button type="button" class="secondary-action mc-cloud-sync-now-v143">Sincronizar agora</button><button type="button" class="secondary-action mc-cloud-diagnose-v7">Ver diagnóstico</button><button type="button" class="secondary-action mc-cloud-compare-v12">Comparar versões</button></div><div class="mc-cloud-sync-detail-v143"></div><pre class="mc-cloud-sync-diagnostic-v7" hidden></pre><div class="mc-cloud-sync-compare-v12" hidden></div>';host.appendChild(box);box.querySelector('.mc-cloud-sync-now-v143').onclick=()=>manualSync();box.querySelector('.mc-cloud-diagnose-v7').onclick=()=>showDiagnostic(box);box.querySelector('.mc-cloud-compare-v12').onclick=()=>compareVersions(box);renderedKey='';renderedBox=null;return box}
   function setStatus(next,text='',detail=''){status=next;lastError=detail||'';const map={idle:['Aguardando',''],loading:['Conectando','busy'],uploading:['Enviando…','busy'],downloading:['Recebendo…','busy'],synced:['Sincronizado ✓','ok'],offline:['Offline',''],error:['Atenção','error']};const[label,cls]=map[next]||map.idle;const copyText=text||({synced:'Seus dados desta conta estão sincronizados.',offline:'Sem internet; o app continua funcionando localmente.',error:'A sincronização precisa de atenção.'}[next]||'Preparando sincronização…');const detailText=detail||'';const box=ensureUI();if(!box)return;const key=[next,label,cls,copyText,detailText].join('|');if(renderedBox===box&&renderedKey===key)return;renderedBox=box;renderedKey=key;const badge=box.querySelector('.mc-cloud-sync-badge-v143'),copy=box.querySelector('.mc-cloud-sync-copy-v143 span'),d=box.querySelector('.mc-cloud-sync-detail-v143');badge.className='mc-cloud-sync-badge-v143'+(cls?' '+cls:'');badge.textContent=label;copy.textContent=copyText;d.textContent=detailText;d.classList.toggle('show',!!detailText)}
   function traceEvent(type,detail=''){const item={at:new Date().toISOString(),type,detail:String(detail||''),uid:uid||''};trace.push(item);trace=trace.slice(-40);try{localStorage.setItem(TRACE_KEY,JSON.stringify(trace))}catch{};window.dispatchEvent(new CustomEvent('meucontrole:cloud-trace',{detail:item}))}
-  function diagnostic(){const w=currentWorkspace(),m=uid?readMeta(uid):{};return{version:'1.52-diag7',quotaBlocked,conflictBlocked,seenRevision:seenRevision?'known':'unknown',retryCount,uploadInProgress:inFlightRun===bootRun,status,error:lastError,uid:uid||'',activeUid:scope()?.activeUid?.()||'',localDirty,applyingRemote,bootstrapComplete,lastHash,currentHash:workspaceHash(w),entries:Array.isArray(w?.entries)?w.entries.length:0,lastCloudHash:m.lastCloudHash||'',lastUploadAt:m.lastUploadAt||'',lastRemoteAt:m.lastRemoteAt||'',lastLocalChangeAt:m.lastLocalChangeAt||'',trace:trace.slice(-15)}}
+  function diagnostic(){const w=currentWorkspace(),m=uid?readMeta(uid):{};return{version:'1.53-diag8',quotaBlocked,conflictBlocked,seenRevision:seenRevision?'known':'unknown',retryCount,uploadInProgress:inFlightRun===bootRun,status,error:lastError,uid:uid||'',activeUid:scope()?.activeUid?.()||'',localDirty,applyingRemote,bootstrapComplete,lastHash,currentHash:workspaceHash(w),entries:Array.isArray(w?.entries)?w.entries.length:0,lastCloudHash:m.lastCloudHash||'',lastUploadAt:m.lastUploadAt||'',lastRemoteAt:m.lastRemoteAt||'',lastLocalChangeAt:m.lastLocalChangeAt||'',trace:trace.slice(-15)}}
 
 
   /* Comparação não destrutiva: não chama upload, importCurrent nem modifica dados. */
@@ -153,6 +153,44 @@
     document.body.appendChild(a);a.click();a.remove();
     setTimeout(()=>URL.revokeObjectURL(url),60000);
   }
+  /* A recuperacao guarda um snapshot verificavel em IndexedDB, sem exigir espaco
+     adicional no localStorage (que pode estar cheio de backups automaticos).
+     Falha fechada: se nao persistir e reler o snapshot, nao publica na nuvem. */
+  async function protectRecoverySnapshot(local,remote,accountId){
+    if(!('indexedDB' in window))throw new Error('Armazenamento de seguranca indisponivel neste navegador. Nenhuma publicacao realizada.');
+    const stamp=new Date().toISOString();
+    const record={key:accountId+':'+stamp+':'+crypto.randomUUID(),savedAt:stamp,reason:'Antes da recuperacao de conflito',local:clone(local),cloud:clone(remote)};
+    const expected=workspaceHash(record.local);
+    let db;
+    try{
+      db=await new Promise((resolve,reject)=>{
+        const req=indexedDB.open('meu_controle_recovery_safety_v1',1);
+        req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains('snapshots'))req.result.createObjectStore('snapshots',{keyPath:'key'})};
+        req.onsuccess=()=>resolve(req.result);
+        req.onerror=()=>reject(req.error||new Error('Falha ao abrir armazenamento'));
+        req.onblocked=()=>reject(new Error('Armazenamento ocupado por outra janela'));
+      });
+      await new Promise((resolve,reject)=>{
+        const tx=db.transaction('snapshots','readwrite');
+        tx.objectStore('snapshots').put(record);
+        tx.oncomplete=resolve;
+        tx.onerror=()=>reject(tx.error||new Error('Falha ao salvar cópia'));
+        tx.onabort=()=>reject(tx.error||new Error('Cópia abortada'));
+      });
+      const check=await new Promise((resolve,reject)=>{
+        const tx=db.transaction('snapshots','readonly');
+        const req=tx.objectStore('snapshots').get(record.key);
+        req.onsuccess=()=>resolve(req.result);
+        req.onerror=()=>reject(req.error||new Error('Falha ao verificar cópia'));
+      });
+      if(!check||workspaceHash(check.local)!==expected||revisionOf(check.cloud)!==revisionOf(remote)){
+        throw new Error('Não foi possível verificar a cópia local e a cópia da nuvem.');
+      }
+      traceEvent('recovery-snapshot-indexeddb','Cópias de segurança verificadas fora do localStorage');
+    }catch(e){
+      throw new Error('Não foi possível salvar e verificar a cópia de segurança neste navegador: '+String(e?.message||e));
+    }finally{try{db?.close()}catch{}}
+  }
   async function publishLocalControlled(panel,expectedUid,expectedLocalHash,expectedRemoteRevision){
     const controls=panel.querySelectorAll('button');
     controls.forEach(b=>b.disabled=true);
@@ -167,8 +205,8 @@
       const report=compareEntries(local,remote.workspace);
       if(!eligibleForPublishing(report))throw new Error('As diferenças mudaram; publicação bloqueada. Compare novamente.');
       if(!window.confirm('CONFIRMAÇÃO FINAL: publicar os '+report.lancamentosPc+' lançamentos deste PC na nuvem?\n\nSerão substituídos apenas os dados do workspace. Confirme somente após verificar o arquivo de segurança da nuvem que acabou de baixar.'))return;
-      /* A cópia em disco e uma segunda cópia de segurança local precisam existir antes do envio. */
-      preserveBeforeRemote('Antes de publicar PC sobre versão divergente da nuvem');
+      /* Já existe backup baixado da nuvem. Persistir e reler uma cópia de ambos os estados em IndexedDB antes da transação; não depender do localStorage cheio. */
+      await protectRecoverySnapshot(local,remote,uid);
       const clientUpdatedAt=new Date().toISOString();
       const savedRevision=await cloud().set(uid,{schema:1,clientUpdatedAt,workspace:clone(local)},expectedRemoteRevision);
       committed=true;
