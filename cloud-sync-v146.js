@@ -84,16 +84,17 @@
       if(!uid||scope()?.activeUid?.()!==uid)throw new Error('Conta de dados não está pronta neste aparelho.');
       if(!cloud())throw new Error('Serviço da nuvem indisponível.');
       const local=currentWorkspace();
-      const remote=await cloud().get(uid);
-      if(!remote?.workspace)throw new Error('Nenhum documento de workspace encontrado na nuvem.');
+      if(typeof cloud()?.getServer!=='function')throw new Error('Leitura direta do servidor ainda não carregada neste dispositivo. Atualize o aplicativo.');
+      const remote=await cloud().getServer(uid);
+      if(!remote?.workspace)throw new Error('Nenhum workspace confirmado no servidor.');
       report={
         dataConsulta:new Date().toISOString(),versao:VERSION,statusAtual:status,
-        observacao:'Comparação somente de leitura; nenhum dado enviado ou substituído.',
+        observacao:'Comparação diretamente do servidor Firestore, sem cache; nenhum dado enviado ou substituído.',
         ...compareEntries(local,remote.workspace)
       };
-      panel.textContent='COMPARAÇÃO APARELHO / NUVEM\n'+
+      panel.textContent='COMPARAÇÃO APARELHO / SERVIDOR (SEM CACHE)\n'+
         'No aparelho: '+report.lancamentosPc+' lançamentos, '+report.datasPc+' datas especiais\n'+
-        'Na nuvem: '+report.lancamentosNuvem+' lançamentos, '+report.datasNuvem+' datas especiais\n'+
+        'No servidor: '+report.lancamentosNuvem+' lançamentos, '+report.datasNuvem+' datas especiais\n'+
         'Exclusivos do aparelho: '+report.soNoPc+'\n'+
         'Exclusivos da nuvem: '+report.soNaNuvem+'\n'+
         'Registros modificados: '+report.alterados+'\n'+
@@ -209,7 +210,7 @@
       if(!window.confirm('CONFIRMAÇÃO FINAL: receber os '+report.lancamentosNuvem+' lançamentos da nuvem neste aparelho?\\n\\nOs dados atuais deste aparelho serão substituídos pela versão da nuvem. Confira que baixou o backup local. Nada será enviado ao Firestore.'))return;
       await protectRecoverySnapshot(local,remote,uid);
       if(uid!==expectedUid||scope()?.activeUid?.()!==uid||workspaceHash(currentWorkspace())!==expectedLocalHash||!conflictBlocked)throw new Error('Os dados locais mudaram durante a preparação. Compare novamente.');
-      const fresh=await cloud().get(uid);
+      const fresh=await cloud().getServer(uid);
       if(!fresh?.workspace||revisionOf(fresh)!==expectedRemoteRevision)throw new Error('A nuvem foi atualizada durante a preparação; compare novamente.');
       const full=scope()?.exportCurrent?.()||{};
       const incoming={...clone(fresh.workspace),autoBackups:Array.isArray(full.autoBackups)?full.autoBackups:[],lastBackup:full.lastBackup||null};
@@ -292,7 +293,7 @@
       if(!uid||uid!==expectedUid||scope()?.activeUid?.()!==uid||!cloud())throw new Error('Sessão alterada; execute uma nova comparação.');
       const local=currentWorkspace();
       if(workspaceHash(local)!==expectedLocalHash)throw new Error('Os dados deste aparelho mudaram. Compare novamente.');
-      const remote=await cloud().get(uid);
+      const remote=await cloud().getServer(uid);
       if(!remote?.workspace||revisionOf(remote)!==expectedRemoteRevision)throw new Error('A nuvem mudou desde a comparação. Nada foi enviado. Compare novamente.');
       const report=compareEntries(local,remote.workspace);
       if(!eligibleForPublishing(report)||(!conflictBlocked&&!eligibleForOneNewEntry(report)))throw new Error('As diferenças mudaram; publicação bloqueada. Compare novamente.');
@@ -302,7 +303,7 @@
       /* Já existe backup baixado da nuvem. Persistir e reler uma cópia de ambos os estados em IndexedDB antes da transação; não depender do localStorage cheio. */
       await protectRecoverySnapshot(local,remote,uid);
       if(uid!==expectedUid||scope()?.activeUid?.()!==expectedUid||workspaceHash(currentWorkspace())!==expectedLocalHash||quotaBlocked||(!conflictBlocked&&!eligibleForOneNewEntry(report)))throw new Error('O estado do aparelho mudou durante o backup. Compare novamente.');
-      const fresh=await cloud().get(uid);
+      const fresh=await cloud().getServer(uid);
       if(!fresh?.workspace||revisionOf(fresh)!==expectedRemoteRevision||!eligibleForPublishing(compareEntries(local,fresh.workspace)))
         throw new Error('A nuvem ou a comparação mudou durante a cópia de segurança. Nenhum dado publicado.');
       const clientUpdatedAt=new Date().toISOString();
@@ -344,8 +345,9 @@
       if(!uid)report.nuvem='conta de sincronizacao indisponivel';
       else if(!cloud())report.nuvem='ponte de nuvem indisponivel';
       else{
-        const remote=await cloud().get(uid);
-        report.nuvem=remote?'leitura OK':'nenhum documento encontrado';
+        if(typeof cloud()?.getServer!=='function')throw new Error('Leitura direta do servidor não carregada. Atualize a página.');
+        const remote=await cloud().getServer(uid);
+        report.nuvem=remote?'leitura do servidor OK (sem cache)':'nenhum documento confirmado no servidor';
         if(remote?.workspace){
           const rw=remote.workspace;
           report.lancamentosNuvem=Array.isArray(rw.entries)?rw.entries.length:0;
