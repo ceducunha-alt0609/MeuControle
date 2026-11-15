@@ -8,6 +8,8 @@ import { collection, doc, getDocs, writeBatch, serverTimestamp } from 'https://w
   const VAPID_KEY='BMAb3SY40giuzwWw9fTToAhDp-G41POwcBPkqj6zKJiFEFnZBb4GVyO0aoXYUx-7DKZtTcDz4m6BtnaPY1GHjB0';
   const VAPID_MARKER_KEY='meu_controle_fcm_vapid_marker_v1',VAPID_MARKER='firebase-webpush-2026-09-07';
   let busy=false,lastHash='',lastToken='',lastDeviceWrite=0,previousUid='';
+  const QUOTA_PAUSE_KEY='meu_controle_push_quota_pause_until_v1';
+  function quotaPaused(){return Date.now()<Number(localStorage.getItem(QUOTA_PAUSE_KEY)||0)}
   const QUEUE_STATE_PREFIX='meu_controle_push_queue_state_v2:';
   const queueStateKey=(uid,did)=>QUEUE_STATE_PREFIX+uid+':'+did;
   const queueState=(uid,did)=>{try{const v=JSON.parse(localStorage.getItem(queueStateKey(uid,did))||'null');return v&&v.items&&typeof v.items==='object'?v:null}catch{return null}};
@@ -81,7 +83,7 @@ import { collection, doc, getDocs, writeBatch, serverTimestamp } from 'https://w
 
   async function ensureVapidToken(messaging,reg){if(localStorage.getItem(VAPID_MARKER_KEY)!==VAPID_MARKER){status('Atualizando registro...');try{await deleteToken(messaging)}catch{}lastToken=''}const token=await getToken(messaging,{serviceWorkerRegistration:reg,vapidKey:VAPID_KEY});if(token)localStorage.setItem(VAPID_MARKER_KEY,VAPID_MARKER);return token}
   async function sync(force=false){
-    if(busy)return;
+    if(busy||quotaPaused())return;
     busy=true;
     try{
       ensureStatus();
@@ -113,7 +115,8 @@ import { collection, doc, getDocs, writeBatch, serverTimestamp } from 'https://w
       lastToken=token;lastHash=hash();
     }catch(e){
       console.warn('[MeuControle push]',e);
-      status(e?.code==='resource-exhausted'?'Cota do Firestore atingida':e?.code==='permission-denied'?'Firebase recusou registro':'Não configurado');
+      if(String(e?.code||'').includes('resource-exhausted'))localStorage.setItem(QUOTA_PAUSE_KEY,String(Date.now()+6*60*60*1000));
+      status(String(e?.code||'').includes('resource-exhausted')?'Cota do Firestore atingida — novas tentativas pausadas':e?.code==='permission-denied'?'Firebase recusou registro':'Não configurado');
     }finally{busy=false}
   }
   async function writeDevice(db,uid,did,token){const b=writeBatch(db);b.set(doc(db,'users',uid,'pushDevices',did),{deviceId:did,token,active:true,updatedAt:serverTimestamp(),platform:navigator.userAgent.includes('Android')?'android':'web',vapid:'custom-v1'});await b.commit()}
