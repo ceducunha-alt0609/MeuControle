@@ -207,6 +207,7 @@
       if(!window.confirm('CONFIRMAÇÃO FINAL: publicar os '+report.lancamentosPc+' lançamentos deste PC na nuvem?\n\nSerão substituídos apenas os dados do workspace. Confirme somente após verificar o arquivo de segurança da nuvem que acabou de baixar.'))return;
       /* Já existe backup baixado da nuvem. Persistir e reler uma cópia de ambos os estados em IndexedDB antes da transação; não depender do localStorage cheio. */
       await protectRecoverySnapshot(local,remote,uid);
+      if(uid!==expectedUid||scope()?.activeUid?.()!==expectedUid||workspaceHash(currentWorkspace())!==expectedLocalHash||!conflictBlocked)throw new Error('O estado do aparelho mudou durante o backup. Compare novamente.');
       const clientUpdatedAt=new Date().toISOString();
       const savedRevision=await cloud().set(uid,{schema:1,clientUpdatedAt,workspace:clone(local)},expectedRemoteRevision);
       committed=true;
