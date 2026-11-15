@@ -13,6 +13,7 @@ import {
   getFirestore,
   doc,
   getDoc,
+  getDocFromServer,
   setDoc,
   runTransaction,
   onSnapshot,
@@ -66,6 +67,8 @@ function conflictError(){
 const cloudWorkspace={
   revisionOf,
   async get(uid){const snap=await getDoc(workspaceRef(uid));return snap.exists()?snap.data():null},
+  // Leitura obrigatória do servidor para auditoria: não aceita cache nem escritas pendentes.
+  async getServer(uid){const snap=await getDocFromServer(workspaceRef(uid));return snap.exists()?snap.data():null},
   /* Escrita atômica: só substituir se a versão previamente lida ainda for atual. */
   async set(uid,data,expectedRevision){
     if(expectedRevision===undefined)throw new Error('sync/missing-revision');
