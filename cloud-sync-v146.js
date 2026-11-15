@@ -1,7 +1,7 @@
 /* MeuControle — V1.48: proteção atômica contra sobrescritas e cópias pré-recebimento */
 (()=>{
   if(window.__mcCloudSyncV146)return;window.__mcCloudSyncV146=true;window.__mcCloudSyncV145=true;window.__mcCloudSyncV144=true;
-  const VERSION='1.50',META_PREFIX='meu_controle_cloud_sync_meta_v1:';
+  const VERSION='1.51',META_PREFIX='meu_controle_cloud_sync_meta_v1:';
   const TRACKED=new Set(['meu_controle_entries_v2','meu_controle_profiles_v2','meu_controle_profile_filter_v2']);
   let uid=null,unsub=null,pollTimer=null,pushTimer=null,bootTimer=null,retryTimer=null,retryCount=0,inFlightRun=null,uploadQueued=false,seenRevision=null,conflictBlocked=false,quotaBlocked=false,bootRun=0,applyingRemote=false,lastHash='',status='idle',lastError='',localDirty=false,bootstrapComplete=false;const TRACE_KEY='meu_controle_cloud_trace_v1';let trace=[];
   let renderedKey='',renderedBox=null;
@@ -42,11 +42,78 @@
     }catch{return null}
   }
 
-  function installStyle(){if(document.getElementById('mcCloudSyncV146Style'))return;const st=document.createElement('style');st.id='mcCloudSyncV146Style';st.textContent=`.mc-cloud-sync-v143{margin-top:10px;padding:10px 11px;border:1px solid #dfe7e2;border-radius:11px;background:#f8fbfa}.mc-cloud-sync-row-v143{display:flex;align-items:center;justify-content:space-between;gap:12px}.mc-cloud-sync-copy-v143 strong{display:block;font-size:11px;color:var(--text)}.mc-cloud-sync-copy-v143 span{display:block;margin-top:3px;font-size:10px;line-height:1.4;color:#718078}.mc-cloud-sync-badge-v143{padding:5px 8px;border-radius:999px;background:#eef3f0;color:#607068;font:800 9px system-ui,sans-serif;white-space:nowrap}.mc-cloud-sync-badge-v143.ok{background:#e9f6ef;color:#2d7651}.mc-cloud-sync-badge-v143.busy{background:#edf5fa;color:#315f79}.mc-cloud-sync-badge-v143.error{background:#fff0ed;color:#a23e36}.mc-cloud-sync-actions-v143{display:flex;gap:7px;margin-top:9px}.mc-cloud-sync-actions-v143 button{min-height:34px!important;padding:6px 10px!important;font-size:10px!important}.mc-cloud-sync-detail-v143{display:none;margin-top:8px;padding:8px 9px;border-radius:9px;background:#fff6dc;color:#765e14;font-size:10px;line-height:1.45}.mc-cloud-sync-detail-v143.show{display:block}.mc-cloud-sync-diagnostic-v7{margin-top:9px;padding:10px;border:1px solid #b4c6cd;border-radius:10px;background:var(--card,#fff);font:11px/1.5 ui-monospace,monospace;color:var(--text,#263a42);white-space:pre-wrap;overflow-wrap:anywhere;max-height:250px;overflow:auto}.mc-cloud-sync-diagnostic-v7[hidden]{display:none!important}body.mc-dark .mc-cloud-sync-v143{background:#1b262d;border-color:#314049}body.mc-dark .mc-cloud-sync-copy-v143 span{color:#9eabb3}body.mc-dark .mc-cloud-sync-badge-v143{background:#26343c;color:#c7d2d8}body.mc-dark .mc-cloud-sync-badge-v143.ok{background:#20382f;color:#aee0c5}body.mc-dark .mc-cloud-sync-badge-v143.busy{background:#203747;color:#b8dff7}body.mc-dark .mc-cloud-sync-badge-v143.error{background:#432b2c;color:#ffb8b1}body.mc-dark .mc-cloud-sync-detail-v143{background:#3b3520;color:#f1da87}body.theme-black .mc-cloud-sync-v143{background:#142129!important;border-color:#304550!important;color:#edf5f9!important}body.theme-black .mc-cloud-sync-copy-v143 strong{color:#edf5f9!important}body.theme-black .mc-cloud-sync-copy-v143 span{color:#a6bbc6!important}body.theme-black .mc-cloud-sync-badge-v143{background:#183447!important;color:#9fd4f4!important}body.theme-black .mc-cloud-sync-badge-v143.ok{background:#173a2b!important;color:#9ee0ba!important}body.theme-black .mc-cloud-sync-badge-v143.busy{background:#183447!important;color:#9fd4f4!important}body.theme-black .mc-cloud-sync-badge-v143.error{background:#44282a!important;color:#ffb7b2!important}body.theme-black .mc-cloud-sync-actions-v143 .secondary-action{background:#182932!important;color:#e5eff4!important;border-color:#38505c!important}body.theme-black .mc-cloud-sync-detail-v143{background:#3b3520!important;color:#f1da87!important}@media(max-width:700px){.mc-cloud-sync-row-v143{align-items:flex-start}.mc-cloud-sync-actions-v143{display:grid;grid-template-columns:1fr}.mc-cloud-sync-actions-v143 button{width:100%}}`;document.head.appendChild(st)}
-  function ensureUI(){installStyle();const host=document.querySelector('.mc-user-session-v141');if(!host)return null;let box=host.querySelector('.mc-cloud-sync-v143');if(box)return box;box=document.createElement('section');box.className='mc-cloud-sync-v143';box.innerHTML='<div class="mc-cloud-sync-row-v143"><div class="mc-cloud-sync-copy-v143"><strong>Sincronização na nuvem</strong><span>Preparando Firestore…</span></div><span class="mc-cloud-sync-badge-v143">Aguardando</span></div><div class="mc-cloud-sync-actions-v143"><button type="button" class="secondary-action mc-cloud-sync-now-v143">Sincronizar agora</button><button type="button" class="secondary-action mc-cloud-diagnose-v7">Ver diagnóstico</button></div><div class="mc-cloud-sync-detail-v143"></div><pre class="mc-cloud-sync-diagnostic-v7" hidden></pre>';host.appendChild(box);box.querySelector('.mc-cloud-sync-now-v143').onclick=()=>manualSync();box.querySelector('.mc-cloud-diagnose-v7').onclick=()=>showDiagnostic(box);renderedKey='';renderedBox=null;return box}
+  function installStyle(){if(document.getElementById('mcCloudSyncV146Style'))return;const st=document.createElement('style');st.id='mcCloudSyncV146Style';st.textContent=`.mc-cloud-sync-v143{margin-top:10px;padding:10px 11px;border:1px solid #dfe7e2;border-radius:11px;background:#f8fbfa}.mc-cloud-sync-row-v143{display:flex;align-items:center;justify-content:space-between;gap:12px}.mc-cloud-sync-copy-v143 strong{display:block;font-size:11px;color:var(--text)}.mc-cloud-sync-copy-v143 span{display:block;margin-top:3px;font-size:10px;line-height:1.4;color:#718078}.mc-cloud-sync-badge-v143{padding:5px 8px;border-radius:999px;background:#eef3f0;color:#607068;font:800 9px system-ui,sans-serif;white-space:nowrap}.mc-cloud-sync-badge-v143.ok{background:#e9f6ef;color:#2d7651}.mc-cloud-sync-badge-v143.busy{background:#edf5fa;color:#315f79}.mc-cloud-sync-badge-v143.error{background:#fff0ed;color:#a23e36}.mc-cloud-sync-actions-v143{display:flex;gap:7px;margin-top:9px}.mc-cloud-sync-actions-v143 button{min-height:34px!important;padding:6px 10px!important;font-size:10px!important}.mc-cloud-sync-detail-v143{display:none;margin-top:8px;padding:8px 9px;border-radius:9px;background:#fff6dc;color:#765e14;font-size:10px;line-height:1.45}.mc-cloud-sync-detail-v143.show{display:block}.mc-cloud-sync-diagnostic-v7{margin-top:9px;padding:10px;border:1px solid #b4c6cd;border-radius:10px;background:var(--card,#fff);font:11px/1.5 ui-monospace,monospace;color:var(--text,#263a42);white-space:pre-wrap;overflow-wrap:anywhere;max-height:250px;overflow:auto}.mc-cloud-sync-diagnostic-v7[hidden]{display:none!important}.mc-cloud-sync-compare-v12{margin-top:9px;padding:11px;border:1px solid #d9e2e4;border-radius:10px;background:var(--card,#fff);font-size:11px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}.mc-cloud-sync-compare-v12[hidden]{display:none!important}body.mc-dark .mc-cloud-sync-v143{background:#1b262d;border-color:#314049}body.mc-dark .mc-cloud-sync-copy-v143 span{color:#9eabb3}body.mc-dark .mc-cloud-sync-badge-v143{background:#26343c;color:#c7d2d8}body.mc-dark .mc-cloud-sync-badge-v143.ok{background:#20382f;color:#aee0c5}body.mc-dark .mc-cloud-sync-badge-v143.busy{background:#203747;color:#b8dff7}body.mc-dark .mc-cloud-sync-badge-v143.error{background:#432b2c;color:#ffb8b1}body.mc-dark .mc-cloud-sync-detail-v143{background:#3b3520;color:#f1da87}body.theme-black .mc-cloud-sync-v143{background:#142129!important;border-color:#304550!important;color:#edf5f9!important}body.theme-black .mc-cloud-sync-copy-v143 strong{color:#edf5f9!important}body.theme-black .mc-cloud-sync-copy-v143 span{color:#a6bbc6!important}body.theme-black .mc-cloud-sync-badge-v143{background:#183447!important;color:#9fd4f4!important}body.theme-black .mc-cloud-sync-badge-v143.ok{background:#173a2b!important;color:#9ee0ba!important}body.theme-black .mc-cloud-sync-badge-v143.busy{background:#183447!important;color:#9fd4f4!important}body.theme-black .mc-cloud-sync-badge-v143.error{background:#44282a!important;color:#ffb7b2!important}body.theme-black .mc-cloud-sync-actions-v143 .secondary-action{background:#182932!important;color:#e5eff4!important;border-color:#38505c!important}body.theme-black .mc-cloud-sync-detail-v143{background:#3b3520!important;color:#f1da87!important}@media(max-width:700px){.mc-cloud-sync-row-v143{align-items:flex-start}.mc-cloud-sync-actions-v143{display:grid;grid-template-columns:1fr}.mc-cloud-sync-actions-v143 button{width:100%}}`;document.head.appendChild(st)}
+  function ensureUI(){installStyle();const host=document.querySelector('.mc-user-session-v141');if(!host)return null;let box=host.querySelector('.mc-cloud-sync-v143');if(box)return box;box=document.createElement('section');box.className='mc-cloud-sync-v143';box.innerHTML='<div class="mc-cloud-sync-row-v143"><div class="mc-cloud-sync-copy-v143"><strong>Sincronização na nuvem</strong><span>Preparando Firestore…</span></div><span class="mc-cloud-sync-badge-v143">Aguardando</span></div><div class="mc-cloud-sync-actions-v143"><button type="button" class="secondary-action mc-cloud-sync-now-v143">Sincronizar agora</button><button type="button" class="secondary-action mc-cloud-diagnose-v7">Ver diagnóstico</button><button type="button" class="secondary-action mc-cloud-compare-v12">Comparar versões</button></div><div class="mc-cloud-sync-detail-v143"></div><pre class="mc-cloud-sync-diagnostic-v7" hidden></pre><div class="mc-cloud-sync-compare-v12" hidden></div>';host.appendChild(box);box.querySelector('.mc-cloud-sync-now-v143').onclick=()=>manualSync();box.querySelector('.mc-cloud-diagnose-v7').onclick=()=>showDiagnostic(box);box.querySelector('.mc-cloud-compare-v12').onclick=()=>compareVersions(box);renderedKey='';renderedBox=null;return box}
   function setStatus(next,text='',detail=''){status=next;lastError=detail||'';const map={idle:['Aguardando',''],loading:['Conectando','busy'],uploading:['Enviando…','busy'],downloading:['Recebendo…','busy'],synced:['Sincronizado ✓','ok'],offline:['Offline',''],error:['Atenção','error']};const[label,cls]=map[next]||map.idle;const copyText=text||({synced:'Seus dados desta conta estão sincronizados.',offline:'Sem internet; o app continua funcionando localmente.',error:'A sincronização precisa de atenção.'}[next]||'Preparando sincronização…');const detailText=detail||'';const box=ensureUI();if(!box)return;const key=[next,label,cls,copyText,detailText].join('|');if(renderedBox===box&&renderedKey===key)return;renderedBox=box;renderedKey=key;const badge=box.querySelector('.mc-cloud-sync-badge-v143'),copy=box.querySelector('.mc-cloud-sync-copy-v143 span'),d=box.querySelector('.mc-cloud-sync-detail-v143');badge.className='mc-cloud-sync-badge-v143'+(cls?' '+cls:'');badge.textContent=label;copy.textContent=copyText;d.textContent=detailText;d.classList.toggle('show',!!detailText)}
   function traceEvent(type,detail=''){const item={at:new Date().toISOString(),type,detail:String(detail||''),uid:uid||''};trace.push(item);trace=trace.slice(-40);try{localStorage.setItem(TRACE_KEY,JSON.stringify(trace))}catch{};window.dispatchEvent(new CustomEvent('meucontrole:cloud-trace',{detail:item}))}
-  function diagnostic(){const w=currentWorkspace(),m=uid?readMeta(uid):{};return{version:'1.50-diag5',quotaBlocked,conflictBlocked,seenRevision:seenRevision?'known':'unknown',retryCount,uploadInProgress:inFlightRun===bootRun,status,error:lastError,uid:uid||'',activeUid:scope()?.activeUid?.()||'',localDirty,applyingRemote,bootstrapComplete,lastHash,currentHash:workspaceHash(w),entries:Array.isArray(w?.entries)?w.entries.length:0,lastCloudHash:m.lastCloudHash||'',lastUploadAt:m.lastUploadAt||'',lastRemoteAt:m.lastRemoteAt||'',lastLocalChangeAt:m.lastLocalChangeAt||'',trace:trace.slice(-15)}}
+  function diagnostic(){const w=currentWorkspace(),m=uid?readMeta(uid):{};return{version:'1.51-diag6',quotaBlocked,conflictBlocked,seenRevision:seenRevision?'known':'unknown',retryCount,uploadInProgress:inFlightRun===bootRun,status,error:lastError,uid:uid||'',activeUid:scope()?.activeUid?.()||'',localDirty,applyingRemote,bootstrapComplete,lastHash,currentHash:workspaceHash(w),entries:Array.isArray(w?.entries)?w.entries.length:0,lastCloudHash:m.lastCloudHash||'',lastUploadAt:m.lastUploadAt||'',lastRemoteAt:m.lastRemoteAt||'',lastLocalChangeAt:m.lastLocalChangeAt||'',trace:trace.slice(-15)}}
+
+
+  /* Comparação não destrutiva: não chama upload, importCurrent nem modifica dados. */
+  function compareEntries(local,remote){
+    const lm=new Map((Array.isArray(local?.entries)?local.entries:[]).filter(x=>x?.id).map(x=>[String(x.id),x]));
+    const rm=new Map((Array.isArray(remote?.entries)?remote.entries:[]).filter(x=>x?.id).map(x=>[String(x.id),x]));
+    const onlyLocal=[...lm].filter(([id])=>!rm.has(id)).map(([,e])=>e);
+    const onlyRemote=[...rm].filter(([id])=>!lm.has(id)).map(([,e])=>e);
+    const modified=[...lm].filter(([id,e])=>rm.has(id)&&JSON.stringify(canonicalComparable(e))!==JSON.stringify(canonicalComparable(rm.get(id)))).map(([id,e])=>{
+      const other=rm.get(id);const fields=[...new Set([...Object.keys(e),...Object.keys(other)])].filter(k=>JSON.stringify(canonicalComparable(e[k]))!==JSON.stringify(canonicalComparable(other[k])));
+      return{titulo:String(e.description||'Sem descrição').slice(0,100),campos:fields,alteracoes:fields.filter(k=>['date','done','time'].includes(k)).map(k=>({campo:k,pc:e[k]??null,nuvem:other[k]??null}))};
+    });
+    const localProfiles=Array.isArray(local?.profiles)?local.profiles:[];
+    const remoteProfiles=Array.isArray(remote?.profiles)?remote.profiles:[];
+    const dates=a=>a.reduce((n,p)=>n+(Array.isArray(p?.specialDates)?p.specialDates.length:0),0);
+    const profilesSame=JSON.stringify(canonicalComparable(localProfiles))===JSON.stringify(canonicalComparable(remoteProfiles));
+    return{lancamentosPc:lm.size,lancamentosNuvem:rm.size,soNoPc:onlyLocal.length,soNaNuvem:onlyRemote.length,alterados:modified.length,perfilIgual:profilesSame,datasPc:dates(localProfiles),datasNuvem:dates(remoteProfiles),filtroDiferente:(local?.profileFilter||'all')!==(remote?.profileFilter||'all'),somenteNoPc:onlyLocal.slice(0,30).map(e=>({titulo:String(e.description||'Sem descrição').slice(0,100),data:e.date||''})),somenteNaNuvem:onlyRemote.slice(0,30).map(e=>({titulo:String(e.description||'Sem descrição').slice(0,100),data:e.date||''})),alteracoes:modified.slice(0,50),maisDiferencas:modified.length>50};
+  }
+  function canonicalComparable(value){
+    if(Array.isArray(value))return value.map(canonicalComparable);
+    if(value&&typeof value==='object')return Object.fromEntries(Object.keys(value).sort().map(k=>[k,canonicalComparable(value[k])]));
+    return value;
+  }
+  async function compareVersions(box){
+    const panel=box?.querySelector('.mc-cloud-sync-compare-v12');
+    const btn=box?.querySelector('.mc-cloud-compare-v12');
+    if(!panel)return;
+    panel.hidden=false;panel.replaceChildren();
+    panel.textContent='Comparando este aparelho com a versão atual na nuvem (somente leitura)…';
+    if(btn)btn.disabled=true;
+    let report=null;
+    try{
+      if(!uid||scope()?.activeUid?.()!==uid)throw new Error('Conta de dados não está pronta neste aparelho.');
+      if(!cloud())throw new Error('Serviço da nuvem indisponível.');
+      const local=currentWorkspace();
+      const remote=await cloud().get(uid);
+      if(!remote?.workspace)throw new Error('Nenhum documento de workspace encontrado na nuvem.');
+      report={
+        dataConsulta:new Date().toISOString(),versao:VERSION,statusAtual:status,
+        observacao:'Comparação somente de leitura; nenhum dado enviado ou substituído.',
+        ...compareEntries(local,remote.workspace)
+      };
+      panel.textContent='COMPARAÇÃO PC / NUVEM\n'+
+        'No aparelho: '+report.lancamentosPc+' lançamentos, '+report.datasPc+' datas especiais\n'+
+        'Na nuvem: '+report.lancamentosNuvem+' lançamentos, '+report.datasNuvem+' datas especiais\n'+
+        'Exclusivos do aparelho: '+report.soNoPc+'\n'+
+        'Exclusivos da nuvem: '+report.soNaNuvem+'\n'+
+        'Registros modificados: '+report.alterados+'\n'+
+        'Perfis idênticos: '+(report.perfilIgual?'Sim':'Não')+'\n'+
+        'Filtro de perfil diferente: '+(report.filtroDiferente?'Sim':'Não')+'\n\n'+
+        'Nenhum dado foi alterado. Clique em Copiar comparação e envie para análise.';
+      if(report.soNaNuvem>0||!report.perfilIgual){
+        const warning=document.createElement('p');warning.style.color='#b45309';warning.textContent='Atenção: há informações na nuvem que merecem revisão antes de qualquer publicação.';panel.appendChild(warning);
+      }
+      const copy=document.createElement('button');copy.type='button';copy.className='secondary-action';copy.style.marginTop='10px';copy.textContent='Copiar comparação';
+      copy.onclick=async()=>{
+        const text='MeuControle - Comparação segura\n'+JSON.stringify(report,null,2);
+        try{await navigator.clipboard.writeText(text);copy.textContent='Copiado ✓'}catch{
+          const ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();const ok=document.execCommand('copy');ta.remove();copy.textContent=ok?'Copiado ✓':'Não foi possível copiar';
+        }
+      };
+      panel.appendChild(copy);
+      traceEvent('comparison-readonly',report.soNoPc+'/'+report.soNaNuvem+'/'+report.alterados);
+    }catch(e){
+      panel.textContent='Não foi possível comparar: '+String(e?.message||e?.code||e)+'. Nenhum dado foi modificado.';
+    }finally{if(btn)btn.disabled=false}
+  }
 
   /* Diagnóstico somente de leitura: não importa, envia nem substitui dados. */
   async function showDiagnostic(box){
