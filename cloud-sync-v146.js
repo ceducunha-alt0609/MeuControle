@@ -1,7 +1,7 @@
 /* MeuControle — V1.48: proteção atômica contra sobrescritas e cópias pré-recebimento */
 (()=>{
   if(window.__mcCloudSyncV146)return;window.__mcCloudSyncV146=true;window.__mcCloudSyncV145=true;window.__mcCloudSyncV144=true;
-  const VERSION='1.51',META_PREFIX='meu_controle_cloud_sync_meta_v1:';
+  const VERSION='1.52',META_PREFIX='meu_controle_cloud_sync_meta_v1:';
   const TRACKED=new Set(['meu_controle_entries_v2','meu_controle_profiles_v2','meu_controle_profile_filter_v2']);
   let uid=null,unsub=null,pollTimer=null,pushTimer=null,bootTimer=null,retryTimer=null,retryCount=0,inFlightRun=null,uploadQueued=false,seenRevision=null,conflictBlocked=false,quotaBlocked=false,bootRun=0,applyingRemote=false,lastHash='',status='idle',lastError='',localDirty=false,bootstrapComplete=false;const TRACE_KEY='meu_controle_cloud_trace_v1';let trace=[];
   let renderedKey='',renderedBox=null;
@@ -46,7 +46,7 @@
   function ensureUI(){installStyle();const host=document.querySelector('.mc-user-session-v141');if(!host)return null;let box=host.querySelector('.mc-cloud-sync-v143');if(box)return box;box=document.createElement('section');box.className='mc-cloud-sync-v143';box.innerHTML='<div class="mc-cloud-sync-row-v143"><div class="mc-cloud-sync-copy-v143"><strong>Sincronização na nuvem</strong><span>Preparando Firestore…</span></div><span class="mc-cloud-sync-badge-v143">Aguardando</span></div><div class="mc-cloud-sync-actions-v143"><button type="button" class="secondary-action mc-cloud-sync-now-v143">Sincronizar agora</button><button type="button" class="secondary-action mc-cloud-diagnose-v7">Ver diagnóstico</button><button type="button" class="secondary-action mc-cloud-compare-v12">Comparar versões</button></div><div class="mc-cloud-sync-detail-v143"></div><pre class="mc-cloud-sync-diagnostic-v7" hidden></pre><div class="mc-cloud-sync-compare-v12" hidden></div>';host.appendChild(box);box.querySelector('.mc-cloud-sync-now-v143').onclick=()=>manualSync();box.querySelector('.mc-cloud-diagnose-v7').onclick=()=>showDiagnostic(box);box.querySelector('.mc-cloud-compare-v12').onclick=()=>compareVersions(box);renderedKey='';renderedBox=null;return box}
   function setStatus(next,text='',detail=''){status=next;lastError=detail||'';const map={idle:['Aguardando',''],loading:['Conectando','busy'],uploading:['Enviando…','busy'],downloading:['Recebendo…','busy'],synced:['Sincronizado ✓','ok'],offline:['Offline',''],error:['Atenção','error']};const[label,cls]=map[next]||map.idle;const copyText=text||({synced:'Seus dados desta conta estão sincronizados.',offline:'Sem internet; o app continua funcionando localmente.',error:'A sincronização precisa de atenção.'}[next]||'Preparando sincronização…');const detailText=detail||'';const box=ensureUI();if(!box)return;const key=[next,label,cls,copyText,detailText].join('|');if(renderedBox===box&&renderedKey===key)return;renderedBox=box;renderedKey=key;const badge=box.querySelector('.mc-cloud-sync-badge-v143'),copy=box.querySelector('.mc-cloud-sync-copy-v143 span'),d=box.querySelector('.mc-cloud-sync-detail-v143');badge.className='mc-cloud-sync-badge-v143'+(cls?' '+cls:'');badge.textContent=label;copy.textContent=copyText;d.textContent=detailText;d.classList.toggle('show',!!detailText)}
   function traceEvent(type,detail=''){const item={at:new Date().toISOString(),type,detail:String(detail||''),uid:uid||''};trace.push(item);trace=trace.slice(-40);try{localStorage.setItem(TRACE_KEY,JSON.stringify(trace))}catch{};window.dispatchEvent(new CustomEvent('meucontrole:cloud-trace',{detail:item}))}
-  function diagnostic(){const w=currentWorkspace(),m=uid?readMeta(uid):{};return{version:'1.51-diag6',quotaBlocked,conflictBlocked,seenRevision:seenRevision?'known':'unknown',retryCount,uploadInProgress:inFlightRun===bootRun,status,error:lastError,uid:uid||'',activeUid:scope()?.activeUid?.()||'',localDirty,applyingRemote,bootstrapComplete,lastHash,currentHash:workspaceHash(w),entries:Array.isArray(w?.entries)?w.entries.length:0,lastCloudHash:m.lastCloudHash||'',lastUploadAt:m.lastUploadAt||'',lastRemoteAt:m.lastRemoteAt||'',lastLocalChangeAt:m.lastLocalChangeAt||'',trace:trace.slice(-15)}}
+  function diagnostic(){const w=currentWorkspace(),m=uid?readMeta(uid):{};return{version:'1.52-diag7',quotaBlocked,conflictBlocked,seenRevision:seenRevision?'known':'unknown',retryCount,uploadInProgress:inFlightRun===bootRun,status,error:lastError,uid:uid||'',activeUid:scope()?.activeUid?.()||'',localDirty,applyingRemote,bootstrapComplete,lastHash,currentHash:workspaceHash(w),entries:Array.isArray(w?.entries)?w.entries.length:0,lastCloudHash:m.lastCloudHash||'',lastUploadAt:m.lastUploadAt||'',lastRemoteAt:m.lastRemoteAt||'',lastLocalChangeAt:m.lastLocalChangeAt||'',trace:trace.slice(-15)}}
 
 
   /* Comparação não destrutiva: não chama upload, importCurrent nem modifica dados. */
@@ -109,10 +109,88 @@
         }
       };
       panel.appendChild(copy);
+      if(conflictBlocked&&!quotaBlocked&&eligibleForPublishing(report)){
+        const caution=document.createElement('p');
+        caution.style.marginTop='12px';
+        caution.textContent='Recuperação assistida: os lançamentos têm os mesmos identificadores, não há informações exclusivas da nuvem e os perfis são idênticos. Só use no PC escolhido como versão principal. A publicação substituirá a versão do workspace na nuvem e poderá propagar essas mudanças aos outros aparelhos.';
+        panel.appendChild(caution);
+        const cloudBackup=document.createElement('button');
+        cloudBackup.type='button';cloudBackup.className='secondary-action';cloudBackup.textContent='1. Baixar backup da nuvem';
+        panel.appendChild(cloudBackup);
+        const confirm=document.createElement('button');
+        confirm.type='button';confirm.className='secondary-action';confirm.disabled=true;
+        confirm.style.marginLeft='8px';confirm.textContent='2. Publicar versão deste PC';
+        panel.appendChild(confirm);
+        const expectedUid=uid,expectedLocalHash=workspaceHash(local),expectedRemoteRevision=revisionOf(remote);
+        cloudBackup.onclick=()=>{
+          try{
+            if(uid!==expectedUid||workspaceHash(currentWorkspace())!==expectedLocalHash)throw new Error('Os dados mudaram. Compare novamente.');
+            exportCloudSnapshot(remote);
+            confirm.disabled=false;
+            const note=document.createElement('p');note.textContent='O download foi iniciado. Confira se o arquivo da nuvem está salvo antes de confirmar.';panel.appendChild(note);
+          }catch(e){confirm.disabled=true;window.alert(String(e?.message||e))}
+        };
+        confirm.onclick=()=>publishLocalControlled(panel,expectedUid,expectedLocalHash,expectedRemoteRevision);
+      }
       traceEvent('comparison-readonly',report.soNoPc+'/'+report.soNaNuvem+'/'+report.alterados);
     }catch(e){
       panel.textContent='Não foi possível comparar: '+String(e?.message||e?.code||e)+'. Nenhum dado foi modificado.';
     }finally{if(btn)btn.disabled=false}
+  }
+
+  /* Publicação consciente e condicional: nunca ignora atualizações concorrentes. */
+  function eligibleForPublishing(report){
+    return !!report&&report.lancamentosPc>0&&report.lancamentosPc===report.lancamentosNuvem&&
+      report.soNoPc===0&&report.soNaNuvem===0&&report.alterados>0&&report.alterados<=50&&
+      report.perfilIgual===true&&report.filtroDiferente===false;
+  }
+  function exportCloudSnapshot(remote){
+    const payload={schema:'meu-controle-cloud-safety',version:1,savedAt:new Date().toISOString(),data:remote};
+    const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;a.download='MeuControle_Nuvem_Antes_Recuperacao_'+new Date().toISOString().slice(0,10)+'.json';
+    document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),60000);
+  }
+  async function publishLocalControlled(panel,expectedUid,expectedLocalHash,expectedRemoteRevision){
+    const controls=panel.querySelectorAll('button');
+    controls.forEach(b=>b.disabled=true);
+    let committed=false;
+    try{
+      if(!conflictBlocked||quotaBlocked)throw new Error('Recuperação indisponível: estado ou cota alterado.');
+      if(!uid||uid!==expectedUid||scope()?.activeUid?.()!==uid||!cloud())throw new Error('Sessão alterada; execute uma nova comparação.');
+      const local=currentWorkspace();
+      if(workspaceHash(local)!==expectedLocalHash)throw new Error('Os dados deste aparelho mudaram. Compare novamente.');
+      const remote=await cloud().get(uid);
+      if(!remote?.workspace||revisionOf(remote)!==expectedRemoteRevision)throw new Error('A nuvem mudou desde a comparação. Nada foi enviado. Compare novamente.');
+      const report=compareEntries(local,remote.workspace);
+      if(!eligibleForPublishing(report))throw new Error('As diferenças mudaram; publicação bloqueada. Compare novamente.');
+      if(!window.confirm('CONFIRMAÇÃO FINAL: publicar os '+report.lancamentosPc+' lançamentos deste PC na nuvem?\n\nSerão substituídos apenas os dados do workspace. Confirme somente após verificar o arquivo de segurança da nuvem que acabou de baixar.'))return;
+      /* A cópia em disco e uma segunda cópia de segurança local precisam existir antes do envio. */
+      preserveBeforeRemote('Antes de publicar PC sobre versão divergente da nuvem');
+      const clientUpdatedAt=new Date().toISOString();
+      const savedRevision=await cloud().set(uid,{schema:1,clientUpdatedAt,workspace:clone(local)},expectedRemoteRevision);
+      committed=true;
+      seenRevision=savedRevision;
+      lastHash=workspaceHash(local);
+      localDirty=false;
+      conflictBlocked=false;
+      quotaBlocked=false;
+      writeMeta(uid,{lastCloudHash:lastHash,lastUploadAt:clientUpdatedAt,lastLocalChangeAt:clientUpdatedAt});
+      traceEvent('conflict-recovered','Publicação condicional do PC confirmada');
+      setStatus('synced','PC publicado na nuvem. Atualize os outros aparelhos após conferir os dados.');
+      panel.textContent='Versão do PC publicada com sucesso, após verificação de conflito e cópias de segurança. Confira os compromissos e somente depois abra os celulares para receber a atualização.';
+      /* Reabrir o observador com o workspace já confirmado; sem reenvio automático. */
+      scheduleBootstrap(400);
+    }catch(e){
+      if(isQuotaError(e))blockQuota();
+      const message=e?.code==='sync/conflict'?'Outro dispositivo modificou a nuvem durante a publicação. Nada foi substituído; compare novamente.':String(e?.message||e?.code||e);
+      panel.textContent='Publicação interrompida: '+message;
+      traceEvent('controlled-publish-failed',message);
+    }finally{
+      if(!committed)controls.forEach(b=>b.disabled=false);
+    }
   }
 
   /* Diagnóstico somente de leitura: não importa, envia nem substitui dados. */
