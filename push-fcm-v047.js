@@ -83,7 +83,8 @@ import { collection, doc, getDocs, writeBatch, serverTimestamp } from 'https://w
 
   async function ensureVapidToken(messaging,reg){if(localStorage.getItem(VAPID_MARKER_KEY)!==VAPID_MARKER){status('Atualizando registro...');try{await deleteToken(messaging)}catch{}lastToken=''}const token=await getToken(messaging,{serviceWorkerRegistration:reg,vapidKey:VAPID_KEY});if(token)localStorage.setItem(VAPID_MARKER_KEY,VAPID_MARKER);return token}
   async function sync(force=false){
-    if(busy||quotaPaused())return;
+    if(busy)return;
+    if(quotaPaused()){status('Cota do Firestore atingida — novas tentativas pausadas');return;}
     busy=true;
     try{
       ensureStatus();
