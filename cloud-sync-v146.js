@@ -1,7 +1,7 @@
 /* MeuControle — V1.48: proteção atômica contra sobrescritas e cópias pré-recebimento */
 (()=>{
   if(window.__mcCloudSyncV146)return;window.__mcCloudSyncV146=true;window.__mcCloudSyncV145=true;window.__mcCloudSyncV144=true;
-  const VERSION='1.54',META_PREFIX='meu_controle_cloud_sync_meta_v1:';
+  const VERSION='1.55',META_PREFIX='meu_controle_cloud_sync_meta_v1:';
   const TRACKED=new Set(['meu_controle_entries_v2','meu_controle_profiles_v2','meu_controle_profile_filter_v2']);
   let uid=null,unsub=null,pollTimer=null,pushTimer=null,bootTimer=null,retryTimer=null,retryCount=0,inFlightRun=null,uploadQueued=false,seenRevision=null,conflictBlocked=false,quotaBlocked=false,bootRun=0,applyingRemote=false,lastHash='',status='idle',lastError='',localDirty=false,bootstrapComplete=false;const TRACE_KEY='meu_controle_cloud_trace_v1';let trace=[];
   let renderedKey='',renderedBox=null;
@@ -48,7 +48,7 @@
   function ensureUI(){installStyle();const host=document.querySelector('.mc-user-session-v141');if(!host)return null;let box=host.querySelector('.mc-cloud-sync-v143');if(box)return box;box=document.createElement('section');box.className='mc-cloud-sync-v143';box.innerHTML='<div class="mc-cloud-sync-row-v143"><div class="mc-cloud-sync-copy-v143"><strong>Sincronização na nuvem</strong><span>Preparando Firestore…</span></div><span class="mc-cloud-sync-badge-v143">Aguardando</span></div><div class="mc-cloud-sync-actions-v143"><button type="button" class="secondary-action mc-cloud-sync-now-v143">Sincronizar agora</button><button type="button" class="secondary-action mc-cloud-diagnose-v7">Ver diagnóstico</button><button type="button" class="secondary-action mc-cloud-compare-v12">Comparar versões</button></div><div class="mc-cloud-sync-detail-v143"></div><pre class="mc-cloud-sync-diagnostic-v7" hidden></pre><div class="mc-cloud-sync-compare-v12" hidden></div>';host.appendChild(box);box.querySelector('.mc-cloud-sync-now-v143').onclick=()=>manualSync();box.querySelector('.mc-cloud-diagnose-v7').onclick=()=>showDiagnostic(box);box.querySelector('.mc-cloud-compare-v12').onclick=()=>compareVersions(box);renderedKey='';renderedBox=null;return box}
   function setStatus(next,text='',detail=''){status=next;lastError=detail||'';const map={idle:['Aguardando',''],loading:['Conectando','busy'],uploading:['Enviando…','busy'],downloading:['Recebendo…','busy'],synced:['Sincronizado ✓','ok'],offline:['Offline',''],error:['Atenção','error']};const[label,cls]=map[next]||map.idle;const copyText=text||({synced:'Seus dados desta conta estão sincronizados.',offline:'Sem internet; o app continua funcionando localmente.',error:'A sincronização precisa de atenção.'}[next]||'Preparando sincronização…');const detailText=detail||'';const box=ensureUI();if(!box)return;const key=[next,label,cls,copyText,detailText].join('|');if(renderedBox===box&&renderedKey===key)return;renderedBox=box;renderedKey=key;const badge=box.querySelector('.mc-cloud-sync-badge-v143'),copy=box.querySelector('.mc-cloud-sync-copy-v143 span'),d=box.querySelector('.mc-cloud-sync-detail-v143');badge.className='mc-cloud-sync-badge-v143'+(cls?' '+cls:'');badge.textContent=label;copy.textContent=copyText;d.textContent=detailText;d.classList.toggle('show',!!detailText)}
   function traceEvent(type,detail=''){const item={at:new Date().toISOString(),type,detail:String(detail||''),uid:uid||''};trace.push(item);trace=trace.slice(-40);try{localStorage.setItem(TRACE_KEY,JSON.stringify(trace))}catch{};window.dispatchEvent(new CustomEvent('meucontrole:cloud-trace',{detail:item}))}
-  function diagnostic(){const w=currentWorkspace(),m=uid?readMeta(uid):{};return{version:'1.54-diag9',quotaBlocked,conflictBlocked,seenRevision:seenRevision?'known':'unknown',retryCount,uploadInProgress:inFlightRun===bootRun,status,error:lastError,uid:uid||'',activeUid:scope()?.activeUid?.()||'',localDirty,applyingRemote,bootstrapComplete,lastHash,currentHash:workspaceHash(w),entries:Array.isArray(w?.entries)?w.entries.length:0,lastCloudHash:m.lastCloudHash||'',lastUploadAt:m.lastUploadAt||'',lastRemoteAt:m.lastRemoteAt||'',lastLocalChangeAt:m.lastLocalChangeAt||'',trace:trace.slice(-15)}}
+  function diagnostic(){const w=currentWorkspace(),m=uid?readMeta(uid):{};return{version:'1.55-diag10',quotaBlocked,conflictBlocked,seenRevision:seenRevision?'known':'unknown',retryCount,uploadInProgress:inFlightRun===bootRun,status,error:lastError,uid:uid||'',activeUid:scope()?.activeUid?.()||'',localDirty,applyingRemote,bootstrapComplete,lastHash,currentHash:workspaceHash(w),entries:Array.isArray(w?.entries)?w.entries.length:0,lastCloudHash:m.lastCloudHash||'',lastUploadAt:m.lastUploadAt||'',lastRemoteAt:m.lastRemoteAt||'',lastLocalChangeAt:m.lastLocalChangeAt||'',trace:trace.slice(-15)}}
 
 
   /* Comparação não destrutiva: não chama upload, importCurrent nem modifica dados. */
@@ -91,7 +91,7 @@
         observacao:'Comparação somente de leitura; nenhum dado enviado ou substituído.',
         ...compareEntries(local,remote.workspace)
       };
-      panel.textContent='COMPARAÇÃO PC / NUVEM\n'+
+      panel.textContent='COMPARAÇÃO APARELHO / NUVEM\n'+
         'No aparelho: '+report.lancamentosPc+' lançamentos, '+report.datasPc+' datas especiais\n'+
         'Na nuvem: '+report.lancamentosNuvem+' lançamentos, '+report.datasNuvem+' datas especiais\n'+
         'Exclusivos do aparelho: '+report.soNoPc+'\n'+
@@ -111,7 +111,7 @@
         }
       };
       panel.appendChild(copy);
-      if(conflictBlocked&&!quotaBlocked&&eligibleForPublishing(report)){
+      if(conflictBlocked&&!quotaBlocked&&!matchMedia('(max-width:700px)').matches&&eligibleForPublishing(report)){
         const caution=document.createElement('p');
         caution.style.marginTop='12px';
         caution.textContent='Recuperação assistida: os lançamentos têm os mesmos identificadores, não há informações exclusivas da nuvem e os perfis são idênticos. Só use no PC escolhido como versão principal. A publicação substituirá a versão do workspace na nuvem e poderá propagar essas mudanças aos outros aparelhos.';
@@ -134,6 +134,30 @@
         };
         confirm.onclick=()=>publishLocalControlled(panel,expectedUid,expectedLocalHash,expectedRemoteRevision);
       }
+      if(conflictBlocked&&!quotaBlocked&&eligibleForReceiving(report)){
+        const info=document.createElement('p');info.style.marginTop='14px';
+        info.textContent='RECEBER DA NUVEM: somente use se a nuvem tiver a versão correta. Nesta operação, os dados deste aparelho serão atualizados, sem qualquer envio para o Firestore.';
+        panel.appendChild(info);
+        const download=document.createElement('button');
+        download.type='button';download.className='secondary-action';
+        download.textContent='1. Baixar backup deste aparelho';
+        panel.appendChild(download);
+        const receive=document.createElement('button');
+        receive.type='button';receive.className='secondary-action';
+        receive.style.margin='8px 0 0 8px';receive.disabled=true;
+        receive.textContent='2. Receber versão da nuvem';
+        panel.appendChild(receive);
+        const expectedUid=uid,expectedLocalHash=workspaceHash(local),expectedRemoteRevision=revisionOf(remote);
+        download.onclick=()=>{
+          try{
+            if(uid!==expectedUid||workspaceHash(currentWorkspace())!==expectedLocalHash)throw new Error('Os dados locais mudaram. Compare novamente.');
+            downloadLocalRecoveryBackup();
+            receive.disabled=false;
+            const note=document.createElement('p');note.textContent='Confira se o arquivo de backup foi salvo no celular antes de prosseguir.';panel.appendChild(note);
+          }catch(e){receive.disabled=true;window.alert(String(e?.message||e))}
+        };
+        receive.onclick=()=>receiveCloudControlled(panel,expectedUid,expectedLocalHash,expectedRemoteRevision);
+      }
       traceEvent('comparison-readonly',report.soNoPc+'/'+report.soNaNuvem+'/'+report.alterados);
     }catch(e){
       panel.textContent='Não foi possível comparar: '+String(e?.message||e?.code||e)+'. Nenhum dado foi modificado.';
@@ -145,6 +169,63 @@
     return !!report&&report.lancamentosPc>0&&report.lancamentosPc===report.lancamentosNuvem&&
       report.soNoPc===0&&report.soNaNuvem===0&&report.alterados>0&&report.alterados<=50&&
       report.perfilIgual===true&&report.filtroDiferente===false;
+  }
+  function eligibleForReceiving(report){
+    return !!report&&report.lancamentosPc>0&&report.lancamentosPc===report.lancamentosNuvem&&
+      report.soNoPc===0&&report.soNaNuvem===0&&report.alterados>0&&report.alterados<=50&&
+      report.perfilIgual===true&&report.filtroDiferente===false;
+  }
+  function downloadLocalRecoveryBackup(){
+    const full=scope()?.exportCurrent?.();
+    if(!full||!Array.isArray(full.entries)||!full.entries.length)throw new Error('Não foi possível obter o backup local.');
+    const payload={schema:'meu-controle-backup',version:2,appVersion:'2.0',exportedAt:new Date().toISOString(),data:clone(full)};
+    const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob),a=document.createElement('a');
+    a.href=url;a.download='MeuControle_Mobile_Antes_Receber_Nuvem_'+new Date().toISOString().slice(0,10)+'.json';
+    document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),60000);
+  }
+  async function receiveCloudControlled(panel,expectedUid,expectedLocalHash,expectedRemoteRevision){
+    const controls=panel.querySelectorAll('button');controls.forEach(b=>b.disabled=true);
+    let applied=false;
+    try{
+      if(!conflictBlocked||quotaBlocked)throw new Error('Recuperação indisponível: estado ou cota alterado.');
+      if(!uid||uid!==expectedUid||scope()?.activeUid?.()!==uid||!cloud())throw new Error('A conta mudou. Compare novamente.');
+      const local=currentWorkspace();
+      if(workspaceHash(local)!==expectedLocalHash)throw new Error('Os dados locais mudaram. Compare novamente.');
+      const remote=await cloud().get(uid);
+      if(!remote?.workspace||revisionOf(remote)!==expectedRemoteRevision)throw new Error('A nuvem mudou depois da comparação. Compare novamente.');
+      const report=compareEntries(local,remote.workspace);
+      if(!eligibleForReceiving(report))throw new Error('As diferenças mudaram. Operação cancelada; compare novamente.');
+      if(!window.confirm('CONFIRMAÇÃO FINAL: receber os '+report.lancamentosNuvem+' lançamentos da nuvem neste aparelho?\\n\\nOs dados atuais deste aparelho serão substituídos pela versão da nuvem. Confira que baixou o backup local. Nada será enviado ao Firestore.'))return;
+      await protectRecoverySnapshot(local,remote,uid);
+      if(uid!==expectedUid||scope()?.activeUid?.()!==uid||workspaceHash(currentWorkspace())!==expectedLocalHash||!conflictBlocked)throw new Error('Os dados locais mudaram durante a preparação. Compare novamente.');
+      const fresh=await cloud().get(uid);
+      if(!fresh?.workspace||revisionOf(fresh)!==expectedRemoteRevision)throw new Error('A nuvem foi atualizada durante a preparação; compare novamente.');
+      const full=scope()?.exportCurrent?.()||{};
+      const incoming={...clone(fresh.workspace),autoBackups:Array.isArray(full.autoBackups)?full.autoBackups:[],lastBackup:full.lastBackup||null};
+      applyingRemote=true;
+      const ok=scope()?.importCurrent?.(incoming,{reload:false});
+      if(ok===false)throw new Error('Não foi possível aplicar os dados no espaço desta conta.');
+      if(workspaceHash(currentWorkspace())!==workspaceHash(fresh.workspace))throw new Error('Os dados aplicados não passaram na verificação; mantenha o backup e solicite diagnóstico.');
+      applied=true;
+      const h=workspaceHash(fresh.workspace);
+      seenRevision=revisionOf(fresh);lastHash=h;localDirty=false;conflictBlocked=false;quotaBlocked=false;
+      writeMeta(uid,{lastCloudHash:h,lastRemoteAt:fresh.clientUpdatedAt||new Date().toISOString(),lastLocalChangeAt:fresh.clientUpdatedAt||new Date().toISOString()});
+      traceEvent('conflict-recovered-from-cloud','Recebimento assistido concluído sem escrita na nuvem');
+      panel.textContent='Versão da nuvem recebida e conferida. Os lançamentos deste aparelho foram atualizados. Confira as datas e o status de sincronização.';
+      setStatus('synced','Versão da nuvem recebida neste aparelho.');
+      applyingRemote=false;
+      clearRuntime({invalidate:true});uid=null;await bootstrap(bootRun);
+    }catch(e){
+      const message=String(e?.message||e?.code||e);
+      panel.textContent='Recebimento interrompido: '+message+' O backup local baixado e a cópia de segurança foram preservados.';
+      traceEvent('receive-cloud-failed',message);
+      if(applied)setStatus('error','Confira os dados recebidos e abra o diagnóstico.',message);
+    }finally{
+      applyingRemote=false;
+      if(!applied)controls.forEach(b=>b.disabled=false);
+    }
   }
   function exportCloudSnapshot(remote){
     const payload={schema:'meu-controle-cloud-safety',version:1,savedAt:new Date().toISOString(),data:remote};
