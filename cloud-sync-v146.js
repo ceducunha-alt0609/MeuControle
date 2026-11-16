@@ -514,7 +514,7 @@
     if(localDirty||conflictBlocked){blockConflict('Dados locais alterados durante o recebimento');return}
     const sameEntries=entriesHash(w)===entriesHash(local);
     if(sameEntries){
-      applyMetaOnly(w);const nh=workspaceHash(currentWorkspace());lastHash=nh;seenRevision=revisionOf(remote);localDirty=false;writeMeta(uid,{lastCloudHash:h,lastRemoteAt:remote.clientUpdatedAt||new Date().toISOString()});setStatus('synced');return;
+      applyMetaOnly(w);const nh=workspaceHash(currentWorkspace());lastHash=nh;seenRevision=revisionOf(remote);localDirty=false;writeMeta(uid,{lastCloudHash:h,lastRemoteAt:remote.clientUpdatedAt||new Date().toISOString()});setStatus('synced');if(notify&&bootstrapComplete&&remote.sourceDeviceId&&remote.sourceDeviceId!==deviceId())window.dispatchEvent(new CustomEvent('meucontrole:remote-workspace-applied',{detail:{uid,sourceDeviceId:remote.sourceDeviceId,at:remote.clientUpdatedAt||new Date().toISOString(),revision:revisionOf(remote),changes:describeRemoteChanges(local,raw)}}));return;
     }
     preserveBeforeRemote('Antes de aplicar lançamentos recebidos da nuvem');
     applyingRemote=true;clearTimeout(pushTimer);setStatus('downloading','Atualizando este dispositivo com os dados da sua conta…');
