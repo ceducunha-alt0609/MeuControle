@@ -213,7 +213,7 @@
      if(period!==lastPeriod){selectedDay=0;lastPeriod=period}
      const first=new Date(calendarYear,calendarMonth,1).getDay(),max=new Date(calendarYear,calendarMonth+1,0).getDate(),count=Math.ceil((first+max)/7)*7;
      const hasEntry=new Set(calendarEntries().map(e=>e.date));
-     const holidays=typeof holidayMapSP==='function'?holidayMapSP(calendarYear):new Map();
+     const holidays=window.MeuControleHolidaysV1?.map?.(calendarYear)||(typeof holidayMapSP==='function'?holidayMapSP(calendarYear):new Map());
      let cells='';
      for(let i=0;i<count;i++){
        const d=i-first+1;if(d<1||d>max){cells+='<div class="mc-cal-day-v124 out"></div>';continue}
@@ -271,6 +271,7 @@
  document.getElementById('calendarPage')?.addEventListener('click',e=>{
    if(e.target.closest('.mc-cal-day-v124,.mobile-calendar-day-v109,[data-nav],.mc-cal-clear-v124,.mc-special-month-footer'))setTimeout(queue,70);
  },true);
+ window.addEventListener('meucontrole:holidays-changed',queue);
  window.addEventListener('meucontrole:profiles-cloud-applied',queue);
  window.addEventListener('meucontrole:user-workspace-imported',queue);
  window.addEventListener('meucontrole:cloud-bootstrap-complete',queue);
