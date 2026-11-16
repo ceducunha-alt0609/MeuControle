@@ -6,7 +6,7 @@
  let account='',events=[],ready=false,placeTimer=null;
  const uid=()=>{try{return window.MeuControleUserDataScope?.activeUid?.()||window.MeuControleUserSession?.get?.()?.uid||''}catch{return''}};
  const fmt=t=>{try{return new Date(t).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}catch{return'—'}};
- const labels={added:'Novo lançamento',removed:'Ausente na versão recebida',edited:'Lançamento editado',completed:'Marcado como concluído',reopened:'Reaberto'};
+ const labels={added:'Novo lançamento',removed:'Lançamento excluído!',edited:'Lançamento editado',completed:'Marcado como concluído',reopened:'Reaberto'};
  function accountSync(){
   const a=uid();if(a===account)return;account=a;events=[];
   if(a)try{const v=JSON.parse(localStorage.getItem(PREFIX+a)||'[]');if(Array.isArray(v))events=v.slice(-MAX)}catch{}
@@ -57,7 +57,7 @@
     const title=document.createElement('strong');title.textContent=e.title;
     const state=document.createElement('span');state.className='mc-change-status';state.textContent=e.state==='pending'?'Aguardando revisão':'Aplicado ✓';
     top.append(title,state);row.appendChild(top);
-    const sub=document.createElement('small');sub.textContent=e.action+' · '+fmt(e.at)+(e.detail?' · '+e.detail:'');row.appendChild(sub);list.appendChild(row);
+    const sub=document.createElement('small');sub.textContent=(e.action==='Ausente na versão recebida'?'Lançamento excluído!':e.action)+' · '+fmt(e.at)+(e.detail?' · '+e.detail:'');row.appendChild(sub);list.appendChild(row);
    }
   }
   if(matchMedia('(min-width:701px)').matches){
