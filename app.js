@@ -86,15 +86,76 @@ function updateAutoBackupLabel(){
   const label=$('lastAutoBackupLabel');
   if(label)label.textContent=list.length?new Date(list[0].createdAt).toLocaleString('pt-BR'):'Ainda não realizada';
 }
+/* Inspeção de backup local — somente leitura; nunca aciona restauração nem sincronização. */
+function backupSpecialDates(snapshot){
+  const out=[];
+  (Array.isArray(snapshot?.profiles)?snapshot.profiles:[]).forEach(profile=>{
+    (Array.isArray(profile.specialDates)?profile.specialDates:[]).forEach(item=>out.push({
+      id:String(item.id||''),name:String(item.name||''),type:String(item.type||'special'),
+      day:Number(item.day)||0,month:Number(item.month)||0,year:item.year||null,
+      profileId:String(profile.id||''),profileName:String(profile.name||'Perfil sem nome'),
+      notes:String(item.notes||'')
+    }));
+  });
+  return out.sort((a,b)=>a.month-b.month||a.day-b.day||a.name.localeCompare(b.name,'pt-BR'));
+}
+function inspectAutoBackup(id){
+  const b=loadAutoBackups().find(x=>x.id===id);
+  if(!b){alert('Esta cópia não está mais disponível neste navegador.');return}
+  document.querySelector('#mcAutoBackupInspectorV1')?.remove();
+  const overlay=document.createElement('div');overlay.id='mcAutoBackupInspectorV1';
+  overlay.style.cssText='position:fixed;inset:0;z-index:110200;display:flex;align-items:center;justify-content:center;background:rgba(9,24,34,.68);padding:15px';
+  const modal=document.createElement('section');modal.setAttribute('role','dialog');modal.setAttribute('aria-modal','true');modal.setAttribute('aria-label','Visualização somente de leitura do backup');
+  modal.style.cssText='width:min(760px,100%);max-height:88vh;overflow:auto;background:var(--card,#fff);color:var(--text,#273a34);border:1px solid #a9b8b3;border-radius:17px;padding:20px;box-shadow:0 22px 65px #0005';
+  const title=document.createElement('h2');title.textContent='Visualizar backup — somente leitura';title.style.cssText='margin:0 0 6px;font-size:19px';modal.appendChild(title);
+  const subtitle=document.createElement('p');subtitle.textContent='Cópia de '+new Date(b.createdAt).toLocaleString('pt-BR')+' • '+(b.reason||'Alteração')+' • '+(b.entries?.length||0)+' lançamentos';subtitle.style.cssText='margin:0 0 10px;font-size:12px;line-height:1.5';modal.appendChild(subtitle);
+  const caution=document.createElement('p');caution.textContent='Nada será restaurado ou enviado à nuvem. A comparação abaixo usa o estado atual deste aparelho, sem alterar seus registros.';caution.style.cssText='font-size:12px;line-height:1.55;padding:9px 11px;background:rgba(69,129,154,.12);border-radius:9px';modal.appendChild(caution);
+  const dates=backupSpecialDates(b),currentDates=backupSpecialDates({profiles});
+  const currentIds=new Set(currentDates.map(x=>x.id).filter(Boolean));
+  const currentKeys=new Set(currentDates.map(x=>[x.profileId,x.type,x.name,x.day,x.month].join('|')));
+  const absent=dates.filter(x=>x.id?!currentIds.has(x.id):!currentKeys.has([x.profileId,x.type,x.name,x.day,x.month].join('|')));
+  const h=document.createElement('h3');h.textContent='Datas especiais na cópia ('+dates.length+')';h.style.cssText='font-size:15px;margin:15px 0 7px';modal.appendChild(h);
+  const body=document.createElement('div');body.style.cssText='display:grid;gap:7px';
+  if(!dates.length){const p=document.createElement('p');p.textContent='Não havia aniversários ou datas especiais neste backup.';body.appendChild(p)}
+  dates.forEach(x=>{
+    const item=document.createElement('div');item.style.cssText='padding:10px 12px;border:1px solid #b5c3be;border-radius:10px;font-size:12px;line-height:1.65;overflow-wrap:anywhere';
+    const desc=document.createElement('strong');desc.textContent=(x.type==='birthday'?'🎂 ':'💜 ')+x.name;desc.style.display='block';item.appendChild(desc);
+    const info=document.createElement('span');info.textContent=String(x.day).padStart(2,'0')+'/'+String(x.month).padStart(2,'0')+(x.year?'/'+x.year:'')+' • '+x.profileName;item.appendChild(info);
+    if(absent.includes(x)){const flag=document.createElement('div');flag.textContent='Não encontrado no estado atual deste aparelho';flag.style.cssText='color:#b04a34;font-weight:700';item.appendChild(flag)}
+    if(x.notes){const note=document.createElement('div');note.textContent='Observações: '+x.notes;item.appendChild(note)}
+    body.appendChild(item);
+  });modal.appendChild(body);
+  const warning=document.createElement('p');warning.textContent=absent.length+' data(s) do backup não encontrada(s) atualmente neste aparelho. Isso não comprova exclusão: a data pode ter sido editada ou transferida de perfil.';warning.style.cssText='font-size:12px;margin:12px 0';modal.appendChild(warning);
+  const actions=document.createElement('div');actions.style.cssText='display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;margin-top:14px';
+  const close=document.createElement('button');close.type='button';close.className='secondary-action';close.textContent='Fechar';close.onclick=()=>overlay.remove();
+  const exportBtn=document.createElement('button');exportBtn.type='button';exportBtn.className='secondary-action';exportBtn.textContent='Exportar esta cópia';exportBtn.onclick=()=>exportSelectedAutoBackup(b.id);
+  actions.append(exportBtn,close);modal.appendChild(actions);overlay.appendChild(modal);document.body.appendChild(overlay);
+  overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove()});
+  close.focus();
+}
+function exportSelectedAutoBackup(id){
+  const b=loadAutoBackups().find(x=>x.id===id);
+  if(!b){alert('Esta cópia não está mais disponível neste navegador.');return}
+  /* Arquivo independente da lista viva, preserva integralmente o snapshot selecionado. */
+  const payload={schema:'meu-controle-auto-backup-export',version:1,exportedAt:new Date().toISOString(),snapshot:JSON.parse(JSON.stringify(b))};
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json;charset=utf-8'});
+  const url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download='MeuControle_CopiaAutomatica_'+String(b.createdAt||'backup').replace(/[^0-9]/g,'-')+'.json';
+  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),3000);
+}
 function renderAutoBackups(){
   const box=$('autoBackupList');box.innerHTML='';
   const list=loadAutoBackups();
   if(!list.length){box.innerHTML='<div class="empty">Nenhum backup automático ainda.</div>';return}
-  list.forEach((b,i)=>{
+  list.forEach(b=>{
     const row=document.createElement('div');row.className='auto-backup-row';
-    row.innerHTML=`<div><strong>${new Date(b.createdAt).toLocaleString('pt-BR')}</strong><span>${esc(b.reason||'Alteração')} • ${b.entries.length} lançamento${b.entries.length===1?'':'s'} • ${b.profiles.length} perfil${b.profiles.length===1?'':'s'}</span></div><div class="auto-backup-row-actions"><button class="small secondary-action">Restaurar</button></div>`;
-    row.querySelector('button').onclick=()=>restoreAutoBackup(b.id);
-    box.appendChild(row);
+    const dates=backupSpecialDates(b);
+    const detail=document.createElement('div');detail.innerHTML='<strong>'+esc(new Date(b.createdAt).toLocaleString('pt-BR'))+'</strong><span>'+esc(b.reason||'Alteração')+' • '+(b.entries?.length||0)+' lançamentos • '+(b.profiles?.length||0)+' perfis • '+dates.length+' datas especiais</span>';
+    const actions=document.createElement('div');actions.className='auto-backup-row-actions';actions.style.cssText='display:flex;gap:6px;flex-wrap:wrap';
+    const view=document.createElement('button');view.type='button';view.className='small secondary-action';view.textContent='Visualizar';view.onclick=()=>inspectAutoBackup(b.id);
+    const exportBtn=document.createElement('button');exportBtn.type='button';exportBtn.className='small secondary-action';exportBtn.textContent='Exportar cópia';exportBtn.onclick=()=>exportSelectedAutoBackup(b.id);
+    const restore=document.createElement('button');restore.type='button';restore.className='small secondary-action';restore.textContent='Restaurar';restore.onclick=()=>restoreAutoBackup(b.id);
+    actions.append(view,exportBtn,restore);row.append(detail,actions);box.appendChild(row);
   });
 }
 function restoreAutoBackup(id){
