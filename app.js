@@ -513,10 +513,86 @@ function applyRestore(){
   if(!pendingRestore)return;createAutoBackup('Antes de restaurar backup externo');entries=JSON.parse(JSON.stringify(pendingRestore.data.entries));profiles=JSON.parse(JSON.stringify(pendingRestore.data.profiles));activeProfile=pendingRestore.data.preferences?.activeProfile||'all';save();saveProfiles();localStorage.setItem(PROFILE_FILTER_KEY,activeProfile);if(pendingRestore.data.preferences?.theme)localStorage.setItem(THEME_KEY,pendingRestore.data.preferences.theme);if(pendingRestore.data.preferences?.font)localStorage.setItem(FONT_KEY,pendingRestore.data.preferences.font);applyAppearance();pendingRestore=null;$('restoreModal').classList.add('hidden');renderProfileSelectors();renderAll();alert('Backup restaurado com sucesso.');
 }
 
-$('entryForm').addEventListener('submit',ev=>{
-  ev.preventDefault();const stepRows=[...document.querySelectorAll('#mcSteps .mc-step-row')];const formSteps=stepRows.map(row=>({text:row.querySelector('input')?.value.trim()||'',done:row.dataset.done==='1'})).filter(s=>s.text);createAutoBackup(editingId?'Antes de editar lançamento':'Antes de novo lançamento');const data={profile:$('profile').value,type:$('type').value,category:$('category').value,value:Number($('value').value||0),description:$('description').value.trim(),date:$('date').value,time:$('time').value,useBusinessDay:$('useBusinessDay').checked,recurrence:$('recurrence').value,remind:Number($('remind').value),important:$('important').checked,notes:$('notes').value.trim(),steps:formSteps,valuePending:false};
-  if(editingId){const e=entries.find(x=>x.id===editingId);if(e){const scheduled=data.date,actual=effectiveEntryDate(scheduled,data.useBusinessDay);Object.assign(e,data,{date:actual,scheduledDate:data.useBusinessDay?scheduled:null});e.valuePending=false}}else{const first={id:crypto.randomUUID(),...data,scheduledDate:data.useBusinessDay?data.date:null,done:false,doneAt:null,seriesId:data.recurrence!=='none'?crypto.randomUUID():null};entries.push(...generateRecurringEntries(first,$('repeatUntil').value,$('recurringValueMode').value))}
-  save();try{window.MeuControleUserDataScope?.saveCurrent?.()}catch{}resetForm();renderAll();checkNotifications();
+/* Uma copia verificavel fora do localStorage evita que um backup automatico
+   cheio silenciosamente impeça salvar um lançamento. Nenhum backup anterior
+   é apagado nem a conta da nuvem é alterada nesta etapa. */
+async function preserveEntryFormSnapshot(reason){
+  if(!('indexedDB' in window))throw new Error('IndexedDB indisponível. Não foi possível proteger os dados anteriores.');
+  const record={key:'entry:'+Date.now()+':'+crypto.randomUUID(),savedAt:new Date().toISOString(),reason,
+    local:{entries:JSON.parse(JSON.stringify(entries)),profiles:JSON.parse(JSON.stringify(profiles)),profileFilter:activeProfile},cloud:null};
+  const expected=JSON.stringify(record.local);
+  let db;
+  try{
+    db=await new Promise((resolve,reject)=>{
+      const req=indexedDB.open('meu_controle_recovery_safety_v1',1);
+      req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains('snapshots'))req.result.createObjectStore('snapshots',{keyPath:'key'})};
+      req.onsuccess=()=>resolve(req.result);
+      req.onerror=()=>reject(req.error||new Error('Não foi possível abrir o IndexedDB'));
+      req.onblocked=()=>reject(new Error('O IndexedDB está ocupado'));
+    });
+    await new Promise((resolve,reject)=>{
+      const tx=db.transaction('snapshots','readwrite');
+      tx.objectStore('snapshots').put(record);
+      tx.oncomplete=()=>resolve();
+      tx.onerror=()=>reject(tx.error||new Error('Falha ao gravar o backup'));
+      tx.onabort=()=>reject(tx.error||new Error('Backup interrompido'));
+    });
+    const checked=await new Promise((resolve,reject)=>{
+      const tx=db.transaction('snapshots','readonly'),req=tx.objectStore('snapshots').get(record.key);
+      req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error||new Error('Falha ao reler backup'));
+    });
+    if(!checked||JSON.stringify(checked.local)!==expected)throw new Error('A cópia gravada não passou na verificação');
+  }finally{try{db?.close()}catch{}}
+}
+
+$('entryForm').addEventListener('invalid',ev=>{
+  const field=ev.target;if(!field?.focus)return;
+  field.focus();
+  const label=field.closest('label')?.textContent?.trim()||'campo obrigatório';
+  const previous=document.getElementById('mc-entry-validation-hint');
+  if(previous)previous.remove();
+  const hint=document.createElement('div');hint.id='mc-entry-validation-hint';hint.className='span-2';
+  hint.style.cssText='color:#9a3e34;font-size:12px;font-weight:700;margin:4px 0';
+  hint.textContent='Confira o campo obrigatório: '+label+'.';
+  $('entryForm').querySelector('.actions')?.before(hint);
+},{capture:true});
+
+$('entryForm').addEventListener('submit',async ev=>{
+  ev.preventDefault();
+  const btn=$('saveBtn');if(btn.disabled)return;
+  const wasEditing=!!editingId;
+  const previousEntries=JSON.parse(JSON.stringify(entries));
+  const expectedId=editingId;
+  btn.disabled=true;btn.textContent='Salvando com segurança…';
+  try{
+    const stepRows=[...document.querySelectorAll('#mcSteps .mc-step-row')];
+    const formSteps=stepRows.map(row=>({text:row.querySelector('input')?.value.trim()||'',done:row.dataset.done==='1'})).filter(s=>s.text);
+    const data={profile:$('profile').value,type:$('type').value,category:$('category').value,value:Number($('value').value||0),description:$('description').value.trim(),date:$('date').value,time:$('time').value,useBusinessDay:$('useBusinessDay').checked,recurrence:$('recurrence').value,remind:Number($('remind').value),important:$('important').checked,notes:$('notes').value.trim(),steps:formSteps,valuePending:false};
+    if(!data.description||!data.date)throw new Error('Preencha a descrição e a data antes de salvar.');
+    if(wasEditing&&!entries.some(x=>x.id===expectedId))throw new Error('O lançamento mudou ou não está mais disponível. Abra a edição novamente.');
+    await preserveEntryFormSnapshot(wasEditing?'Antes de editar lançamento':'Antes de novo lançamento');
+    if(wasEditing){
+      const e=entries.find(x=>x.id===expectedId);
+      const scheduled=data.date,actual=effectiveEntryDate(scheduled,data.useBusinessDay);
+      Object.assign(e,data,{date:actual,scheduledDate:data.useBusinessDay?scheduled:null});e.valuePending=false;
+    }else{
+      const first={id:crypto.randomUUID(),...data,scheduledDate:data.useBusinessDay?data.date:null,done:false,doneAt:null,seriesId:data.recurrence!=='none'?crypto.randomUUID():null};
+      entries.push(...generateRecurringEntries(first,$('repeatUntil').value,$('recurringValueMode').value));
+    }
+    try{save()}catch(e){entries=previousEntries;throw e}
+    try{window.MeuControleUserDataScope?.saveCurrent?.()}catch{}
+    document.getElementById('mc-entry-validation-hint')?.remove();
+    resetForm();renderAll();checkNotifications();
+  }catch(e){
+    const quota=e?.name==='QuotaExceededError'||/quota|exceeded|espaço|storage/i.test(String(e?.message||''));
+    const message=quota?'O armazenamento local está cheio. A alteração não foi concluída. Seus dados anteriores e o backup estão preservados. Não limpe o armazenamento; envie o diagnóstico para análise.':
+      'Não foi possível salvar este lançamento: '+String(e?.message||e);
+    window.alert(message);
+  }finally{
+    btn.disabled=false;
+    if(wasEditing&&editingId)btn.textContent='Salvar alterações';
+    else if(!editingId)btn.textContent='Salvar lançamento';
+  }
 });
 $('clearBtn').onclick=resetForm;$('cancelEditBtn').onclick=resetForm;$('recurrence').onchange=updateRecurrenceUI;$('date').onchange=updateBusinessDayInfo;$('useBusinessDay').onchange=updateBusinessDayInfo;
 $('globalSearch').oninput=e=>{globalQuery=e.target.value;renderList()};document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');currentFilter=b.dataset.filter;renderList()});
