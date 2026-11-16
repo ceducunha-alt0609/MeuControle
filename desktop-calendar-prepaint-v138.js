@@ -33,7 +33,12 @@
     const list=document.getElementById('calendarEventsList');
     if(!list)return false;
     if(!list.children.length)return true;
-    return !!list.querySelector('.mc-cal-pending-title-v124,.mc-cal-no-pending-v124,.mc-cal-done-heading-v124');
+    /* Dias contendo somente datas especiais também são estados finais válidos.
+     * A ausência de tarefas comuns não autoriza reconstruir o calendário. */
+    if(list.querySelector('.mc-cal-pending-title-v124,.mc-cal-no-pending-v124,.mc-cal-done-heading-v124'))return true;
+    const children=[...list.children];
+    if(children.length&&children.every(node=>node.classList?.contains('mc-special-event-card')))return true;
+    return false;
   };
   const stabilize=()=>{
     if(stabilizing||!window.MeuControleDesktopCalendarSplitV124?.refresh)return;
