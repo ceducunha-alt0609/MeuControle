@@ -3,7 +3,7 @@
   if(window.__mcCloudSyncV146)return;window.__mcCloudSyncV146=true;window.__mcCloudSyncV145=true;window.__mcCloudSyncV144=true;
   const VERSION='1.56',META_PREFIX='meu_controle_cloud_sync_meta_v1:';
   const TRACKED=new Set(['meu_controle_entries_v2','meu_controle_profiles_v2','meu_controle_profile_filter_v2']);
-  let uid=null,unsub=null,pollTimer=null,pushTimer=null,bootTimer=null,retryTimer=null,retryCount=0,inFlightRun=null,uploadQueued=false,seenRevision=null,conflictBlocked=false,quotaBlocked=false,bootRun=0,applyingRemote=false,receivingRemote=false,lastHash='',status='idle',lastError='',localDirty=false,bootstrapComplete=false;const TRACE_KEY='meu_controle_cloud_trace_v1';let trace=[];
+  let uid=null,unsub=null,pollTimer=null,pushTimer=null,bootTimer=null,retryTimer=null,retryCount=0,inFlightRun=null,uploadQueued=false,seenRevision=null,conflictBlocked=false,quotaBlocked=false,bootRun=0,applyingRemote=false,receivingRemote=false,queuedRemote=null,lastHash='',status='idle',lastError='',localDirty=false,bootstrapComplete=false;const TRACE_KEY='meu_controle_cloud_trace_v1';let trace=[];
   let renderedKey='',renderedBox=null,lastConflictReason='';
   const clone=v=>JSON.parse(JSON.stringify(v));
   const revisionOf=r=>cloud()?.revisionOf?.(r)??null;
@@ -389,7 +389,7 @@
   }
 
   function errorMessage(e){const code=e?.code||'';if(code.includes('permission-denied'))return'O Firestore recusou o acesso. Seus dados locais continuam preservados.';if(code.includes('resource-exhausted'))return'A cota do Firestore foi atingida. Seus dados locais estão preservados; a sincronização volta quando a cota estiver disponível.';if(code.includes('unavailable')||!navigator.onLine)return'Firestore indisponível no momento. Seus dados locais continuam funcionando.';return`Falha na sincronização${code?` (${code})`:''}${e?.message?`: ${String(e.message).slice(0,150)}`:''}. Os dados locais foram preservados.`}
-  function clearRuntime({invalidate=false}={}){if(invalidate)bootRun++;lastConflictReason='';seenRevision=null;conflictBlocked=false;quotaBlocked=false;if(unsub){try{unsub()}catch{}unsub=null}clearInterval(pollTimer);pollTimer=null;clearTimeout(pushTimer);pushTimer=null;clearTimeout(retryTimer);retryTimer=null;retryCount=0;inFlightRun=null;uploadQueued=false;clearTimeout(bootTimer);bootTimer=null;applyingRemote=false;bootstrapComplete=false}
+  function clearRuntime({invalidate=false}={}){if(invalidate)bootRun++;receivingRemote=false;queuedRemote=null;lastConflictReason='';seenRevision=null;conflictBlocked=false;quotaBlocked=false;if(unsub){try{unsub()}catch{}unsub=null}clearInterval(pollTimer);pollTimer=null;clearTimeout(pushTimer);pushTimer=null;clearTimeout(retryTimer);retryTimer=null;retryCount=0;inFlightRun=null;uploadQueued=false;clearTimeout(bootTimer);bootTimer=null;applyingRemote=false;bootstrapComplete=false}
   function scheduleBootstrap(delay=250){clearTimeout(bootTimer);const planned=++bootRun;bootTimer=setTimeout(()=>bootstrap(planned),delay)}
   function markLocalDirty(reason='alteração local'){if(applyingRemote)return;traceEvent('local-change',reason);localDirty=true;const now=new Date().toISOString();scope()?.saveCurrent?.();if(uid){writeMeta(uid,{lastLocalChangeAt:now});if(!conflictBlocked&&!quotaBlocked)scheduleUpload(reason)}}
 
@@ -511,7 +511,8 @@
     try{
       /* Guardar e reler copia no IndexedDB antes de substituir registros ou perfis. */
       await protectRecoverySnapshot(local,remote,accountAtStart);
-      if(run!==bootRun||uid!==accountAtStart||scope()?.activeUid?.()!==accountAtStart||workspaceHash(currentWorkspace())!==lh){
+      if(run!==bootRun)return;
+      if(uid!==accountAtStart||scope()?.activeUid?.()!==accountAtStart||workspaceHash(currentWorkspace())!==lh){
         blockConflict('Estado local ou sessao mudou durante copia de seguranca; nada foi aplicado');
         return;
       }
@@ -542,8 +543,12 @@
         traceEvent('remote-apply-blocked',reason);
       }
     }finally{
-      if(run===bootRun)setTimeout(()=>{applyingRemote=false;receivingRemote=false;lastHash=workspaceHash(currentWorkspace())},0);
-      else{applyingRemote=false;receivingRemote=false}
+      if(run===bootRun)setTimeout(()=>{
+        if(run!==bootRun)return;
+        applyingRemote=false;receivingRemote=false;lastHash=workspaceHash(currentWorkspace());
+        const later=queuedRemote;queuedRemote=null;
+        if(later&&!conflictBlocked&&!quotaBlocked)applyRemote(later,run,{notify:true}).catch(e=>blockConflict(String(e?.message||e)));
+      },0);
     }
   }
   async function bootstrap(run){
@@ -575,6 +580,7 @@
           window.dispatchEvent(new CustomEvent('meucontrole:remote-workspace-pending',{detail:{uid,at:remote.clientUpdatedAt||new Date().toISOString(),revision:revisionOf(remote),changes:describeRemoteChanges(currentWorkspace(),remote.workspace)}}));
           return;
         }
+        if(receivingRemote){queuedRemote=remote;traceEvent('receive-queued','Versao recebida enquanto copia de seguranca em andamento');return}
         const rh=workspaceHash(remote.workspace),lh=workspaceHash(currentWorkspace());
         if(rh===lh){lastHash=rh;seenRevision=revisionOf(remote);if(!localDirty){writeMeta(uid,{lastCloudHash:rh});setStatus('synced')}return}
         if(localDirty||inFlightRun===run||pushTimer){
