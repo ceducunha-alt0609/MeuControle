@@ -50,7 +50,7 @@
   }
   window.MeuControleHolidaysV1={list:holidays,map:activeMap,name:date=>activeMap(Number(String(date).slice(0,4))).get(date)||''};
 
-  try{holidayMapSP=function(year){return activeMap(year)}}catch{}
+  // Não substituir holidayMapSP global: ele também alimenta cálculos de dias úteis do aplicativo.
 
   const css=document.createElement('style');css.textContent=`
     .mc-holiday-card{grid-column:1/-1;margin-top:16px;padding-top:14px;border-top:1px solid #e1e8e4}
