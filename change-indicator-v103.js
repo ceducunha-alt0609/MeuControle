@@ -3,7 +3,7 @@
   if(window.__mcChangeIndicatorV108)return;
   if(document.querySelector('script[data-mc-change-indicator-v108]'))return;
   const s=document.createElement('script');
-  s.src='./change-indicator-v108.js?v=110';
+  s.src='./change-indicator-v108.js?v=111';
   s.dataset.mcChangeIndicatorV108='1';
   document.head.appendChild(s);
 })();
