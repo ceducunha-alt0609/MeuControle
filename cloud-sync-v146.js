@@ -1,7 +1,7 @@
 /* MeuControle — V1.48: proteção atômica contra sobrescritas e cópias pré-recebimento */
 (()=>{
   if(window.__mcCloudSyncV146)return;window.__mcCloudSyncV146=true;window.__mcCloudSyncV145=true;window.__mcCloudSyncV144=true;
-  const VERSION='1.58',META_PREFIX='meu_controle_cloud_sync_meta_v1:';
+  const VERSION='1.59',META_PREFIX='meu_controle_cloud_sync_meta_v1:';
   const TRACKED=new Set(['meu_controle_entries_v2','meu_controle_profiles_v2','meu_controle_profile_filter_v2']);
   let uid=null,unsub=null,pollTimer=null,pushTimer=null,bootTimer=null,retryTimer=null,retryCount=0,inFlightRun=null,uploadQueued=false,seenRevision=null,conflictBlocked=false,quotaBlocked=false,bootRun=0,applyingRemote=false,receivingRemote=false,queuedRemote=null,lastHash='',status='idle',lastError='',localDirty=false,bootstrapComplete=false;const TRACE_KEY='meu_controle_cloud_trace_v1';let trace=[];
   let renderedKey='',renderedBox=null,lastConflictReason='';
@@ -557,6 +557,19 @@
     compare(dates(local),dates(remote),'special');
     return result;
   }
+  /* Caixa de entrada leve por aba: evita perder aviso quando o sininho carrega
+     depois do sincronizador. Nenhum dado de lançamentos e gravado aqui. */
+  function announceRemoteApplied(detail){
+    if(!detail?.uid)return;
+    try{
+      const key='meu_controle_activity_mailbox_v1:'+detail.uid;
+      const old=JSON.parse(sessionStorage.getItem(key)||'[]');
+      const list=(Array.isArray(old)?old:[]).filter(x=>x?.revision!==detail.revision);
+      list.push(detail);
+      sessionStorage.setItem(key,JSON.stringify(list.slice(-24)));
+    }catch(e){traceEvent('activity-mailbox-unavailable',String(e?.name||'storage').slice(0,60))}
+    window.dispatchEvent(new CustomEvent('meucontrole:remote-workspace-applied',{detail}));
+  }
   async function applyRemote(remote,run=bootRun,{notify=true}={}){
     if(run!==bootRun||!uid||!remote?.workspace||applyingRemote||receivingRemote)return;
     const accountAtStart=uid;
@@ -593,7 +606,7 @@
         setStatus('synced');
       }
       if(notify&&bootstrapComplete&&remote.sourceDeviceId&&remote.sourceDeviceId!==deviceId())
-        window.dispatchEvent(new CustomEvent('meucontrole:remote-workspace-applied',{detail:{uid,sourceDeviceId:remote.sourceDeviceId,at:remote.clientUpdatedAt||new Date().toISOString(),revision:revisionOf(remote),changes:describeRemoteChanges(local,raw)}}));
+        announceRemoteApplied({uid,sourceDeviceId:remote.sourceDeviceId,at:remote.clientUpdatedAt||new Date().toISOString(),revision:revisionOf(remote),changes:describeRemoteChanges(local,raw)});
     }catch(e){
       if(run===bootRun){
         const reason='Falha ao salvar/verificar copia em IndexedDB ou aplicar dados: '+String(e?.message||e);
@@ -643,7 +656,7 @@
         const lh=workspaceHash(local),rh=workspaceHash(remote.workspace||{}),meta=readMeta(uid);
         if(lh===rh){lastHash=lh;localDirty=false;writeMeta(uid,{lastCloudHash:rh});setStatus('synced')}
         else if(isEmpty(local)&&!isEmpty(remote.workspace)){await applyRemote(remote,run,{notify:false})}
-        else if(meta.lastCloudHash===lh){await applyRemote(remote,run,{notify:false})}
+        else if(meta.lastCloudHash===lh){await applyRemote(remote,run,{notify:true})}
         else if(meta.lastCloudHash===rh){
           localDirty=true;await upload('alterações locais pendentes',run)
         }else{
