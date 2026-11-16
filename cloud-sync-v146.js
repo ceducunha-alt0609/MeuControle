@@ -1,7 +1,7 @@
 /* MeuControle — V1.48: proteção atômica contra sobrescritas e cópias pré-recebimento */
 (()=>{
   if(window.__mcCloudSyncV146)return;window.__mcCloudSyncV146=true;window.__mcCloudSyncV145=true;window.__mcCloudSyncV144=true;
-  const VERSION='1.57',META_PREFIX='meu_controle_cloud_sync_meta_v1:';
+  const VERSION='1.58',META_PREFIX='meu_controle_cloud_sync_meta_v1:';
   const TRACKED=new Set(['meu_controle_entries_v2','meu_controle_profiles_v2','meu_controle_profile_filter_v2']);
   let uid=null,unsub=null,pollTimer=null,pushTimer=null,bootTimer=null,retryTimer=null,retryCount=0,inFlightRun=null,uploadQueued=false,seenRevision=null,conflictBlocked=false,quotaBlocked=false,bootRun=0,applyingRemote=false,receivingRemote=false,queuedRemote=null,lastHash='',status='idle',lastError='',localDirty=false,bootstrapComplete=false;const TRACE_KEY='meu_controle_cloud_trace_v1';let trace=[];
   let renderedKey='',renderedBox=null,lastConflictReason='';
@@ -134,6 +134,15 @@
         }
       };
       panel.appendChild(copy);
+      if(conflictBlocked&&!quotaBlocked&&stable(local)===stable(remote.workspace)){
+        const note=document.createElement('p');note.style.cssText='margin-top:12px;color:#236548;font-weight:700';
+        note.textContent='Os dados ativos são idênticos aos do servidor. É possível conferir novamente e liberar o bloqueio SEM importar, publicar ou substituir lançamentos.';
+        panel.appendChild(note);
+        const release=document.createElement('button');release.type='button';release.className='secondary-action';release.style.marginTop='7px';
+        release.textContent='Confirmar igualdade e liberar sincronização';panel.appendChild(release);
+        const expectedUid=uid,expectedLocal=stable(local),expectedRevision=revisionOf(remote);
+        release.onclick=()=>releaseEqualConflict(panel,release,expectedUid,expectedLocal,expectedRevision);
+      }
       if(!quotaBlocked&&eligibleForPublishing(report)&&(conflictBlocked||eligibleForOneNewEntry(report))){
         const caution=document.createElement('p');
         caution.style.marginTop='12px';
@@ -193,6 +202,36 @@
     }finally{if(btn)btn.disabled=false}
   }
 
+  /* A comparação so oferece esta ação quando TODO o workspace coincide.
+     Faz uma nova leitura direta, valida sessao, revisão e igualdade exata.
+     Não grava lançamentos e nunca envia dados ao Firestore. */
+  async function releaseEqualConflict(panel,button,expectedUid,expectedLocal,expectedRevision){
+    button.disabled=true;
+    try{
+      if(!conflictBlocked||quotaBlocked||!uid||uid!==expectedUid||scope()?.activeUid?.()!==expectedUid)
+        throw new Error('O estado ou a conta mudou. Compare novamente.');
+      if(inFlightRun===bootRun||applyingRemote||receivingRemote)
+        throw new Error('Existe uma operação em andamento. Compare novamente.');
+      if(stable(currentWorkspace())!==expectedLocal)throw new Error('Os dados locais mudaram. Compare novamente.');
+      const fresh=await cloud()?.getServer?.(expectedUid);
+      if(!fresh?.workspace||revisionOf(fresh)!==expectedRevision)
+        throw new Error('A revisão da nuvem mudou. Nenhum bloqueio foi liberado; compare novamente.');
+      if(uid!==expectedUid||scope()?.activeUid?.()!==expectedUid||!conflictBlocked||stable(currentWorkspace())!==expectedLocal||stable(fresh.workspace)!==expectedLocal)
+        throw new Error('A igualdade não foi confirmada na segunda verificação. Nenhum bloqueio foi liberado.');
+      const h=workspaceHash(fresh.workspace);
+      seenRevision=revisionOf(fresh);lastHash=h;
+      conflictBlocked=false;localDirty=false;lastConflictReason='';
+      clearTimeout(pushTimer);pushTimer=null;clearTimeout(retryTimer);retryTimer=null;
+      writeMeta(uid,{lastCloudHash:h,lastRemoteAt:fresh.clientUpdatedAt||new Date().toISOString()});
+      traceEvent('equal-conflict-released','Igualdade comprovada com leitura direta; sem escrita de dados');
+      setStatus('synced','Dados locais e Firestore confirmados iguais. Sincronização liberada.');
+      window.dispatchEvent(new CustomEvent('meucontrole:cloud-workspace-confirmed',{detail:{uid:expectedUid,revision:seenRevision}}));
+      panel.textContent='SINCRONIZAÇÃO LIBERADA ✓\nTodos os lançamentos, perfis, datas especiais e filtro coincidem com o Firestore.\nNenhum dado foi importado, descartado ou enviado.\nConfira novamente o diagnóstico.';
+    }catch(e){
+      panel.appendChild(document.createTextNode('\nLiberação cancelada: '+String(e?.message||e)+'. Os dados foram preservados.'));
+      button.disabled=false;
+    }
+  }
   /* Publicação consciente e condicional: nunca ignora atualizações concorrentes. */
   function eligibleForOneNewEntry(report){
     return !!report&&report.lancamentosPc===report.lancamentosNuvem+1&&
