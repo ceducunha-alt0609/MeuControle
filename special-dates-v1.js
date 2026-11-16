@@ -278,7 +278,7 @@
  window.addEventListener('storage',e=>{if(e.key==='meu_controle_profiles_v2')queue()});
  document.querySelectorAll('.nav-btn').forEach(b=>b.addEventListener('click',()=>setTimeout(queue,60)));
  activatePublishedCalendar();
- window.MeuControleSpecialDatesV1={refresh:queue,list:all,open:showEditor};
+ window.MeuControleSpecialDatesV1={refresh:queue,renderCalendar:renderCalendarSpecial,list:all,open:showEditor};
  queue();
  }
  if(document.readyState==='complete')setTimeout(start,200);
