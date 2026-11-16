@@ -65,15 +65,9 @@
       <div class="mc-help-actions-v037"><button type="button" class="mc-replay-tour-v037">Refazer tour inicial</button></div>`;
     grid.appendChild(card);card.querySelector('.mc-replay-tour-v037').onclick=()=>{setTourDone(false);startTour(true)};
 
-    const moreList=$('.mobile-more-list');if(moreList&&!moreList.querySelector('[data-more="help-v037"]')){
-      const btn=document.createElement('button');btn.type='button';btn.className='mobile-more-card';btn.dataset.more='help-v037';btn.innerHTML='<span class="mobile-more-icon">?</span><span class="mobile-more-copy"><strong>Ajuda</strong><small>Guia rápido e tour inicial</small></span><span class="mobile-more-arrow">›</span>';moreList.appendChild(btn);
-      btn.onclick=()=>{
-        if(!isMobile())return;
-        [...grid.children].forEach(c=>c.classList.remove('mobile-settings-active'));
-        let back=card.querySelector('.mobile-settings-back');if(!back){back=document.createElement('button');back.type='button';back.className='mobile-settings-back';back.textContent='‹ Voltar para Mais';back.onclick=()=>{card.classList.remove('mobile-settings-active');$('#settingsPage')?.classList.remove('mobile-settings-detail');window.scrollTo({top:0,behavior:'smooth'})};card.insertBefore(back,card.firstChild)}
-        card.classList.add('mobile-settings-active');$('#settingsPage')?.classList.add('mobile-settings-detail');window.scrollTo({top:0,behavior:'smooth'});
-      };
-    }
+    /* O menu Mais central ja possui Ajuda. Remover somente a entrada
+       legada, sem alterar o cartao de conteudo nem o tour. */
+    document.querySelectorAll('.mobile-more-list [data-more="help-v037"]').forEach(b=>b.remove());
   }
 
   function ensureLaunchHint(){
