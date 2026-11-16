@@ -1,9 +1,9 @@
-/* MeuControle — V0.38.2: desfazer ações recentes + confirmação premium de exclusão */
+/* MeuControle — V0.38.3: desfazer ações recentes + confirmação premium de exclusão */
 (function(){
   if(window.__meuControleUndoV038Loaded)return;
   window.__meuControleUndoV038Loaded=true;
 
-  const VERSION='0.38.2';
+  const VERSION='0.38.3';
   const DURATION=7000;
   let timer=null;
   let settleTimer=null;
@@ -69,6 +69,7 @@
       const original=toggleDone;const wrapped=function(id){const before=clone(entries);const item=entries.find(e=>e.id===id);const wasDone=!!item?.done;original(id);if(!same(before,entries))offerUndo(wasDone?'Lançamento reaberto':'Lançamento concluído',before)};wrapped.__mcUndoWrapped=true;toggleDone=wrapped;
     }
     if(typeof removeEntry==='function'&&!removeEntry.__mcUndoWrapped){
+      const original=removeEntry;
       const wrapped=async function(id){
         const item=entries.find(e=>e.id===id);if(!item)return false;
         const confirmed=await askDelete(item);if(!confirmed)return false;
