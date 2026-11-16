@@ -1,9 +1,9 @@
-/* MeuControle — V0.38.1: desfazer ações recentes + confirmação premium de exclusão */
+/* MeuControle — V0.38.2: desfazer ações recentes + confirmação premium de exclusão */
 (function(){
   if(window.__meuControleUndoV038Loaded)return;
   window.__meuControleUndoV038Loaded=true;
 
-  const VERSION='0.38.1';
+  const VERSION='0.38.2';
   const DURATION=7000;
   let timer=null;
   let settleTimer=null;
@@ -70,9 +70,22 @@
     }
     if(typeof removeEntry==='function'&&!removeEntry.__mcUndoWrapped){
       const wrapped=async function(id){
-        const item=entries.find(e=>e.id===id);if(!item)return;
-        const confirmed=await askDelete(item);if(!confirmed)return;
-        const before=clone(entries);createAutoBackup('Antes de excluir lançamento');entries=entries.filter(e=>e.id!==id);save();renderAll();offerUndo('Lançamento excluído',before);
+        const item=entries.find(e=>e.id===id);if(!item)return false;
+        const confirmed=await askDelete(item);if(!confirmed)return false;
+        const before=clone(entries);
+        /* Usar a rotina central com snapshot verificado no IndexedDB.
+           NUNCA repetir a gravacao legada de backup no localStorage. */
+        try{
+          const removed=await original(id,{confirmed:true});
+          if(removed===true&&!same(before,entries)){
+            offerUndo('Lançamento excluído',before);
+            return true;
+          }
+          return false;
+        }catch(e){
+          alert('Não foi possível concluir a exclusão: '+String(e?.message||e));
+          return false;
+        }
       };
       wrapped.__mcUndoWrapped=true;removeEntry=wrapped;
     }
