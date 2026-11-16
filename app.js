@@ -454,11 +454,11 @@ function startEdit(id){
 }
 function toggleDone(id){const e=entries.find(x=>x.id===id);if(!e)return;createAutoBackup(e.done?'Antes de reabrir lançamento':'Antes de concluir lançamento');e.done=!e.done;e.doneAt=e.done?new Date().toISOString():null;save();renderAll()}
 let removingEntryIds=new Set();
-async function removeEntry(id){
+async function removeEntry(id,options={}){
   if(removingEntryIds.has(id))return;
   const target=entries.find(e=>e.id===id);
   if(!target)return;
-  if(!confirm('Excluir este lançamento?'))return;
+  if(!options.confirmed&&!confirm('Excluir este lançamento?'))return false;
   removingEntryIds.add(id);
   const accountAtStart=window.MeuControleUserDataScope?.activeUid?.()||'';
   const before=JSON.parse(JSON.stringify(entries));
@@ -472,11 +472,13 @@ async function removeEntry(id){
     try{save()}catch(e){entries=before;throw e}
     try{window.MeuControleUserDataScope?.saveCurrent?.()}catch{}
     renderAll();
+    return true;
   }catch(e){
     const quota=e?.name==='QuotaExceededError'||/quota|exceeded|espaço|storage/i.test(String(e?.message||''));
     alert(quota?
       'O armazenamento local está cheio. A exclusão não foi realizada. Os dados anteriores continuam preservados. Não limpe os dados do navegador.':
       'A exclusão foi cancelada com segurança: '+String(e?.message||e));
+    return false;
   }finally{removingEntryIds.delete(id)}
 }
 
