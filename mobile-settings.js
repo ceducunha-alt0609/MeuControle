@@ -103,7 +103,6 @@
       <button type="button" class="mobile-more-card" data-more="profiles"><span class="mobile-more-icon">♙</span><span class="mobile-more-copy"><strong>Perfis</strong><small id="mobileMoreProfiles">Perfis cadastrados</small></span><span class="mobile-more-arrow">›</span></button>
       <button type="button" class="mobile-more-card" data-more="appearance"><span class="mobile-more-icon">◐</span><span class="mobile-more-copy"><strong>Aparência</strong><small id="mobileMoreAppearance">Fonte e tema</small></span><span class="mobile-more-arrow">›</span></button>
       <button type="button" class="mobile-more-card" data-more="help"><span class="mobile-more-icon">?</span><span class="mobile-more-copy"><strong>Ajuda</strong><small>Guia rápido e tour inicial</small></span><span class="mobile-more-arrow">›</span></button>
-      <button type="button" class="mobile-more-card" data-more="close"><span class="mobile-more-icon">↪</span><span class="mobile-more-copy"><strong>Fechar MeuControle</strong><small>Fechar sem desconectar a sincronização</small></span><span class="mobile-more-arrow">›</span></button>
     </div>`;
   title.after(home);
 
@@ -199,11 +198,6 @@
 
   home.querySelectorAll('[data-more]').forEach(b=>b.onclick=()=>{
     const kind=b.dataset.more;
-    if(kind==='close'){
-      if(window.MeuControleSessionExitV045?.open){window.MeuControleSessionExitV045.open();return}
-      window.alert('Para sair sem desconectar sua conta, use o gesto Início do Android ou a tela de aplicativos recentes.');
-      return;
-    }
     openDetail(kind);
   });
   document.querySelectorAll('.nav-btn[data-page="settings"]').forEach(btn=>btn.addEventListener('click',()=>{if(mq.matches)setTimeout(openHome,0)}));
