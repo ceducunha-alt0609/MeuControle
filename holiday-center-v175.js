@@ -73,7 +73,7 @@
   function renderCard(){
     const box=document.querySelector('#settingsPage .mc-special-card .mc-holiday-list');if(!box)return;const y=new Date().getFullYear();
     box.innerHTML=holidays(y).map(h=>`<div class="mc-holiday-row"><time>${h.date.slice(8,10)}/${h.date.slice(5,7)}</time><span><strong>${h.name.replace(/[<>&"]/g,'')}</strong><small>${h.scope}${h.builtin?' · padrão':' · personalizado'}</small></span><button type="button" class="mc-holiday-toggle ${h.enabled?'on':''}" data-id="${h.id}" data-custom="${h.builtin?'0':'1'}" aria-label="${h.enabled?'Desativar':'Ativar'} ${h.name}"></button></div>`).join('');
-    box.querySelectorAll('.mc-holiday-toggle').forEach(b=>b.onclick=()=>{const st=state(),id=b.dataset.id;if(b.dataset.custom==='1'){const x=(st.custom||[]).find(v=>v.id===id);if(x)x.enabled=x.enabled===false}else{st.disabled=st.disabled||[];st.disabled=st.disabled.includes(id)?st.disabled.filter(x=>x!==id):[...st.disabled,id]}save(st);renderCard()});
+    box.querySelectorAll('.mc-holiday-toggle').forEach(b=>b.onclick=()=>{const st=state(),id=b.dataset.id;if(b.dataset.custom==='1'){const x=(st.custom||[]).find(v=>v.id===id);if(x)x.enabled=x.enabled===false}else{st.disabled=st.disabled||[];const legacy='base:'+holidays(new Date().getFullYear()).find(h=>h.id===id)?.date;const wasDisabled=st.disabled.includes(id)||st.disabled.includes(legacy);st.disabled=st.disabled.filter(x=>x!==id&&x!==legacy);if(!wasDisabled)st.disabled.push(id)}save(st);renderCard()});
   }
   function decorateCalendar(){
     const y=typeof calendarYear==='number'?calendarYear:new Date().getFullYear(),map=activeMap(y);
