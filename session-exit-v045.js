@@ -2,7 +2,7 @@
 (function(){
   if(window.__meuControleSessionExitV045Loaded)return;
   window.__meuControleSessionExitV045Loaded=true;
-  const VERSION='0.46.1';
+  const VERSION='0.47';
   const isMobile=()=>matchMedia('(max-width:700px)').matches;
 
   function style(){
@@ -24,13 +24,22 @@
 
   function closeDialog(){document.querySelector('.mc-exit-backdrop-v045')?.remove()}
   function performExit(){
-    closeDialog();
-    /* Fechar o MeuControle não encerra a conta Google/Firebase. */
-    if(!isMobile()&&(matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true)){
-      setTimeout(()=>{try{window.close()}catch{}},120);
-      return;
-    }
+    /* Um PWA Android nao possui permissao garantida para fechar a propria
+       janela. Tentar apenas um fechamento autorizado; caso nao ocorra,
+       orientar o usuario sem simular uma saida ou alterar a sessao. */
     try{window.close()}catch{}
+    if(!isMobile()){closeDialog();return}
+    setTimeout(()=>{
+      if(document.visibilityState==='hidden')return;
+      const bd=document.querySelector('.mc-exit-backdrop-v045');
+      if(!bd)return;
+      const title=bd.querySelector('h3'),body=bd.querySelector('p');
+      const cancel=bd.querySelector('.mc-exit-cancel-v045'),confirm=bd.querySelector('.mc-exit-confirm-v045');
+      if(title)title.textContent='Como sair no Android';
+      if(body)body.textContent='O Android não permitiu fechar esta janela pelo aplicativo. Use o gesto Início para sair, ou abra os aplicativos recentes e deslize MeuControle para fechá-lo. Sua conta continuará conectada para a próxima abertura.';
+      if(cancel)cancel.hidden=true;
+      if(confirm){confirm.textContent='Entendi';confirm.onclick=closeDialog}
+    },300);
   }
   function askExit(){
     if(document.querySelector('.mc-exit-backdrop-v045'))return;
@@ -43,8 +52,9 @@
     const b=document.createElement('button');b.type='button';b.className='mc-exit-card-v045';b.innerHTML='<span><strong>Fechar MeuControle</strong><small>Fechar o aplicativo sem desconectar a sincronização</small></span><span>›</span>';b.onclick=askExit;help.appendChild(b);
   }
   function addMobile(){
-    const list=document.querySelector('.mobile-more-list');if(!list||list.querySelector('[data-more="exit-v045"]'))return;
-    const b=document.createElement('button');b.type='button';b.className='mobile-more-card';b.dataset.more='exit-v045';b.innerHTML='<span class="mobile-more-icon">↪</span><span class="mobile-more-copy"><strong>Fechar MeuControle</strong><small>Fechar sem desconectar a sincronização</small></span><span class="mobile-more-arrow">›</span>';b.onclick=askExit;list.appendChild(b);
+    /* O menu Mais ja possui a entrada Fechar. Eliminar apenas a duplicata
+       criada por versoes anteriores deste modulo. */
+    document.querySelectorAll('.mobile-more-list [data-more="exit-v045"]').forEach(b=>b.remove());
   }
   function install(){style();addDesktop();addMobile()}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(install,120),{once:true});else setTimeout(install,120);
