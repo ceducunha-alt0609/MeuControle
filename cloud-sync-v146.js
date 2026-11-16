@@ -3,18 +3,11 @@
   if(window.__mcCloudSyncV146)return;window.__mcCloudSyncV146=true;window.__mcCloudSyncV145=true;window.__mcCloudSyncV144=true;
   const VERSION='1.56',META_PREFIX='meu_controle_cloud_sync_meta_v1:';
   const TRACKED=new Set(['meu_controle_entries_v2','meu_controle_profiles_v2','meu_controle_profile_filter_v2']);
-  let uid=null,unsub=null,pollTimer=null,pushTimer=null,bootTimer=null,retryTimer=null,retryCount=0,inFlightRun=null,uploadQueued=false,seenRevision=null,conflictBlocked=false,quotaBlocked=false,bootRun=0,applyingRemote=false,lastHash='',status='idle',lastError='',localDirty=false,bootstrapComplete=false;const TRACE_KEY='meu_controle_cloud_trace_v1';let trace=[];
+  let uid=null,unsub=null,pollTimer=null,pushTimer=null,bootTimer=null,retryTimer=null,retryCount=0,inFlightRun=null,uploadQueued=false,seenRevision=null,conflictBlocked=false,quotaBlocked=false,bootRun=0,applyingRemote=false,receivingRemote=false,lastHash='',status='idle',lastError='',localDirty=false,bootstrapComplete=false;const TRACE_KEY='meu_controle_cloud_trace_v1';let trace=[];
   let renderedKey='',renderedBox=null,lastConflictReason='';
   const clone=v=>JSON.parse(JSON.stringify(v));
   const revisionOf=r=>cloud()?.revisionOf?.(r)??null;
-  function preserveBeforeRemote(reason){
-    const current=scope()?.exportCurrent?.();if(!current)throw new Error('Não foi possível preservar o estado local');
-    const k='meu_controle_cloud_safety_snapshots_v1';
-    let previous=[];try{previous=JSON.parse(localStorage.getItem(k)||'[]')}catch{}
-    const snapshots=[{savedAt:new Date().toISOString(),reason,workspace:clone(current)},...(Array.isArray(previous)?previous:[])].slice(0,3);
-    try{localStorage.setItem(k,JSON.stringify(snapshots))}catch(e){throw new Error('Sem espaço para salvar cópia de segurança; recebimento bloqueado')}
-    traceEvent('safety-snapshot',reason);
-  }
+  /* O recebimento usa snapshots verificados em IndexedDB. */
   function isQuotaError(e){return String(e?.code||'').includes('resource-exhausted')}
   function blockQuota(){quotaBlocked=true;localDirty=true;clearTimeout(pushTimer);pushTimer=null;clearTimeout(retryTimer);retryTimer=null;traceEvent('quota-paused','Firestore quota exhausted: automatic retries paused');setStatus('error','Cota do Firestore atingida. Tentativas automáticas pausadas.','Os dados locais foram preservados. Evite novas alterações em vários aparelhos até a cota ser renovada. Depois use “Sincronizar agora” uma única vez.');}
   function blockConflict(reason){lastConflictReason=String(reason||'Conflito sem motivo informado');conflictBlocked=true;localDirty=true;clearTimeout(pushTimer);pushTimer=null;clearTimeout(retryTimer);retryTimer=null;traceEvent('conflict-blocked',reason);setStatus('error','Conflito de versões — nenhum dado foi substituído.','Existem alterações divergentes neste aparelho e na nuvem. Os dados locais foram preservados. Exporte um backup em cada dispositivo antes de resolver o conflito. Não force a sincronização.');}
@@ -281,7 +274,7 @@
   async function protectRecoverySnapshot(local,remote,accountId){
     if(!('indexedDB' in window))throw new Error('Armazenamento de seguranca indisponivel neste navegador. Nenhuma publicacao realizada.');
     const stamp=new Date().toISOString();
-    const record={key:accountId+':'+stamp+':'+crypto.randomUUID(),savedAt:stamp,reason:'Antes da recuperacao de conflito',local:clone(local),cloud:clone(remote)};
+    const record={key:accountId+':'+stamp+':'+crypto.randomUUID(),savedAt:stamp,reason:'Antes de receber ou recuperar dados da nuvem',local:clone(local),cloud:clone(remote)};
     const expected=workspaceHash(record.local);
     let db;
     try{
@@ -464,7 +457,6 @@
   function applyMetaOnly(w){
     const remoteProfiles=Array.isArray(w?.profiles)&&w.profiles.length?w.profiles:null;
     const filter=w?.profileFilter||'all';
-    preserveBeforeRemote('Antes de aplicar perfis recebidos da nuvem');
     applyingRemote=true;
     try{
       if(remoteProfiles)localStorage.setItem('meu_controle_profiles_v2',JSON.stringify(remoteProfiles));
@@ -508,19 +500,52 @@
     return result;
   }
   async function applyRemote(remote,run=bootRun,{notify=true}={}){
-    if(run!==bootRun||!uid||!remote?.workspace||applyingRemote)return;
-    const raw=remote.workspace,localFull=scope()?.exportCurrent?.()||{},w={...raw,autoBackups:Array.isArray(localFull.autoBackups)?localFull.autoBackups:[],lastBackup:localFull.lastBackup||null},h=workspaceHash(raw),local=currentWorkspace(),lh=workspaceHash(local);
+    if(run!==bootRun||!uid||!remote?.workspace||applyingRemote||receivingRemote)return;
+    const accountAtStart=uid;
+    const raw=remote.workspace,localFull=scope()?.exportCurrent?.()||{};
+    const w={...raw,autoBackups:Array.isArray(localFull.autoBackups)?localFull.autoBackups:[],lastBackup:localFull.lastBackup||null};
+    const h=workspaceHash(raw),local=currentWorkspace(),lh=workspaceHash(local);
     if(h===lh){lastHash=h;seenRevision=revisionOf(remote);localDirty=false;writeMeta(uid,{lastCloudHash:h});if(status!=='synced')setStatus('synced');return}
     if(localDirty||conflictBlocked){blockConflict('Dados locais alterados durante o recebimento');return}
-    const sameEntries=entriesHash(w)===entriesHash(local);
-    if(sameEntries){
-      applyMetaOnly(w);const nh=workspaceHash(currentWorkspace());lastHash=nh;seenRevision=revisionOf(remote);localDirty=false;writeMeta(uid,{lastCloudHash:h,lastRemoteAt:remote.clientUpdatedAt||new Date().toISOString()});setStatus('synced');if(notify&&bootstrapComplete&&remote.sourceDeviceId&&remote.sourceDeviceId!==deviceId())window.dispatchEvent(new CustomEvent('meucontrole:remote-workspace-applied',{detail:{uid,sourceDeviceId:remote.sourceDeviceId,at:remote.clientUpdatedAt||new Date().toISOString(),revision:revisionOf(remote),changes:describeRemoteChanges(local,raw)}}));return;
+    receivingRemote=true;
+    try{
+      /* Guardar e reler copia no IndexedDB antes de substituir registros ou perfis. */
+      await protectRecoverySnapshot(local,remote,accountAtStart);
+      if(run!==bootRun||uid!==accountAtStart||scope()?.activeUid?.()!==accountAtStart||workspaceHash(currentWorkspace())!==lh){
+        blockConflict('Estado local ou sessao mudou durante copia de seguranca; nada foi aplicado');
+        return;
+      }
+      if(localDirty||conflictBlocked){blockConflict('Alteracoes locais surgiram durante a copia de seguranca');return}
+      const sameEntries=entriesHash(w)===entriesHash(local);
+      if(sameEntries){
+        applyMetaOnly(w);
+        const nh=workspaceHash(currentWorkspace());
+        lastHash=nh;seenRevision=revisionOf(remote);localDirty=false;
+        writeMeta(uid,{lastCloudHash:h,lastRemoteAt:remote.clientUpdatedAt||new Date().toISOString()});
+        setStatus('synced');
+      }else{
+        applyingRemote=true;clearTimeout(pushTimer);
+        setStatus('downloading','Atualizando este dispositivo com os dados da sua conta…');
+        const ok=scope()?.importCurrent?.(w,{reload:false});
+        if(ok===false)throw new Error('workspace-not-active');
+        if(run!==bootRun)return;
+        lastHash=h;seenRevision=revisionOf(remote);localDirty=false;
+        writeMeta(uid,{lastCloudHash:h,lastRemoteAt:remote.clientUpdatedAt||new Date().toISOString(),lastLocalChangeAt:remote.clientUpdatedAt||new Date().toISOString()});
+        setStatus('synced');
+      }
+      if(notify&&bootstrapComplete&&remote.sourceDeviceId&&remote.sourceDeviceId!==deviceId())
+        window.dispatchEvent(new CustomEvent('meucontrole:remote-workspace-applied',{detail:{uid,sourceDeviceId:remote.sourceDeviceId,at:remote.clientUpdatedAt||new Date().toISOString(),revision:revisionOf(remote),changes:describeRemoteChanges(local,raw)}}));
+    }catch(e){
+      if(run===bootRun){
+        const reason='Falha ao salvar/verificar copia em IndexedDB ou aplicar dados: '+String(e?.message||e);
+        blockConflict(reason);
+        traceEvent('remote-apply-blocked',reason);
+      }
+    }finally{
+      if(run===bootRun)setTimeout(()=>{applyingRemote=false;receivingRemote=false;lastHash=workspaceHash(currentWorkspace())},0);
+      else{applyingRemote=false;receivingRemote=false}
     }
-    preserveBeforeRemote('Antes de aplicar lançamentos recebidos da nuvem');
-    applyingRemote=true;clearTimeout(pushTimer);setStatus('downloading','Atualizando este dispositivo com os dados da sua conta…');
-    try{const ok=scope()?.importCurrent?.(w,{reload:false});if(ok===false)throw new Error('workspace-not-active');if(run!==bootRun)return;lastHash=h;seenRevision=revisionOf(remote);localDirty=false;writeMeta(uid,{lastCloudHash:h,lastRemoteAt:remote.clientUpdatedAt||new Date().toISOString(),lastLocalChangeAt:remote.clientUpdatedAt||new Date().toISOString()});setStatus('synced');if(notify&&bootstrapComplete&&remote.sourceDeviceId&&remote.sourceDeviceId!==deviceId())window.dispatchEvent(new CustomEvent('meucontrole:remote-workspace-applied',{detail:{uid,sourceDeviceId:remote.sourceDeviceId,at:remote.clientUpdatedAt||new Date().toISOString(),revision:revisionOf(remote),changes:describeRemoteChanges(local,raw)}}))}catch(e){if(run===bootRun)setStatus('error','',errorMessage(e))}finally{if(run===bootRun)setTimeout(()=>{applyingRemote=false;lastHash=workspaceHash(currentWorkspace())},0)}
   }
-
   async function bootstrap(run){
     if(run!==bootRun)return;const s=session(),active=scope()?.activeUid?.();if(!s?.signedIn||!s.uid||active!==s.uid||!cloud()){uid=null;setStatus('idle','Entre com sua conta para sincronizar.');return}if(uid===s.uid&&unsub)return;
     clearRuntime();if(run!==bootRun)return;uid=s.uid;localDirty=false;bootstrapComplete=false;setStatus('loading','Comparando este dispositivo com a nuvem…');
