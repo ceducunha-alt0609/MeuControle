@@ -1,10 +1,10 @@
 /* MeuControle — V1.48: proteção atômica contra sobrescritas e cópias pré-recebimento */
 (()=>{
   if(window.__mcCloudSyncV146)return;window.__mcCloudSyncV146=true;window.__mcCloudSyncV145=true;window.__mcCloudSyncV144=true;
-  const VERSION='1.55',META_PREFIX='meu_controle_cloud_sync_meta_v1:';
+  const VERSION='1.56',META_PREFIX='meu_controle_cloud_sync_meta_v1:';
   const TRACKED=new Set(['meu_controle_entries_v2','meu_controle_profiles_v2','meu_controle_profile_filter_v2']);
   let uid=null,unsub=null,pollTimer=null,pushTimer=null,bootTimer=null,retryTimer=null,retryCount=0,inFlightRun=null,uploadQueued=false,seenRevision=null,conflictBlocked=false,quotaBlocked=false,bootRun=0,applyingRemote=false,lastHash='',status='idle',lastError='',localDirty=false,bootstrapComplete=false;const TRACE_KEY='meu_controle_cloud_trace_v1';let trace=[];
-  let renderedKey='',renderedBox=null;
+  let renderedKey='',renderedBox=null,lastConflictReason='';
   const clone=v=>JSON.parse(JSON.stringify(v));
   const revisionOf=r=>cloud()?.revisionOf?.(r)??null;
   function preserveBeforeRemote(reason){
@@ -17,7 +17,7 @@
   }
   function isQuotaError(e){return String(e?.code||'').includes('resource-exhausted')}
   function blockQuota(){quotaBlocked=true;localDirty=true;clearTimeout(pushTimer);pushTimer=null;clearTimeout(retryTimer);retryTimer=null;traceEvent('quota-paused','Firestore quota exhausted: automatic retries paused');setStatus('error','Cota do Firestore atingida. Tentativas automáticas pausadas.','Os dados locais foram preservados. Evite novas alterações em vários aparelhos até a cota ser renovada. Depois use “Sincronizar agora” uma única vez.');}
-  function blockConflict(reason){conflictBlocked=true;localDirty=true;clearTimeout(pushTimer);pushTimer=null;clearTimeout(retryTimer);retryTimer=null;traceEvent('conflict-blocked',reason);setStatus('error','Conflito de versões — nenhum dado foi substituído.','Existem alterações divergentes neste aparelho e na nuvem. Os dados locais foram preservados. Exporte um backup em cada dispositivo antes de resolver o conflito. Não force a sincronização.');}
+  function blockConflict(reason){lastConflictReason=String(reason||'Conflito sem motivo informado');conflictBlocked=true;localDirty=true;clearTimeout(pushTimer);pushTimer=null;clearTimeout(retryTimer);retryTimer=null;traceEvent('conflict-blocked',reason);setStatus('error','Conflito de versões — nenhum dado foi substituído.','Existem alterações divergentes neste aparelho e na nuvem. Os dados locais foram preservados. Exporte um backup em cada dispositivo antes de resolver o conflito. Não force a sincronização.');}
   /* Firestore pode devolver os campos de cada objeto em ordem diferente da ordem local.
      Hash canonico ignora somente a ordem das propriedades; preserva a ordem das listas. */
   const stable=v=>JSON.stringify(canonicalComparable({entries:v?.entries||[],profiles:v?.profiles||[],profileFilter:v?.profileFilter||'all'}));
@@ -67,6 +67,32 @@
     const profilesSame=JSON.stringify(canonicalComparable(localProfiles))===JSON.stringify(canonicalComparable(remoteProfiles));
     return{lancamentosPc:lm.size,lancamentosNuvem:rm.size,soNoPc:onlyLocal.length,soNaNuvem:onlyRemote.length,alterados:modified.length,perfilIgual:profilesSame,datasPc:dates(localProfiles),datasNuvem:dates(remoteProfiles),filtroDiferente:(local?.profileFilter||'all')!==(remote?.profileFilter||'all'),somenteNoPc:onlyLocal.slice(0,30).map(e=>({titulo:String(e.description||'Sem descrição').slice(0,100),data:e.date||''})),somenteNaNuvem:onlyRemote.slice(0,30).map(e=>({titulo:String(e.description||'Sem descrição').slice(0,100),data:e.date||''})),alteracoes:modified.slice(0,50),maisDiferencas:modified.length>50};
   }
+  /* Auditoria somente leitura: um conflito pode conter operações independentes e
+     alterações sobre os mesmos IDs. Sem uma base comum comprovada, nenhuma delas
+     deve ser mesclada automaticamente. */
+  function auditConflict(local,remote){
+    const report=compareEntries(local,remote);
+    const sameIdChanges=report.alteracoes.map(item=>({titulo:item.titulo,campos:item.campos}));
+    const metadata=uid?readMeta(uid):{};
+    return {
+      criterio:'Comparação de estado atual (não é uma mesclagem nem prova de ancestral comum).',
+      estado:'somente leitura',
+      conflitoBloqueado:conflictBlocked,
+      motivoBloqueio:lastConflictReason||'Não há motivo de conflito registrado nesta sessão.',
+      alteracoesLocaisPendentes:localDirty,
+      envioEmAndamento:inFlightRun===bootRun,
+      ultimoEnvioRegistrado:metadata.lastUploadAt||null,
+      ultimoRecebimentoRegistrado:metadata.lastRemoteAt||null,
+      ultimaAlteracaoLocalRegistrada:metadata.lastLocalChangeAt||null,
+      exclusivosNoAparelho:report.somenteNoPc,
+      exclusivosNoServidor:report.somenteNaNuvem,
+      alteracoesMesmoIdentificador:sameIdChanges,
+      totais:{soNoAparelho:report.soNoPc,soNoServidor:report.soNaNuvem,mesmoIdAlterado:report.alterados},
+      perfisDiferentes:!report.perfilIgual,
+      filtroDiferente:report.filtroDiferente,
+      seguranca:'Nenhuma ação de mesclagem ou descarte foi executada. Faça backup dos dois lados antes de resolver.'
+    };
+  }
   function canonicalComparable(value){
     if(Array.isArray(value))return value.map(canonicalComparable);
     if(value&&typeof value==='object')return Object.fromEntries(Object.keys(value).sort().map(k=>[k,canonicalComparable(value[k])]));
@@ -90,7 +116,8 @@
       report={
         dataConsulta:new Date().toISOString(),versao:VERSION,statusAtual:status,
         observacao:'Comparação diretamente do servidor Firestore, sem cache; nenhum dado enviado ou substituído.',
-        ...compareEntries(local,remote.workspace)
+        ...compareEntries(local,remote.workspace),
+        analiseConflito:auditConflict(local,remote.workspace)
       };
       panel.textContent='COMPARAÇÃO APARELHO / SERVIDOR (SEM CACHE)\n'+
         'No aparelho: '+report.lancamentosPc+' lançamentos, '+report.datasPc+' datas especiais\n'+
@@ -99,7 +126,9 @@
         'Exclusivos da nuvem: '+report.soNaNuvem+'\n'+
         'Registros modificados: '+report.alterados+'\n'+
         'Perfis idênticos: '+(report.perfilIgual?'Sim':'Não')+'\n'+
-        'Filtro de perfil diferente: '+(report.filtroDiferente?'Sim':'Não')+'\n\n'+
+        'Filtro de perfil diferente: '+(report.filtroDiferente?'Sim':'Não')+'\n'+
+        'Motivo do bloqueio: '+(report.analiseConflito.motivoBloqueio)+'\n'+
+        'Alterações locais pendentes: '+(report.analiseConflito.alteracoesLocaisPendentes?'Sim':'Não')+'\n\n'+
         'Nenhum dado foi alterado. Clique em Copiar comparação e envie para análise.';
       if(report.soNaNuvem>0||!report.perfilIgual){
         const warning=document.createElement('p');warning.style.color='#b45309';warning.textContent='Atenção: há informações na nuvem que merecem revisão antes de qualquer publicação.';panel.appendChild(warning);
@@ -367,7 +396,7 @@
   }
 
   function errorMessage(e){const code=e?.code||'';if(code.includes('permission-denied'))return'O Firestore recusou o acesso. Seus dados locais continuam preservados.';if(code.includes('resource-exhausted'))return'A cota do Firestore foi atingida. Seus dados locais estão preservados; a sincronização volta quando a cota estiver disponível.';if(code.includes('unavailable')||!navigator.onLine)return'Firestore indisponível no momento. Seus dados locais continuam funcionando.';return`Falha na sincronização${code?` (${code})`:''}${e?.message?`: ${String(e.message).slice(0,150)}`:''}. Os dados locais foram preservados.`}
-  function clearRuntime({invalidate=false}={}){if(invalidate)bootRun++;seenRevision=null;conflictBlocked=false;quotaBlocked=false;if(unsub){try{unsub()}catch{}unsub=null}clearInterval(pollTimer);pollTimer=null;clearTimeout(pushTimer);pushTimer=null;clearTimeout(retryTimer);retryTimer=null;retryCount=0;inFlightRun=null;uploadQueued=false;clearTimeout(bootTimer);bootTimer=null;applyingRemote=false;bootstrapComplete=false}
+  function clearRuntime({invalidate=false}={}){if(invalidate)bootRun++;lastConflictReason='';seenRevision=null;conflictBlocked=false;quotaBlocked=false;if(unsub){try{unsub()}catch{}unsub=null}clearInterval(pollTimer);pollTimer=null;clearTimeout(pushTimer);pushTimer=null;clearTimeout(retryTimer);retryTimer=null;retryCount=0;inFlightRun=null;uploadQueued=false;clearTimeout(bootTimer);bootTimer=null;applyingRemote=false;bootstrapComplete=false}
   function scheduleBootstrap(delay=250){clearTimeout(bootTimer);const planned=++bootRun;bootTimer=setTimeout(()=>bootstrap(planned),delay)}
   function markLocalDirty(reason='alteração local'){if(applyingRemote)return;traceEvent('local-change',reason);localDirty=true;const now=new Date().toISOString();scope()?.saveCurrent?.();if(uid){writeMeta(uid,{lastLocalChangeAt:now});if(!conflictBlocked&&!quotaBlocked)scheduleUpload(reason)}}
 
