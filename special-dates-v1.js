@@ -180,7 +180,7 @@
    return node;
  }
 
- function renderCalendarSpecial(){
+ function renderCalendarSpecial(){window.MeuControleCalendarDebugV1?.log?.('render-special-start');
    const page=document.getElementById('calendarPage');if(!page||typeof calendarYear==='undefined'||typeof calendarMonth==='undefined')return;
    const head=page.querySelector('.calendar-head');
    if(head&&!head.querySelector('.mc-special-calendar-btn')){const b=document.createElement('button');b.type='button';b.className='secondary-action mc-special-calendar-btn';b.textContent='+ Aniversário';b.onclick=()=>showEditor(null,calendarDate()||String(calendarYear)+'-'+pad(calendarMonth+1)+'-01');head.appendChild(b)}
@@ -196,6 +196,7 @@
      matches.forEach(x=>list.appendChild(makeSpecialCard(x,year)));
    }
    if(empty&&matches.length)empty.classList.add('hidden');
+   window.MeuControleCalendarDebugV1?.log?.('render-special-end','matches '+matches.length);
  }
 
  function activatePublishedCalendar(){
