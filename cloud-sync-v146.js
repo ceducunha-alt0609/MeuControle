@@ -551,6 +551,27 @@
       },0);
     }
   }
+  /* Confirma avisos pendentes antigos somente com leitura real do servidor:
+     uma revisao so fica 'Aplicado' se os dados locais forem identicos aos dela.
+     Nao altera workspace, conflito, versao ou historico remoto. */
+  async function confirmPendingBellFromServer(run){
+    const accountId=uid;
+    if(run!==bootRun||!accountId||conflictBlocked||localDirty||status!=='synced')return;
+    let pendingRevisions=[];
+    try{
+      const rows=JSON.parse(localStorage.getItem('meu_controle_remote_activity_v109:'+accountId)||'[]');
+      if(!Array.isArray(rows))return;
+      pendingRevisions=rows.filter(x=>x?.state==='pending'&&typeof x.id==='string').map(x=>x.id.split(':')[1]).filter(Boolean);
+    }catch{return}
+    if(!pendingRevisions.length||typeof cloud()?.getServer!=='function')return;
+    try{
+      const remote=await cloud().getServer(accountId);
+      if(run!==bootRun||uid!==accountId||conflictBlocked||localDirty||status!=='synced'||!remote?.workspace)return;
+      const revision=revisionOf(remote);
+      if(pendingRevisions.includes(revision)&&workspaceHash(currentWorkspace())===workspaceHash(remote.workspace))
+        window.dispatchEvent(new CustomEvent('meucontrole:cloud-workspace-confirmed',{detail:{uid:accountId,revision}}));
+    }catch(e){traceEvent('activity-confirmation-skipped',String(e?.code||e?.message||e).slice(0,120))}
+  }
   async function bootstrap(run){
     if(run!==bootRun)return;const s=session(),active=scope()?.activeUid?.();if(!s?.signedIn||!s.uid||active!==s.uid||!cloud()){uid=null;setStatus('idle','Entre com sua conta para sincronizar.');return}if(uid===s.uid&&unsub)return;
     clearRuntime();if(run!==bootRun)return;uid=s.uid;localDirty=false;bootstrapComplete=false;setStatus('loading','Comparando este dispositivo com a nuvem…');
@@ -573,6 +594,7 @@
       }
       if(run!==bootRun||!uid)return;bootstrapComplete=true;lastHash=workspaceHash(currentWorkspace());
       window.dispatchEvent(new CustomEvent('meucontrole:cloud-bootstrap-complete',{detail:{uid}}));
+      confirmPendingBellFromServer(run);
       unsub=cloud().watch(uid,remote=>{
         traceEvent('remote-event',remote?.clientUpdatedAt||'sem data');
         if(run!==bootRun||!remote?.workspace||applyingRemote||quotaBlocked)return;
