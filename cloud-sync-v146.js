@@ -605,7 +605,7 @@
         writeMeta(uid,{lastCloudHash:h,lastRemoteAt:remote.clientUpdatedAt||new Date().toISOString(),lastLocalChangeAt:remote.clientUpdatedAt||new Date().toISOString()});
         setStatus('synced');
       }
-      if(notify&&bootstrapComplete&&remote.sourceDeviceId&&remote.sourceDeviceId!==deviceId())
+      if(notify&&remote.sourceDeviceId&&remote.sourceDeviceId!==deviceId())
         announceRemoteApplied({uid,sourceDeviceId:remote.sourceDeviceId,at:remote.clientUpdatedAt||new Date().toISOString(),revision:revisionOf(remote),changes:describeRemoteChanges(local,raw)});
     }catch(e){
       if(run===bootRun){
