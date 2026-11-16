@@ -200,9 +200,8 @@
   home.querySelectorAll('[data-more]').forEach(b=>b.onclick=()=>{
     const kind=b.dataset.more;
     if(kind==='close'){
-      const closeBtn=document.querySelector('[data-action="close-app"],#closeAppBtn,.close-app-btn');
-      if(closeBtn){closeBtn.click();return}
-      try{window.close()}catch{}
+      if(window.MeuControleSessionExitV045?.open){window.MeuControleSessionExitV045.open();return}
+      window.alert('Para sair sem desconectar sua conta, use o gesto Início do Android ou a tela de aplicativos recentes.');
       return;
     }
     openDetail(kind);
