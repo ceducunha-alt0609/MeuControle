@@ -2,7 +2,7 @@
 (()=>{
  'use strict';
  if(window.__mcChangeIndicatorV108)return;window.__mcChangeIndicatorV108=true;
- const VERSION='1.09',PREFIX='meu_controle_remote_activity_v109:',MAX=500;
+ const VERSION='1.10',PREFIX='meu_controle_remote_activity_v109:',MAX=500;
  let account='',events=[],ready=false,placeTimer=null;
  const uid=()=>{try{return window.MeuControleUserDataScope?.activeUid?.()||window.MeuControleUserSession?.get?.()?.uid||''}catch{return''}};
  const fmt=t=>{try{return new Date(t).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}catch{return'—'}};
@@ -74,12 +74,30 @@
   b.setAttribute('aria-label',b.title);
   const p=document.querySelector('.mc-change-pop[data-mc-pop="v109"]');if(p&&!p.hidden)paint();
  }
+ /* Promover apenas eventos da MESMA revisao confirmada como aplicada.
+    Nunca transformar aviso pendente em aplicado somente porque um conflito sumiu. */
+ function reconcileRevision(detail){
+  accountSync();if(!account||detail?.uid!==account||!detail?.revision)return false;
+  const revision=String(detail.revision);
+  let changed=false;
+  for(const item of events){
+   if(item.state==='pending'&&item.id?.startsWith('pending:'+revision+':')){
+    item.state='applied';
+    item.appliedAt=new Date().toISOString();
+    changed=true;
+   }
+  }
+  if(changed){save();render()}
+  return changed;
+ }
  function onRemote(state,detail){
   accountSync();if(!account||detail?.uid!==account)return;
   const at=detail?.at||new Date().toISOString(),revision=String(detail?.revision||at);
+  if(state==='applied')reconcileRevision(detail);
   const changes=Array.isArray(detail?.changes)&&detail.changes.length?detail.changes:[{kind:'workspace',action:'updated',name:'Atualização da conta'}];
   for(let i=0;i<changes.length;i++){
    const ch=changes[i],id=state+':'+revision+':'+i;
+   if(state==='applied'&&events.some(x=>x.id==='pending:'+revision+':'+i))continue;
    if(events.some(x=>x.id===id))continue;
    const action=ch.kind==='workspace'?'Workspace atualizado':ch.kind==='special'
      ?(ch.action==='added'?'Nova data especial':ch.action==='removed'?'Data especial ausente na versão recebida':'Data especial alterada')
@@ -93,6 +111,7 @@
  accountSync();ensureUi();render();watchPlacement();
  window.addEventListener('meucontrole:cloud-bootstrap-complete',()=>{ready=true;render();watchPlacement()});
  window.addEventListener('meucontrole:remote-workspace-applied',e=>onRemote('applied',e.detail));
+ window.addEventListener('meucontrole:cloud-workspace-confirmed',e=>reconcileRevision(e.detail));
  window.addEventListener('meucontrole:remote-workspace-pending',e=>onRemote('pending',e.detail));
  window.addEventListener('meucontrole:user-session-changed',()=>{account='';events=[];ready=false;accountSync();render()});
  window.addEventListener('load',()=>setTimeout(()=>{render();watchPlacement()},500));
