@@ -27,7 +27,27 @@
   function state(){try{return JSON.parse(localStorage.getItem(KEY)||'{"disabled":[],"custom":[]}')}catch{return{disabled:[],custom:[]}}}
   function save(s){localStorage.setItem(KEY,JSON.stringify(s));window.dispatchEvent(new CustomEvent('meucontrole:holidays-changed'));refresh()}
   function holidays(y){const s=state(),base=defaults(y).map(x=>({...x,enabled:!s.disabled.includes(x.id)&&!s.disabled.includes('base:'+x.date)})),custom=(s.custom||[]).map(x=>{const yy=x.annual?String(y)+x.date.slice(4):x.date;return{...x,date:yy,scope:'Personalizado',builtin:false,enabled:x.enabled!==false}}).filter(x=>x.date.startsWith(String(y)));return [...base,...custom].sort((a,b)=>a.date.localeCompare(b.date))}
-  function activeMap(y){return new Map(holidays(y).filter(x=>x.enabled).map(x=>[x.date,x.name]))}
+  // Uma data pessoal cadastrada manualmente não deve gerar uma segunda indicação
+  // idêntica de feriado no calendário; outras comemorações no mesmo dia permanecem.
+  const normalizeName=name=>String(name||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+  function personalHolidayDuplicates(y){
+    const duplicates=new Set();
+    try{
+      if(typeof profiles==='undefined'||!Array.isArray(profiles))return duplicates;
+      profiles.forEach(p=>(p.specialDates||[]).forEach(x=>{
+        if(x.type!=='special')return;
+        const day=Number(x.day),month=Number(x.month);
+        if(!day||!month)return;
+        const date=String(y)+'-'+pad(month)+'-'+pad(day);
+        duplicates.add(date+'|'+normalizeName(x.name));
+      }));
+    }catch{}
+    return duplicates;
+  }
+  function activeMap(y){
+    const existing=personalHolidayDuplicates(y);
+    return new Map(holidays(y).filter(x=>x.enabled&&!existing.has(x.date+'|'+normalizeName(x.name))).map(x=>[x.date,x.name]));
+  }
   window.MeuControleHolidaysV1={list:holidays,map:activeMap,name:date=>activeMap(Number(String(date).slice(0,4))).get(date)||''};
 
   try{holidayMapSP=function(year){return activeMap(year)}}catch{}
@@ -77,7 +97,7 @@
   }
   function decorateCalendar(){
     const y=typeof calendarYear==='number'?calendarYear:new Date().getFullYear(),map=activeMap(y);
-    document.querySelectorAll('.mobile-calendar-day-v109[data-date]').forEach(btn=>{const date=btn.dataset.date,name=map.get(date),dots=btn.querySelector('.mc-day-dots-v109'),old=btn.querySelector('.mc-holiday-dot-v1');if(!name){old?.remove();return}btn.title=`Feriado: ${name}`;if(dots&&!old){const d=document.createElement('i');d.className='mc-holiday-dot-v1';d.title=name;dots.appendChild(d)}});
+    document.querySelectorAll('.mobile-calendar-day-v109[data-date]').forEach(btn=>{const date=btn.dataset.date,name=activeMap(Number(date.slice(0,4))).get(date),dots=btn.querySelector('.mc-day-dots-v109'),old=btn.querySelector('.mc-holiday-dot-v1');if(!name){old?.remove();return}btn.title=`Feriado: ${name}`;if(dots&&!old){const d=document.createElement('i');d.className='mc-holiday-dot-v1';d.title=name;dots.appendChild(d)}});
     const month=typeof calendarMonth==='number'?calendarMonth:new Date().getMonth();
     document.querySelectorAll('#calendarPage .mc-cal-day-v124[data-day]').forEach(btn=>{const day=pad(Number(btn.dataset.day)),date=`${y}-${pad(month+1)}-${day}`,name=map.get(date),dots=btn.querySelector('.mc-cal-dots-v124'),old=btn.querySelector('.mc-holiday-dot-v1');btn.classList.toggle('mc-holiday-day-v1',!!name);if(!name){old?.remove();if(btn.dataset.holidayTitle==='1'){btn.removeAttribute('title');delete btn.dataset.holidayTitle}return}btn.title=`Feriado: ${name}`;btn.dataset.holidayTitle='1';if(dots&&!old){const d=document.createElement('i');d.className='mc-cal-dot-v124 mc-holiday-dot-v1';d.title=name;dots.appendChild(d)}});
     const board=document.querySelector('#calendarPage .mc-cal-board-v124');if(board&&!board.querySelector('.mc-holiday-legend-v1')){const legend=document.createElement('div');legend.className='mc-holiday-legend-v1';legend.innerHTML='<i class="mc-holiday-dot-v1"></i><span>Feriado</span>';const clear=board.querySelector('.mc-cal-clear-v124');clear?board.insertBefore(legend,clear):board.appendChild(legend)}
