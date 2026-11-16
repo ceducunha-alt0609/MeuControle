@@ -78,8 +78,22 @@ function createAutoBackup(reason='Alteração'){
   };
   const list=loadAutoBackups();
   list.unshift(snapshot);
-  localStorage.setItem(AUTO_BACKUPS_KEY,JSON.stringify(list.slice(0,AUTO_BACKUP_LIMIT)));
-  updateAutoBackupLabel();
+  // Reduzir apenas a retenção dos backups automáticos quando faltar espaço.
+  // setItem é atômico: se falhar, o valor anterior permanece preservado.
+  // Nunca remover dados de lançamentos, perfis ou sincronização para liberar espaço.
+  let lastError;
+  for(let count=Math.min(list.length,AUTO_BACKUP_LIMIT);count>=1;count--){
+    try{
+      localStorage.setItem(AUTO_BACKUPS_KEY,JSON.stringify(list.slice(0,count)));
+      updateAutoBackupLabel();
+      return;
+    }catch(error){
+      if(error?.name!=='QuotaExceededError'&&!/quota|exceeded/i.test(String(error?.message||'')))throw error;
+      lastError=error;
+    }
+  }
+  // Sem espaço nem para uma cópia: não fingir que houve backup.
+  throw new Error('Sem espaço para backup automático. Exporte seus dados e verifique o armazenamento local antes de continuar.',{cause:lastError});
 }
 function updateAutoBackupLabel(){
   const list=loadAutoBackups();
