@@ -271,6 +271,7 @@
  document.getElementById('calendarPage')?.addEventListener('click',e=>{
    if(e.target.closest('.mc-cal-day-v124,.mobile-calendar-day-v109,[data-nav],.mc-cal-clear-v124,.mc-special-month-footer'))setTimeout(queue,70);
  },true);
+ window.addEventListener('meucontrole:holidays-changed',queue);
  window.addEventListener('meucontrole:profiles-cloud-applied',queue);
  window.addEventListener('meucontrole:user-workspace-imported',queue);
  window.addEventListener('meucontrole:cloud-bootstrap-complete',queue);
