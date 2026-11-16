@@ -12,6 +12,8 @@
     },
     async removeEntries(ids,{backupReason=''}={}){
       const set=new Set(ids||[]);if(!set.size)return false;
+      // Não confirmar sucesso quando os IDs já não existem nesta conta.
+      if(!entries.some(e=>set.has(e.id)))return false;
       const before=clone(entries);
       const uid=window.MeuControleUserDataScope?.activeUid?.()||'';
       // Uma cópia verificada no IndexedDB protege a operação mesmo com localStorage cheio.
