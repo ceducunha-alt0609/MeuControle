@@ -1,7 +1,7 @@
 /* MeuControle — V1.48: proteção atômica contra sobrescritas e cópias pré-recebimento */
 (()=>{
   if(window.__mcCloudSyncV146)return;window.__mcCloudSyncV146=true;window.__mcCloudSyncV145=true;window.__mcCloudSyncV144=true;
-  const VERSION='1.56',META_PREFIX='meu_controle_cloud_sync_meta_v1:';
+  const VERSION='1.57',META_PREFIX='meu_controle_cloud_sync_meta_v1:';
   const TRACKED=new Set(['meu_controle_entries_v2','meu_controle_profiles_v2','meu_controle_profile_filter_v2']);
   let uid=null,unsub=null,pollTimer=null,pushTimer=null,bootTimer=null,retryTimer=null,retryCount=0,inFlightRun=null,uploadQueued=false,seenRevision=null,conflictBlocked=false,quotaBlocked=false,bootRun=0,applyingRemote=false,receivingRemote=false,queuedRemote=null,lastHash='',status='idle',lastError='',localDirty=false,bootstrapComplete=false;const TRACE_KEY='meu_controle_cloud_trace_v1';let trace=[];
   let renderedKey='',renderedBox=null,lastConflictReason='';
@@ -159,7 +159,13 @@
       }
       if(conflictBlocked&&!quotaBlocked&&eligibleForReceiving(report)){
         const info=document.createElement('p');info.style.marginTop='14px';
-        info.textContent='RECEBER DA NUVEM: somente use se a nuvem tiver a versão correta. Nesta operação, os dados deste aparelho serão atualizados, sem qualquer envio para o Firestore.';
+        info.textContent='RECUPERAÇÃO ASSISTIDA — RECEBER DA NUVEM: a versão do servidor substituirá os lançamentos e perfis deste aparelho. Não publica dados. Registros exclusivos do aparelho e edições locais diferentes serão retirados do conjunto ativo. Faça backup de ambos os lados.';
+        const detail=document.createElement('div');detail.style.cssText='margin:8px 0 12px;padding:10px;border:1px solid #ddb888;border-radius:10px;white-space:pre-wrap;font-size:11px;line-height:1.6';
+        const localOnly=(report.somenteNoPc||[]).map(x=>'  • '+x.titulo).join('\n')||'  Nenhum';
+        const serverOnly=(report.somenteNaNuvem||[]).map(x=>'  • '+x.titulo).join('\n')||'  Nenhum';
+        const edited=(report.alteracoes||[]).map(x=>'  • '+x.titulo+' ('+x.campos.join(', ')+')').join('\n')||'  Nenhum';
+        detail.textContent='EXCLUSIVOS DESTE APARELHO — sairão dos dados ativos: '+report.soNoPc+'\n'+localOnly+'\nEXCLUSIVOS DO SERVIDOR — serão recebidos: '+report.soNaNuvem+'\n'+serverOnly+'\nEDIÇÕES DIFERENTES — prevalecerá a versão do servidor: '+report.alterados+'\n'+edited+'\n\nApós receber: '+report.lancamentosNuvem+' lançamentos do servidor.';
+        panel.appendChild(detail);
         panel.appendChild(info);
         const download=document.createElement('button');
         download.type='button';download.className='secondary-action';
@@ -168,7 +174,7 @@
         const receive=document.createElement('button');
         receive.type='button';receive.className='secondary-action';
         receive.style.margin='8px 0 0 8px';receive.disabled=true;
-        receive.textContent='2. Receber versão da nuvem';
+        receive.textContent='2. Substituir dados locais pela nuvem';
         panel.appendChild(receive);
         const expectedUid=uid,expectedLocalHash=workspaceHash(local),expectedRemoteRevision=revisionOf(remote);
         download.onclick=()=>{
@@ -176,7 +182,7 @@
             if(uid!==expectedUid||workspaceHash(currentWorkspace())!==expectedLocalHash)throw new Error('Os dados locais mudaram. Compare novamente.');
             downloadLocalRecoveryBackup();
             receive.disabled=false;
-            const note=document.createElement('p');note.textContent='Confira se o arquivo de backup foi salvo no celular antes de prosseguir.';panel.appendChild(note);
+            const note=document.createElement('p');note.textContent='Confira se o backup deste aparelho foi realmente salvo. Mantenha também o backup independente do notebook/servidor.';panel.appendChild(note);
           }catch(e){receive.disabled=true;window.alert(String(e?.message||e))}
         };
         receive.onclick=()=>receiveCloudControlled(panel,expectedUid,expectedLocalHash,expectedRemoteRevision);
@@ -203,9 +209,14 @@
     );
   }
   function eligibleForReceiving(report){
-    return !!report&&report.lancamentosPc>0&&report.lancamentosPc===report.lancamentosNuvem&&
-      report.soNoPc===0&&report.soNaNuvem===0&&report.alterados>0&&report.alterados<=50&&
-      report.perfilIgual===true&&report.filtroDiferente===false;
+    /* Recuperação SOMENTE manual. Permite diferenças combinadas, mas exige
+       conferência, snapshots verificados, confirmação e revisão CAS estável.
+       Limites conservadores evitam usar a ferramenta numa divergência maciça. */
+    return !!report&&report.lancamentosPc>0&&report.lancamentosNuvem>0&&
+      (report.soNoPc+report.soNaNuvem+report.alterados)>0&&
+      report.soNoPc<=10&&report.soNaNuvem<=10&&report.alterados<=30&&
+      report.perfilIgual===true&&report.filtroDiferente===false&&
+      !report.maisDiferencas;
   }
   function downloadLocalRecoveryBackup(){
     const full=scope()?.exportCurrent?.();
@@ -225,11 +236,19 @@
       if(!uid||uid!==expectedUid||scope()?.activeUid?.()!==uid||!cloud())throw new Error('A conta mudou. Compare novamente.');
       const local=currentWorkspace();
       if(workspaceHash(local)!==expectedLocalHash)throw new Error('Os dados locais mudaram. Compare novamente.');
-      const remote=await cloud().get(uid);
+      const remote=await cloud().getServer(uid);
       if(!remote?.workspace||revisionOf(remote)!==expectedRemoteRevision)throw new Error('A nuvem mudou depois da comparação. Compare novamente.');
       const report=compareEntries(local,remote.workspace);
       if(!eligibleForReceiving(report))throw new Error('As diferenças mudaram. Operação cancelada; compare novamente.');
-      if(!window.confirm('CONFIRMAÇÃO FINAL: receber os '+report.lancamentosNuvem+' lançamentos da nuvem neste aparelho?\\n\\nOs dados atuais deste aparelho serão substituídos pela versão da nuvem. Confira que baixou o backup local. Nada será enviado ao Firestore.'))return;
+      const msg='CONFIRMAÇÃO FINAL — RECEBER DA NUVEM\n\n'+
+        'Versão do servidor: '+report.lancamentosNuvem+' lançamentos.\n'+
+        'Este aparelho: '+report.lancamentosPc+' lançamentos.\n\n'+
+        report.soNoPc+' lançamento(s) exclusivos deste aparelho serão descartados DO CONJUNTO ATIVO.\n'+
+        report.soNaNuvem+' lançamento(s) exclusivos do servidor serão incorporados.\n'+
+        report.alterados+' lançamento(s) modificados ficarão com a versão do servidor.\n\n'+
+        'Você conferiu o resumo e salvou os backups deste PC e do notebook?\n'+
+        'NADA será enviado ao Firestore.\n\nConfirmar a SUBSTITUIÇÃO LOCAL?';
+      if(!window.confirm(msg))return;
       await protectRecoverySnapshot(local,remote,uid);
       if(uid!==expectedUid||scope()?.activeUid?.()!==uid||workspaceHash(currentWorkspace())!==expectedLocalHash||!conflictBlocked)throw new Error('Os dados locais mudaram durante a preparação. Compare novamente.');
       const fresh=await cloud().getServer(uid);
