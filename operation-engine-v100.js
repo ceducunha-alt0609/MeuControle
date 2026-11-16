@@ -6,6 +6,7 @@
   if(window.MeuControleOps)return;
   const bridge=()=>window.MeuControleLocalBridge;
   let modalResolve=null;
+  let deleting=false;
 
   function ensureUi(){
     if(document.getElementById('mcOpsStyle'))return;
@@ -25,13 +26,14 @@
   }
 
   function toast(text,type='ok',duration=2600){ensureUi();const stack=document.querySelector('.mc-ops-toasts');if(!stack)return;const el=document.createElement('div');el.className=`mc-ops-toast ${type}`;el.textContent=text;stack.appendChild(el);setTimeout(()=>el.remove(),duration)}
-  function confirmDelete(count){ensureUi();const modal=document.querySelector('.mc-ops-confirm');return new Promise(resolve=>{modalResolve=resolve;modal.querySelector('.mc-ops-copy').textContent=count===1?'Este lançamento será excluído desta conta e a alteração será sincronizada.':`Os ${count} lançamentos serão excluídos desta conta e a alteração será sincronizada.`;modal.querySelector('.mc-ops-delete').textContent=count===1?'Excluir lançamento':`Excluir ${count} lançamentos`;modal.hidden=false})}
+  function confirmDelete(count){ensureUi();if(modalResolve)return Promise.resolve(false);const modal=document.querySelector('.mc-ops-confirm');return new Promise(resolve=>{modalResolve=resolve;modal.querySelector('.mc-ops-copy').textContent=count===1?'Este lançamento será excluído desta conta e a alteração será sincronizada.':`Os ${count} lançamentos serão excluídos desta conta e a alteração será sincronizada.`;modal.querySelector('.mc-ops-delete').textContent=count===1?'Excluir lançamento':`Excluir ${count} lançamentos`;modal.hidden=false})}
   function closeConfirm(result){const modal=document.querySelector('.mc-ops-confirm');if(modal)modal.hidden=true;const r=modalResolve;modalResolve=null;r?.(result)}
 
   async function deleteEntries(ids){
-    ids=[...new Set(ids||[])].filter(Boolean);if(!ids.length)return false;
-    if(!(await confirmDelete(ids.length)))return false;
+    ids=[...new Set(ids||[])].filter(Boolean);if(!ids.length||deleting)return false;
+    deleting=true;
     try{
+      if(!(await confirmDelete(ids.length)))return false;
       if(!bridge()?.removeEntries)throw new Error('Rotina de exclusão indisponível.');
       const removed=await bridge().removeEntries(ids,{backupReason:ids.length===1?'Antes de excluir lançamento':`Antes de excluir ${ids.length} lançamentos em lote`});
       if(removed!==true)return false;
@@ -40,7 +42,7 @@
     }catch(error){
       toast('Exclusão cancelada: '+String(error?.message||error),'warn',6000);
       return false;
-    }
+    }finally{deleting=false}
   }
 
   async function syncNow(){
