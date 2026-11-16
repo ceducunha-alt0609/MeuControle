@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MeuControle — Laboratório de Feriados</title>
 <style>body{font:15px system-ui,sans-serif;background:#eef4f0;color:#213b30;margin:0;padding:20px}main{max-width:840px;margin:auto}header,.mc-special-card,.calendar-events-panel{background:white;padding:20px;border-radius:16px;margin:14px 0;box-shadow:0 3px 18px #143b2612}h1{margin:0 0 8px}p{line-height:1.5}.tools{display:flex;gap:8px;flex-wrap:wrap}button{cursor:pointer;border:1px solid #c5d7cd;background:white;padding:9px 12px;border-radius:9px}.mc-cal-board-v124{background:white;padding:15px;border-radius:16px}.mc-cal-grid-v124{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}.mc-cal-day-v124{min-height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center}.mc-cal-dots-v124{display:flex;gap:3px;margin-top:6px;min-height:6px;align-items:center;justify-content:center}.mc-cal-day-num-v124{font-weight:700}.selected{outline:2px solid #1684c6}.note{font-size:12px;color:#61756b}</style></head>
-<body><main><header><h1>🧪 Laboratório de Feriados</h1><p>Prévia isolada (revisão 4) para verificar marcações e controles. Não utiliza seus dados, não conecta ao Supabase e não altera o MeuControle principal.</p><div class="tools"><button id="prev">◀ Mês anterior</button><strong id="monthLabel"></strong><button id="next">Próximo mês ▶</button><button id="reset">Limpar preferências deste laboratório</button></div></header>
+<body><main><header><h1>🧪 Laboratório de Feriados</h1><p>Prévia isolada (revisão 5) para verificar marcações e controles. Não utiliza seus dados, não conecta ao Supabase e não altera o MeuControle principal.</p><div class="tools"><button id="prev">◀ Mês anterior</button><strong id="monthLabel"></strong><button id="next">Próximo mês ▶</button><button id="reset">Limpar preferências deste laboratório</button></div></header>
 <section id="settingsPage"><div class="settings-grid"><section class="mc-special-card"><h3>Datas Especiais</h3><p class="note">Área simulada. O módulo de feriados deve aparecer abaixo.</p></section></div></section>
 <section id="calendarPage"><div class="mc-cal-board-v124"><div class="mc-cal-grid-v124" id="grid"></div></div><div class="calendar-events-panel"><h3>Dia selecionado</h3><div class="calendar-events-scroll"></div></div></section>
 <p class="note" id="status">Carregando módulo experimental...</p></main>
@@ -13,6 +13,119 @@ document.getElementById('next').onclick=()=>{calendarMonth++;if(calendarMonth>11
 document.getElementById('reset').onclick=()=>{localStorage.removeItem('meu_controle_holidays_v1');location.reload()};
 draw();
 </script>
-<script src="https://raw.githubusercontent.com/ceducunha-alt0609/MeuControle/171c1a3d30f9015bb4ef2eca36ff75460512228e/holiday-center-v175.js"></script>
-<script>setTimeout(()=>{document.getElementById('status').textContent=window.MeuControleHolidaysV1?'Módulo carregado. Teste os meses e os controles acima.':'Módulo não carregou: confira sua conexão com a internet.'},1500);</script>
+<script>
+/* Meu Controle — Central de Feriados V1 */
+(function(){
+  if(window.__mcHolidayCenterV1)return;window.__mcHolidayCenterV1=true;
+  const KEY='meu_controle_holidays_v1';
+  const pad=n=>String(n).padStart(2,'0');
+  const iso=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  const easter=y=>{const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),mo=Math.floor((h+l-7*m+114)/31),da=(h+l-7*m+114)%31+1;return new Date(y,mo-1,da)};
+  const addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
+  const defaults=y=>{
+    const e=easter(y);
+    return [
+      {date:`${y}-01-01`,name:'Confraternização Universal',scope:'Nacional'},
+      {date:`${y}-01-25`,name:'Aniversário da Cidade de São Paulo',scope:'Municipal'},
+      {date:iso(addDays(e,-2)),name:'Paixão de Cristo',scope:'Municipal'},
+      {date:`${y}-04-21`,name:'Tiradentes',scope:'Nacional'},
+      {date:`${y}-05-01`,name:'Dia Mundial do Trabalho',scope:'Nacional'},
+      {date:iso(addDays(e,60)),name:'Corpus Christi',scope:'Municipal'},
+      {date:`${y}-07-09`,name:'Data Magna do Estado de São Paulo',scope:'Estadual'},
+      {date:`${y}-09-07`,name:'Independência do Brasil',scope:'Nacional'},
+      {date:`${y}-10-12`,name:'Nossa Senhora Aparecida',scope:'Nacional'},
+      {date:`${y}-11-02`,name:'Finados',scope:'Nacional'},
+      {date:`${y}-11-15`,name:'Proclamação da República',scope:'Nacional'},
+      {date:`${y}-11-20`,name:'Dia Nacional de Zumbi e da Consciência Negra',scope:'Nacional'},
+      {date:`${y}-12-25`,name:'Natal',scope:'Nacional'}
+    ].map(x=>({...x,id:'base:'+x.name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-'),enabled:true,builtin:true}));
+  };
+  function state(){try{return JSON.parse(localStorage.getItem(KEY)||'{"disabled":[],"custom":[]}')}catch{return{disabled:[],custom:[]}}}
+  function save(s){localStorage.setItem(KEY,JSON.stringify(s));window.dispatchEvent(new CustomEvent('meucontrole:holidays-changed'));refresh()}
+  function holidays(y){const s=state(),base=defaults(y).map(x=>({...x,enabled:!s.disabled.includes(x.id)&&!s.disabled.includes('base:'+x.date)})),custom=(s.custom||[]).map(x=>{const yy=x.annual?String(y)+x.date.slice(4):x.date;return{...x,date:yy,scope:'Personalizado',builtin:false,enabled:x.enabled!==false}}).filter(x=>x.date.startsWith(String(y)));return [...base,...custom].sort((a,b)=>a.date.localeCompare(b.date))}
+  // Uma data pessoal cadastrada manualmente não deve gerar uma segunda indicação
+  // idêntica de feriado no calendário; outras comemorações no mesmo dia permanecem.
+  const normalizeName=name=>String(name||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+  function personalHolidayDuplicates(y){
+    const duplicates=new Set();
+    try{
+      if(typeof profiles==='undefined'||!Array.isArray(profiles))return duplicates;
+      profiles.forEach(p=>(p.specialDates||[]).forEach(x=>{
+        if(x.type!=='special')return;
+        const day=Number(x.day),month=Number(x.month);
+        if(!day||!month)return;
+        const date=String(y)+'-'+pad(month)+'-'+pad(day);
+        duplicates.add(date+'|'+normalizeName(x.name));
+      }));
+    }catch{}
+    return duplicates;
+  }
+  function activeMap(y){
+    const existing=personalHolidayDuplicates(y);
+    return new Map(holidays(y).filter(x=>x.enabled&&!existing.has(x.date+'|'+normalizeName(x.name))).map(x=>[x.date,x.name]));
+  }
+  window.MeuControleHolidaysV1={list:holidays,map:activeMap,name:date=>activeMap(Number(String(date).slice(0,4))).get(date)||''};
+
+  // Não substituir holidayMapSP global: ele também alimenta cálculos de dias úteis do aplicativo.
+
+  const css=document.createElement('style');css.textContent=`
+    .mc-holiday-card{grid-column:1/-1;margin-top:16px;padding-top:14px;border-top:1px solid #e1e8e4}
+    .mc-holiday-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:13px}
+    .mc-holiday-head p{margin:4px 0 0!important;font-size:11px;color:#718078}
+    .mc-holiday-list{display:grid;gap:7px;max-height:330px;overflow:auto;padding-right:3px}
+    .mc-holiday-row{display:grid;grid-template-columns:76px minmax(0,1fr) auto;gap:10px;align-items:center;padding:9px 10px;border:1px solid #e1e8e4;border-radius:11px;background:#fff}
+    .mc-holiday-row time{font-size:12px;font-weight:800;color:var(--primary)}
+    .mc-holiday-row strong{display:block;font-size:13px}.mc-holiday-row small{display:block;margin-top:2px;color:#718078;font-size:10px}
+    .mc-holiday-toggle{width:36px;height:22px;padding:0;border-radius:99px;background:#c8d2cd;position:relative}
+    .mc-holiday-toggle:after{content:"";position:absolute;width:16px;height:16px;left:3px;top:3px;border-radius:50%;background:#fff;transition:.15s}
+    .mc-holiday-toggle.on{background:var(--primary)}.mc-holiday-toggle.on:after{left:17px}
+    .mc-holiday-add{display:grid;grid-template-columns:150px minmax(0,1fr) 120px auto;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid #e5ebe7}
+    .mc-holiday-add input,.mc-holiday-add select{min-width:0}
+    .mc-holiday-dot-v1{width:6px;height:6px;border-radius:50%;display:block;background:#1684c6;box-shadow:0 0 0 1px rgba(255,255,255,.8)}
+    .mc-holiday-banner-v1{margin:0 0 10px;padding:10px 12px;border:1px solid #cfe3f0;border-radius:10px;background:#eef7fc;color:#195f89;font-size:12px;font-weight:700;line-height:1.35;display:flex;align-items:center;gap:8px}
+    .mc-holiday-banner-v1 .mc-holiday-dot-v1{flex:0 0 auto;box-shadow:none}
+    .mc-holiday-banner-v1 strong{color:#164f78}
+    .mc-holiday-legend-v1{display:flex;align-items:center;justify-content:flex-end;gap:6px;padding:7px 12px 0;color:#607b8a;font:700 10px/1 system-ui,sans-serif}
+    .mc-holiday-legend-v1 .mc-holiday-dot-v1{flex:0 0 auto;box-shadow:none}
+    #calendarPage .mc-cal-day-v124.mc-holiday-day-v1:not(.today) .mc-cal-day-num-v124{color:#1684c6}
+    #calendarPage .mc-cal-day-v124.mc-holiday-day-v1.today .mc-holiday-dot-v1{background:#fff;box-shadow:0 0 0 1px rgba(255,255,255,.45)}
+    #calendarPage .mc-cal-day-v124.mc-holiday-day-v1.selected:not(.today) .mc-cal-day-num-v124{color:#1684c6}
+    body.mc-dark .mc-holiday-row{background:#182229;border-color:#34434c}body.mc-dark .mc-holiday-row strong{color:#eef3f6}body.mc-dark .mc-holiday-row small{color:#aebbc3}
+    body.mc-dark .mc-holiday-legend-v1,body.theme-black .mc-holiday-legend-v1{color:#9eb9c7}
+    body.mc-dark .mc-holiday-banner-v1,body.theme-black .mc-holiday-banner-v1{background:#112b39;border-color:#285267;color:#b9ddef}
+    body.mc-dark .mc-holiday-banner-v1 strong,body.theme-black .mc-holiday-banner-v1 strong{color:#7bc9f3}
+    @media(max-width:700px){.mc-holiday-card{padding:16px!important}.mc-holiday-head{align-items:flex-start}.mc-holiday-list{max-height:none}.mc-holiday-row{grid-template-columns:68px minmax(0,1fr) auto}.mc-holiday-add{grid-template-columns:1fr}.mc-holiday-add button{width:100%}}
+  `;document.head.appendChild(css);
+
+  function ensureCard(){
+    const host=document.querySelector('#settingsPage .mc-special-card');
+    if(!host)return;
+    document.querySelector('#settingsPage .settings-grid > .mc-holiday-card')?.remove();
+    if(host.querySelector('.mc-holiday-card'))return;
+    const card=document.createElement('section');card.className='mc-holiday-card';
+    card.innerHTML='<div class="mc-holiday-head"><div><h4>📅 Feriados automáticos</h4><p>Brasil · Estado de São Paulo · Cidade de São Paulo · Recorrência anual · Preferências neste aparelho</p></div></div><div class="mc-holiday-list"></div>';
+    host.appendChild(card);renderCard();
+  }
+  function renderCard(){
+    const box=document.querySelector('#settingsPage .mc-special-card .mc-holiday-list');if(!box)return;const y=new Date().getFullYear();
+    box.innerHTML=holidays(y).map(h=>`<div class="mc-holiday-row"><time>${h.date.slice(8,10)}/${h.date.slice(5,7)}</time><span><strong>${h.name.replace(/[<>&"]/g,'')}</strong><small>${h.scope}${h.builtin?' · padrão':' · personalizado'}</small></span><button type="button" class="mc-holiday-toggle ${h.enabled?'on':''}" data-id="${h.id}" data-custom="${h.builtin?'0':'1'}" aria-label="${h.enabled?'Desativar':'Ativar'} ${h.name}"></button></div>`).join('');
+    box.querySelectorAll('.mc-holiday-toggle').forEach(b=>b.onclick=()=>{const st=state(),id=b.dataset.id;if(b.dataset.custom==='1'){const x=(st.custom||[]).find(v=>v.id===id);if(x)x.enabled=x.enabled===false}else{st.disabled=st.disabled||[];const legacy='base:'+holidays(new Date().getFullYear()).find(h=>h.id===id)?.date;const wasDisabled=st.disabled.includes(id)||st.disabled.includes(legacy);st.disabled=st.disabled.filter(x=>x!==id&&x!==legacy);if(!wasDisabled)st.disabled.push(id)}save(st);renderCard()});
+  }
+  function decorateCalendar(){
+    const y=typeof calendarYear==='number'?calendarYear:new Date().getFullYear(),map=activeMap(y);
+    document.querySelectorAll('.mobile-calendar-day-v109[data-date]').forEach(btn=>{const date=btn.dataset.date,name=activeMap(Number(date.slice(0,4))).get(date),dots=btn.querySelector('.mc-day-dots-v109'),old=btn.querySelector('.mc-holiday-dot-v1');if(!name){old?.remove();if(btn.dataset.holidayTitle==='1'){btn.removeAttribute('title');delete btn.dataset.holidayTitle}return}btn.title=`Feriado: ${name}`;btn.dataset.holidayTitle='1';if(dots&&!old){const d=document.createElement('i');d.className='mc-holiday-dot-v1';d.title=name;dots.appendChild(d)}});
+    const month=typeof calendarMonth==='number'?calendarMonth:new Date().getMonth();
+    document.querySelectorAll('#calendarPage .mc-cal-day-v124[data-day]').forEach(btn=>{const day=pad(Number(btn.dataset.day)),date=`${y}-${pad(month+1)}-${day}`,name=map.get(date),dots=btn.querySelector('.mc-cal-dots-v124'),old=btn.querySelector('.mc-holiday-dot-v1');btn.classList.toggle('mc-holiday-day-v1',!!name);if(!name){old?.remove();if(btn.dataset.holidayTitle==='1'){btn.removeAttribute('title');delete btn.dataset.holidayTitle}return}btn.title=`Feriado: ${name}`;btn.dataset.holidayTitle='1';if(dots&&!old){const d=document.createElement('i');d.className='mc-cal-dot-v124 mc-holiday-dot-v1';d.title=name;dots.appendChild(d)}});
+    const board=document.querySelector('#calendarPage .mc-cal-board-v124');if(board&&!board.querySelector('.mc-holiday-legend-v1')){const legend=document.createElement('div');legend.className='mc-holiday-legend-v1';legend.innerHTML='<i class="mc-holiday-dot-v1"></i><span>Feriado</span>';const clear=board.querySelector('.mc-cal-clear-v124');clear?board.insertBefore(legend,clear):board.appendChild(legend)}
+    const panel=document.querySelector('#calendarPage .calendar-events-panel'),oldBanner=panel?.querySelector('.mc-holiday-banner-v1');
+    const selected=document.querySelector('#calendarPage .mc-cal-day-v124.selected[data-day]');if(!panel||!selected){oldBanner?.remove();return}
+    const selectedDate=`${y}-${pad(month+1)}-${pad(Number(selected.dataset.day))}`;const holiday=holidays(y).find(h=>h.enabled&&h.date===selectedDate&&activeMap(y).get(selectedDate)===h.name);if(!holiday){oldBanner?.remove();return}
+    const safeName=String(holiday.name).replace(/[<>&"]/g,'');const banner=oldBanner||document.createElement('div');banner.className='mc-holiday-banner-v1';banner.innerHTML=`<i class="mc-holiday-dot-v1"></i><span>Feriado: <strong>${safeName}</strong></span>`;const scroll=panel.querySelector('.calendar-events-scroll');if(!oldBanner)scroll?panel.insertBefore(banner,scroll):panel.appendChild(banner);
+  }
+  function refresh(){renderCard();setTimeout(decorateCalendar,0);setTimeout(decorateCalendar,150)}
+  window.MeuControleHolidaysV1.refresh=refresh;
+  ensureCard();let holidaySyncQueued=false;const mo=new MutationObserver(mutations=>{if(holidaySyncQueued)return;const relevant=mutations.some(m=>[...m.addedNodes].some(n=>n.nodeType===1&&(n.matches?.('#settingsPage,.mc-special-card,.mobile-calendar-grid-v109,.mc-cal-grid-v124,.mc-cal-board-v124,.calendar-events-panel')||n.querySelector?.('#settingsPage,.mc-special-card,.mobile-calendar-grid-v109,.mc-cal-grid-v124,.mc-cal-board-v124,.calendar-events-panel'))));if(!relevant)return;holidaySyncQueued=true;requestAnimationFrame(()=>{holidaySyncQueued=false;ensureCard();decorateCalendar()})});mo.observe(document.body,{childList:true,subtree:true});window.addEventListener('meucontrole:holidays-changed',refresh);['meucontrole:special-dates-changed','meucontrole:profiles-cloud-applied','meucontrole:remote-workspace-applied','meucontrole:user-workspace-imported'].forEach(event=>window.addEventListener(event,refresh));window.addEventListener('storage',event=>{if(event.key===KEY||event.key==='meu_controle_profiles_v2')refresh()});document.querySelectorAll('.nav-btn').forEach(b=>b.addEventListener('click',()=>setTimeout(refresh,60)));setTimeout(refresh,500);
+})();
+</script>
+<script>setTimeout(()=>{document.getElementById('status').textContent=window.MeuControleHolidaysV1?'Módulo carregado. Teste os meses e os controles acima.':'Módulo não carregou: informe este aviso para investigação.'},1500);</script>
 </body></html>
