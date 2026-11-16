@@ -1,7 +1,7 @@
 /* MeuControle — V1.42.2: propriedade local por usuário + aplicação de workspace sem reload */
 (()=>{
   if(window.__mcUserDataScopeV142)return;window.__mcUserDataScopeV142=true;
-  const VERSION='1.42.2';
+  const VERSION='1.42.3';
   const ACTIVE_UID_KEY='meu_controle_active_data_uid_v1';
   const MIGRATION_OWNER_KEY='meu_controle_legacy_data_owner_uid_v1';
   const USER_PREFIX='meu_controle_user_workspace_v1:';
@@ -10,7 +10,7 @@
     autoBackups:'meu_controle_auto_backups_v2',lastBackup:'meu_controle_last_backup_v2'
   };
   const DEFAULT_PROFILES=[{id:'pessoal',name:'Pessoal',locked:true},{id:'condominio',name:'Condomínio',locked:true},{id:'escolinha',name:'Escolinha',locked:true}];
-  let switching=false;
+  let switching=false,secondaryCopyPending=false;
 
   const parse=(raw,fallback)=>{try{return raw?JSON.parse(raw):fallback}catch{return fallback}};
   const clone=v=>JSON.parse(JSON.stringify(v));
@@ -46,7 +46,7 @@
   }
   function emptyWorkspace(){return{schema:1,savedAt:new Date().toISOString(),entries:[],profiles:DEFAULT_PROFILES,profileFilter:'all',autoBackups:[],lastBackup:null}}
   function userKey(uid){return USER_PREFIX+uid}
-  function saveUser(uid){if(!uid)return;localStorage.setItem(userKey(uid),JSON.stringify(readWorkspace()))}
+  function saveUser(uid){if(!uid)return false;try{localStorage.setItem(userKey(uid),JSON.stringify(readWorkspace()));secondaryCopyPending=false;return true}catch(e){secondaryCopyPending=true;try{renderStatus()}catch{};return false}}
   function loadUser(uid){return parse(localStorage.getItem(userKey(uid)),null)}
   function countLegacy(){return parse(localStorage.getItem(KEYS.entries),[]).length}
   function currentSession(){try{return window.MeuControleUserSession?.get?.()||null}catch{return null}}
@@ -74,13 +74,13 @@
     const box=document.querySelector('.mc-user-session-v141');if(!box)return;let note=box.querySelector('.mc-user-data-status-v142');if(!note){note=document.createElement('div');note.className='mc-user-data-status-v142';box.appendChild(note)}
     const s=currentSession(),owner=localStorage.getItem(MIGRATION_OWNER_KEY),active=localStorage.getItem(ACTIVE_UID_KEY);
     if(!owner){note.textContent='Ciclo 2: aguardando definir qual conta será dona dos dados atuais.';return}
-    if(s?.signedIn&&active===s.uid)note.textContent='Dados locais isolados para esta conta ✓';else if(s?.signedIn)note.textContent='Preparando o espaço de dados desta conta…';else note.textContent='Sem conta conectada. Os dados de usuários permanecem preservados neste dispositivo.';
+    if(s?.signedIn&&active===s.uid)note.textContent=secondaryCopyPending?'Dados ativos preservados; cópia adicional por conta sem espaço. Não troque de conta até corrigir o armazenamento.':'Dados locais isolados para esta conta ✓';else if(s?.signedIn)note.textContent='Preparando o espaço de dados desta conta…';else note.textContent='Sem conta conectada. Os dados de usuários permanecem preservados neste dispositivo.';
   }
 
   function switchTo(uid){
     if(switching||!uid)return;const active=localStorage.getItem(ACTIVE_UID_KEY);if(active===uid){renderStatus();return}
     switching=true;
-    if(active)saveUser(active);
+    if(active&&!saveUser(active)){switching=false;window.alert('Não foi possível preservar a cópia individual da conta anterior por falta de espaço. A troca foi cancelada para proteger os dados. Exporte um backup e verifique o armazenamento antes de trocar de conta.');return;}
     const target=loadUser(uid)||emptyWorkspace();writeWorkspace(target);localStorage.setItem(ACTIVE_UID_KEY,uid);
     location.reload();
   }
@@ -88,13 +88,16 @@
     renderStatus();if(!s?.ready)return;
     const owner=localStorage.getItem(MIGRATION_OWNER_KEY),active=localStorage.getItem(ACTIVE_UID_KEY);
     if(!owner){if(s.signedIn)showMigrationPrompt(s);return}
-    if(!s.signedIn){if(active)saveUser(active);localStorage.removeItem(ACTIVE_UID_KEY);return}
+    if(!s.signedIn){if(active&&!saveUser(active)){window.alert('A cópia por conta não pôde ser atualizada. Os dados ativos foram preservados; não troque de conta nem limpe o armazenamento até resolver.');return}localStorage.removeItem(ACTIVE_UID_KEY);return}
     switchTo(s.uid);
   }
   function importWorkspace(uid,data,{reload=false}={}){
     if(!uid||uid!==localStorage.getItem(ACTIVE_UID_KEY))return false;
     const safe=clone(data||emptyWorkspace());
-    writeWorkspace(safe);saveUser(uid);
+    writeWorkspace(safe);
+    /* Dados ativos foram escritos. A cópia auxiliar não deve abortar a importação
+       se o localStorage estiver cheio; bloquear trocas de conta até ela ser salva. */
+    saveUser(uid);
     if(!reload)applyWorkspaceToRuntime(safe);
     window.dispatchEvent(new CustomEvent('meucontrole:user-workspace-imported',{detail:{uid}}));
     if(reload)location.reload();
