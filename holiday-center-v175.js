@@ -103,7 +103,7 @@
     const board=document.querySelector('#calendarPage .mc-cal-board-v124');if(board&&!board.querySelector('.mc-holiday-legend-v1')){const legend=document.createElement('div');legend.className='mc-holiday-legend-v1';legend.innerHTML='<i class="mc-holiday-dot-v1"></i><span>Feriado</span>';const clear=board.querySelector('.mc-cal-clear-v124');clear?board.insertBefore(legend,clear):board.appendChild(legend)}
     const panel=document.querySelector('#calendarPage .calendar-events-panel'),oldBanner=panel?.querySelector('.mc-holiday-banner-v1');
     const selected=document.querySelector('#calendarPage .mc-cal-day-v124.selected[data-day]');if(!panel||!selected){oldBanner?.remove();return}
-    const selectedDate=`${y}-${pad(month+1)}-${pad(Number(selected.dataset.day))}`;const holiday=holidays(y).find(h=>h.enabled&&h.date===selectedDate);if(!holiday){oldBanner?.remove();return}
+    const selectedDate=`${y}-${pad(month+1)}-${pad(Number(selected.dataset.day))}`;const holiday=holidays(y).find(h=>h.enabled&&h.date===selectedDate&&activeMap(y).get(selectedDate)===h.name);if(!holiday){oldBanner?.remove();return}
     const safeName=String(holiday.name).replace(/[<>&"]/g,'');const banner=oldBanner||document.createElement('div');banner.className='mc-holiday-banner-v1';banner.innerHTML=`<i class="mc-holiday-dot-v1"></i><span>Feriado: <strong>${safeName}</strong></span>`;const scroll=panel.querySelector('.calendar-events-scroll');if(!oldBanner)scroll?panel.insertBefore(banner,scroll):panel.appendChild(banner);
   }
   function refresh(){renderCard();setTimeout(decorateCalendar,0);setTimeout(decorateCalendar,150)}
