@@ -453,7 +453,32 @@ function startEdit(id){
   $('profile').value=e.profile||'pessoal';$('type').value=e.type;$('category').value=e.category||'';$('value').value=e.valuePending?'':(e.value||'');$('description').value=e.description;$('date').value=e.date;$('time').value=e.time||'';$('useBusinessDay').checked=!!e.useBusinessDay;$('recurrence').value=e.recurrence||'none';$('remind').value=String(e.remind??0);$('important').checked=!!e.important;$('notes').value=e.notes||'';const sb=$('mcSteps');if(sb){sb.innerHTML='';(e.steps||[]).forEach(step=>{const row=document.createElement('div');row.className='mc-step-row';row.innerHTML='<input type="text" maxlength="120"><button type="button" aria-label="Remover etapa">×</button>';row.querySelector('input').value=step.text||'';row.dataset.done=step.done?'1':'0';row.querySelector('button').onclick=()=>row.remove();sb.appendChild(row)});const sc=$('mcStepCount');if(sc)sc.textContent=e.steps?.length?(e.steps.length+' etapa'+(e.steps.length>1?'s':'')):''}updateRecurrenceUI();updateBusinessDayInfo();$('saveBtn').textContent='Salvar alterações';$('cancelEditBtn').classList.remove('hidden');$('formPanel').classList.add('editing');
 }
 function toggleDone(id){const e=entries.find(x=>x.id===id);if(!e)return;createAutoBackup(e.done?'Antes de reabrir lançamento':'Antes de concluir lançamento');e.done=!e.done;e.doneAt=e.done?new Date().toISOString():null;save();renderAll()}
-function removeEntry(id){if(!confirm('Excluir este lançamento?'))return;createAutoBackup('Antes de excluir lançamento');entries=entries.filter(e=>e.id!==id);save();renderAll()}
+let removingEntryIds=new Set();
+async function removeEntry(id){
+  if(removingEntryIds.has(id))return;
+  const target=entries.find(e=>e.id===id);
+  if(!target)return;
+  if(!confirm('Excluir este lançamento?'))return;
+  removingEntryIds.add(id);
+  const accountAtStart=window.MeuControleUserDataScope?.activeUid?.()||'';
+  const before=JSON.parse(JSON.stringify(entries));
+  try{
+    await preserveEntryFormSnapshot('Antes de excluir lançamento');
+    if((window.MeuControleUserDataScope?.activeUid?.()||'')!==accountAtStart||
+       JSON.stringify(entries)!==JSON.stringify(before)){
+      throw new Error('A conta ou os lançamentos mudaram enquanto a cópia era preparada. Confira os dados e tente novamente.');
+    }
+    entries=entries.filter(e=>e.id!==id);
+    try{save()}catch(e){entries=before;throw e}
+    try{window.MeuControleUserDataScope?.saveCurrent?.()}catch{}
+    renderAll();
+  }catch(e){
+    const quota=e?.name==='QuotaExceededError'||/quota|exceeded|espaço|storage/i.test(String(e?.message||''));
+    alert(quota?
+      'O armazenamento local está cheio. A exclusão não foi realizada. Os dados anteriores continuam preservados. Não limpe os dados do navegador.':
+      'A exclusão foi cancelada com segurança: '+String(e?.message||e));
+  }finally{removingEntryIds.delete(id)}
+}
 
 
 function applyAppearance(){
