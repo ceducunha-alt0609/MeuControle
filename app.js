@@ -571,6 +571,7 @@ $('entryForm').addEventListener('submit',async ev=>{
     if(!data.description||!data.date)throw new Error('Preencha a descrição e a data antes de salvar.');
     if(wasEditing&&!entries.some(x=>x.id===expectedId))throw new Error('O lançamento mudou ou não está mais disponível. Abra a edição novamente.');
     await preserveEntryFormSnapshot(wasEditing?'Antes de editar lançamento':'Antes de novo lançamento');
+    if(JSON.stringify(entries)!==JSON.stringify(previousEntries)||editingId!==expectedId)throw new Error('O lançamento mudou durante a gravação da cópia de segurança. Abra novamente a edição antes de salvar.');
     if(wasEditing){
       const e=entries.find(x=>x.id===expectedId);
       const scheduled=data.date,actual=effectiveEntryDate(scheduled,data.useBusinessDay);
