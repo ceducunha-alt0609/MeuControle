@@ -31,10 +31,16 @@
   async function deleteEntries(ids){
     ids=[...new Set(ids||[])].filter(Boolean);if(!ids.length)return false;
     if(!(await confirmDelete(ids.length)))return false;
-    bridge()?.removeEntries?.(ids,{backupReason:ids.length===1?'Antes de excluir lançamento':`Antes de excluir ${ids.length} lançamentos em lote`});
-    try{window.MeuControleUserDataScope?.saveCurrent?.()}catch{}
-    toast(ids.length===1?'Exclusão realizada ✓':`${ids.length} lançamentos excluídos ✓`);
-    return true;
+    try{
+      if(!bridge()?.removeEntries)throw new Error('Rotina de exclusão indisponível.');
+      const removed=await bridge().removeEntries(ids,{backupReason:ids.length===1?'Antes de excluir lançamento':`Antes de excluir ${ids.length} lançamentos em lote`});
+      if(removed!==true)return false;
+      toast(ids.length===1?'Exclusão realizada ✓':`${ids.length} lançamentos excluídos ✓`);
+      return true;
+    }catch(error){
+      toast('Exclusão cancelada: '+String(error?.message||error),'warn',6000);
+      return false;
+    }
   }
 
   async function syncNow(){
