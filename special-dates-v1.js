@@ -213,7 +213,7 @@
      if(period!==lastPeriod){selectedDay=0;lastPeriod=period}
      const first=new Date(calendarYear,calendarMonth,1).getDay(),max=new Date(calendarYear,calendarMonth+1,0).getDate(),count=Math.ceil((first+max)/7)*7;
      const hasEntry=new Set(calendarEntries().map(e=>e.date));
-     const holidays=typeof holidayMapSP==='function'?holidayMapSP(calendarYear):new Map();
+     const holidays=window.MeuControleHolidaysV1?.map?.(calendarYear)||(typeof holidayMapSP==='function'?holidayMapSP(calendarYear):new Map());
      let cells='';
      for(let i=0;i<count;i++){
        const d=i-first+1;if(d<1||d>max){cells+='<div class="mc-cal-day-v124 out"></div>';continue}
