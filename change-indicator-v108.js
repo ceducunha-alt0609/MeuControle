@@ -2,7 +2,7 @@
 (()=>{
  'use strict';
  if(window.__mcChangeIndicatorV108)return;window.__mcChangeIndicatorV108=true;
- const VERSION='1.10',PREFIX='meu_controle_remote_activity_v109:',MAX=500;
+ const VERSION='1.11',PREFIX='meu_controle_remote_activity_v109:',MAX=500;
  let account='',events=[],ready=false,placeTimer=null;
  const uid=()=>{try{return window.MeuControleUserDataScope?.activeUid?.()||window.MeuControleUserSession?.get?.()?.uid||''}catch{return''}};
  const fmt=t=>{try{return new Date(t).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}catch{return'—'}};
@@ -107,14 +107,25 @@
   }
   events=events.slice(-MAX);save();render();
  }
+ /* Recolhe avisos recebidos antes de o sininho terminar de carregar.
+    A deduplicacao de onRemote impede contagem dupla. */
+ function consumeMailbox(){
+  const a=uid();if(!a)return;
+  try{
+   const key='meu_controle_activity_mailbox_v1:'+a;
+   const list=JSON.parse(sessionStorage.getItem(key)||'[]');
+   if(!Array.isArray(list))return;
+   for(const detail of list.slice(-24))if(detail?.uid===a)onRemote('applied',detail);
+  }catch{}
+ }
  function watchPlacement(){clearInterval(placeTimer);let n=0;placeTimer=setInterval(()=>{n++;const b=document.querySelector('.sync-new-bell[data-mc-bell="v109"]');if(b)placement(b);if(n>30)clearInterval(placeTimer)},250)}
- accountSync();ensureUi();render();watchPlacement();
- window.addEventListener('meucontrole:cloud-bootstrap-complete',()=>{ready=true;render();watchPlacement()});
+ accountSync();ensureUi();consumeMailbox();render();watchPlacement();
+ window.addEventListener('meucontrole:cloud-bootstrap-complete',()=>{ready=true;consumeMailbox();render();watchPlacement()});
  window.addEventListener('meucontrole:remote-workspace-applied',e=>onRemote('applied',e.detail));
  window.addEventListener('meucontrole:cloud-workspace-confirmed',e=>reconcileRevision(e.detail));
  window.addEventListener('meucontrole:remote-workspace-pending',e=>onRemote('pending',e.detail));
  window.addEventListener('meucontrole:user-session-changed',()=>{account='';events=[];ready=false;accountSync();render()});
- window.addEventListener('load',()=>setTimeout(()=>{render();watchPlacement()},500));
+ window.addEventListener('load',()=>setTimeout(()=>{consumeMailbox();render();watchPlacement()},500));
  matchMedia('(min-width:701px)').addEventListener?.('change',()=>setTimeout(()=>{render();watchPlacement()},100));
  window.MeuControleChangeIndicator={version:VERSION,refresh:render,state:()=>({count:events.filter(x=>!x.read).length,total:events.length,ready}),clear:()=>{events.forEach(x=>x.read=true);save();render()}};
 })();
