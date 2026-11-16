@@ -55,7 +55,7 @@
       const back=document.createElement('div');back.className='mc-delete-backdrop-v038';
       back.innerHTML=`<section class="mc-delete-dialog-v038" role="dialog" aria-modal="true" aria-labelledby="mcDeleteTitleV038"><div class="mc-delete-icon-v038">×</div><h2 id="mcDeleteTitleV038">Excluir lançamento?</h2><p>Esta ação remove o lançamento da sua lista. Você ainda poderá desfazer logo em seguida.</p><span class="mc-delete-name-v038"></span><div class="mc-delete-actions-v038"><button type="button" class="mc-delete-cancel-v038">Cancelar</button><button type="button" class="mc-delete-confirm-v038">Excluir</button></div></section>`;
       back.querySelector('#mcDeleteTitleV038').textContent=options.title||'Excluir lançamento?';
-      back.querySelector('.mc-delete-dialog-v038 p').textContent=options.message||'Esta ação remove o lançamento da sua lista. Você ainda poderá desfazer logo em seguida.';
+      back.querySelector('.mc-delete-dialog-v038 p').textContent=options.message||'Esta ação remove o lançamento da sua lista. Você ainda poderá desfazer logo em seguida. · Proteção v0.38.3';
       back.querySelector('.mc-delete-name-v038').textContent=item?.description||'Lançamento selecionado';
       document.body.appendChild(back);document.body.style.overflow='hidden';
       const finish=value=>{document.body.style.overflow='';back.remove();document.removeEventListener('keydown',onKey);resolve(value)};
