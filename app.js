@@ -78,8 +78,22 @@ function createAutoBackup(reason='Alteração'){
   };
   const list=loadAutoBackups();
   list.unshift(snapshot);
-  localStorage.setItem(AUTO_BACKUPS_KEY,JSON.stringify(list.slice(0,AUTO_BACKUP_LIMIT)));
-  updateAutoBackupLabel();
+  // Reduzir apenas a retenção dos backups automáticos quando faltar espaço.
+  // setItem é atômico: se falhar, o valor anterior permanece preservado.
+  // Nunca remover dados de lançamentos, perfis ou sincronização para liberar espaço.
+  let lastError;
+  for(let count=Math.min(list.length,AUTO_BACKUP_LIMIT);count>=1;count--){
+    try{
+      localStorage.setItem(AUTO_BACKUPS_KEY,JSON.stringify(list.slice(0,count)));
+      updateAutoBackupLabel();
+      return;
+    }catch(error){
+      if(error?.name!=='QuotaExceededError'&&!/quota|exceeded/i.test(String(error?.message||'')))throw error;
+      lastError=error;
+    }
+  }
+  // Sem espaço nem para uma cópia: não fingir que houve backup.
+  throw new Error('Sem espaço para backup automático. Exporte seus dados e verifique o armazenamento local antes de continuar.',{cause:lastError});
 }
 function updateAutoBackupLabel(){
   const list=loadAutoBackups();
@@ -173,7 +187,30 @@ function restoreAutoBackup(id){
   alert('Backup automático restaurado com sucesso.');
 }
 
-function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify(entries));try{window.MeuControleCloudSync?.markLocalDirty?.('lançamentos alterados')}catch{}}
+function save(){
+  const serialized=JSON.stringify(entries);
+  try{
+    localStorage.setItem(STORAGE_KEY,serialized);
+  }catch(error){
+    const quota=error?.name==='QuotaExceededError'||/quota|exceeded/i.test(String(error?.message||''));
+    if(!quota)throw error;
+    // O snapshot de recuperação no IndexedDB é feito antes das exclusões.
+    // Reduzir SOMENTE cópias automáticas antigas, sem tocar nos dados da conta.
+    const backups=loadAutoBackups();
+    let saved=false;
+    for(let count=backups.length-1;count>=0;count--){
+      if(count===0)localStorage.removeItem(AUTO_BACKUPS_KEY);
+      else localStorage.setItem(AUTO_BACKUPS_KEY,JSON.stringify(backups.slice(0,count)));
+      try{localStorage.setItem(STORAGE_KEY,serialized);saved=true;break}
+      catch(retryError){
+        if(retryError?.name!=='QuotaExceededError'&&!/quota|exceeded/i.test(String(retryError?.message||'')))throw retryError;
+      }
+    }
+    if(!saved)throw error;
+    updateAutoBackupLabel();
+  }
+  try{window.MeuControleCloudSync?.markLocalDirty?.('lançamentos alterados')}catch{}
+}
 function saveProfiles(){localStorage.setItem(PROFILES_KEY,JSON.stringify(profiles))}
 function migrateData(){
   let changed=false;

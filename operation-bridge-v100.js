@@ -10,10 +10,22 @@
       if(backupReason&&typeof createAutoBackup==='function')createAutoBackup(backupReason);
       entries=clone(Array.isArray(next)?next:[]);save();if(render)renderAll();
     },
-    removeEntries(ids,{backupReason=''}={}){
-      const set=new Set(ids||[]);if(!set.size)return;
-      if(backupReason&&typeof createAutoBackup==='function')createAutoBackup(backupReason);
-      entries=entries.filter(e=>!set.has(e.id));save();renderAll();
+    async removeEntries(ids,{backupReason=''}={}){
+      const set=new Set(ids||[]);if(!set.size)return false;
+      // Não confirmar sucesso quando os IDs já não existem nesta conta.
+      if(!entries.some(e=>set.has(e.id)))return false;
+      const before=clone(entries);
+      const uid=window.MeuControleUserDataScope?.activeUid?.()||'';
+      // Uma cópia verificada no IndexedDB protege a operação mesmo com localStorage cheio.
+      if(typeof preserveEntryFormSnapshot!=='function')throw new Error('Proteção de exclusão indisponível.');
+      await preserveEntryFormSnapshot(backupReason||'Antes de excluir lançamentos');
+      if(uid!==(window.MeuControleUserDataScope?.activeUid?.()||'')||
+         JSON.stringify(before)!==JSON.stringify(entries))throw new Error('Dados alterados durante a proteção; exclusão cancelada.');
+      entries=entries.filter(e=>!set.has(e.id));
+      try{save()}catch(error){entries=before;throw error}
+      try{window.MeuControleUserDataScope?.saveCurrent?.()}catch(error){console.warn('[MeuControle] Falha ao salvar escopo',error)}
+      renderAll();
+      return true;
     },
     backup:reason=>typeof createAutoBackup==='function'&&createAutoBackup(reason)
   };

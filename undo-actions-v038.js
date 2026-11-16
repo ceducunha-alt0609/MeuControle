@@ -72,7 +72,10 @@
       const original=removeEntry;
       const wrapped=async function(id){
         const item=entries.find(e=>e.id===id);if(!item)return false;
-        const confirmed=await askDelete(item);if(!confirmed)return false;
+        // O motor de operações já apresenta a confirmação; não abrir outra.
+        if(!window.MeuControleOps?.deleteEntries){
+          const confirmed=await askDelete(item);if(!confirmed)return false;
+        }
         const before=clone(entries);
         /* Usar a rotina central com snapshot verificado no IndexedDB.
            NUNCA repetir a gravacao legada de backup no localStorage. */
