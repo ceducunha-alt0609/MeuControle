@@ -481,6 +481,32 @@
     }finally{applyingRemote=false}
   }
 
+  /* Resumo informativo entre duas versoes; nao grava nem altera o workspace.
+     Sem historico comum, "incluido/excluido" indica diferenca entre estados,
+     nao prova qual usuario executou uma operacao. */
+  function describeRemoteChanges(local,remote){
+    const result=[];
+    const list=(a)=>new Map((Array.isArray(a)?a:[]).filter(x=>x&&x.id!=null).map(x=>[String(x.id),x]));
+    const add=(kind,action,name,from,to)=>result.push({kind,action,name:String(name||'Sem descrição').slice(0,140),from:from||'',to:to||''});
+    const compare=(before,after,kind)=>{
+      const old=list(before),fresh=list(after);
+      for(const [id,entry] of fresh){
+        const prev=old.get(id);const name=entry.description||entry.name||prev?.description||prev?.name||'Sem descrição';
+        if(!prev){add(kind,'added',name,'',entry.date||'');continue}
+        if(JSON.stringify(canonicalComparable(prev))===JSON.stringify(canonicalComparable(entry)))continue;
+        if(kind==='task'){
+          if(Boolean(prev.done)!==Boolean(entry.done))add(kind,entry.done?'completed':'reopened',name);
+          const fields=Object.keys(entry).filter(k=>JSON.stringify(canonicalComparable(prev[k]))!==JSON.stringify(canonicalComparable(entry[k])));
+          if(fields.some(k=>!['done','doneAt'].includes(k)))add(kind,'edited',name,prev.date||'',entry.date||'');
+        }else add(kind,'edited',name,String(prev.day||'')+'/'+String(prev.month||''),String(entry.day||'')+'/'+String(entry.month||''));
+      }
+      for(const [id,entry] of old)if(!fresh.has(id))add(kind,'removed',entry.description||entry.name||'Sem descrição');
+    };
+    compare(local?.entries,remote?.entries,'task');
+    const dates=ws=>(Array.isArray(ws?.profiles)?ws.profiles:[]).flatMap(p=>(Array.isArray(p.specialDates)?p.specialDates:[]).map(x=>({...x,id:String(p.id)+':'+String(x.id)})));
+    compare(dates(local),dates(remote),'special');
+    return result;
+  }
   async function applyRemote(remote,run=bootRun,{notify=true}={}){
     if(run!==bootRun||!uid||!remote?.workspace||applyingRemote)return;
     const raw=remote.workspace,localFull=scope()?.exportCurrent?.()||{},w={...raw,autoBackups:Array.isArray(localFull.autoBackups)?localFull.autoBackups:[],lastBackup:localFull.lastBackup||null},h=workspaceHash(raw),local=currentWorkspace(),lh=workspaceHash(local);
@@ -492,7 +518,7 @@
     }
     preserveBeforeRemote('Antes de aplicar lançamentos recebidos da nuvem');
     applyingRemote=true;clearTimeout(pushTimer);setStatus('downloading','Atualizando este dispositivo com os dados da sua conta…');
-    try{const ok=scope()?.importCurrent?.(w,{reload:false});if(ok===false)throw new Error('workspace-not-active');if(run!==bootRun)return;lastHash=h;seenRevision=revisionOf(remote);localDirty=false;writeMeta(uid,{lastCloudHash:h,lastRemoteAt:remote.clientUpdatedAt||new Date().toISOString(),lastLocalChangeAt:remote.clientUpdatedAt||new Date().toISOString()});setStatus('synced');if(notify&&bootstrapComplete&&remote.sourceDeviceId&&remote.sourceDeviceId!==deviceId())window.dispatchEvent(new CustomEvent('meucontrole:remote-workspace-applied',{detail:{uid,sourceDeviceId:remote.sourceDeviceId,at:remote.clientUpdatedAt||new Date().toISOString()}}))}catch(e){if(run===bootRun)setStatus('error','',errorMessage(e))}finally{if(run===bootRun)setTimeout(()=>{applyingRemote=false;lastHash=workspaceHash(currentWorkspace())},0)}
+    try{const ok=scope()?.importCurrent?.(w,{reload:false});if(ok===false)throw new Error('workspace-not-active');if(run!==bootRun)return;lastHash=h;seenRevision=revisionOf(remote);localDirty=false;writeMeta(uid,{lastCloudHash:h,lastRemoteAt:remote.clientUpdatedAt||new Date().toISOString(),lastLocalChangeAt:remote.clientUpdatedAt||new Date().toISOString()});setStatus('synced');if(notify&&bootstrapComplete&&remote.sourceDeviceId&&remote.sourceDeviceId!==deviceId())window.dispatchEvent(new CustomEvent('meucontrole:remote-workspace-applied',{detail:{uid,sourceDeviceId:remote.sourceDeviceId,at:remote.clientUpdatedAt||new Date().toISOString(),revision:revisionOf(remote),changes:describeRemoteChanges(local,raw)}}))}catch(e){if(run===bootRun)setStatus('error','',errorMessage(e))}finally{if(run===bootRun)setTimeout(()=>{applyingRemote=false;lastHash=workspaceHash(currentWorkspace())},0)}
   }
 
   async function bootstrap(run){
@@ -519,11 +545,16 @@
       window.dispatchEvent(new CustomEvent('meucontrole:cloud-bootstrap-complete',{detail:{uid}}));
       unsub=cloud().watch(uid,remote=>{
         traceEvent('remote-event',remote?.clientUpdatedAt||'sem data');
-        if(run!==bootRun||!remote?.workspace||applyingRemote||conflictBlocked||quotaBlocked)return;
+        if(run!==bootRun||!remote?.workspace||applyingRemote||quotaBlocked)return;
+        if(conflictBlocked){
+          window.dispatchEvent(new CustomEvent('meucontrole:remote-workspace-pending',{detail:{uid,at:remote.clientUpdatedAt||new Date().toISOString(),revision:revisionOf(remote),changes:describeRemoteChanges(currentWorkspace(),remote.workspace)}}));
+          return;
+        }
         const rh=workspaceHash(remote.workspace),lh=workspaceHash(currentWorkspace());
         if(rh===lh){lastHash=rh;seenRevision=revisionOf(remote);if(!localDirty){writeMeta(uid,{lastCloudHash:rh});setStatus('synced')}return}
         if(localDirty||inFlightRun===run||pushTimer){
           blockConflict('Alterações remotas recebidas com trabalho local pendente');
+          window.dispatchEvent(new CustomEvent('meucontrole:remote-workspace-pending',{detail:{uid,at:remote.clientUpdatedAt||new Date().toISOString(),revision:revisionOf(remote),changes:describeRemoteChanges(currentWorkspace(),remote.workspace)}}));
           return;
         }
         applyRemote(remote,run,{notify:true}).catch(e=>{blockConflict(e?.message||'Falha ao preservar dados locais')});
